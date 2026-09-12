@@ -1,0 +1,26 @@
+[
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-v4-flash（空闲）",
+    "currency": "¥",
+    "inputPrice": 1,
+    "outputPrice": 4,
+    "cachePrice": 0.02,
+    "unit": "百万token",
+    "note": "空闲时段为高峰价的一半",
+    "source": "手动添加",
+    "verifiedAt": "2026-09-11"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-v4-flash（高峰）",
+    "currency": "¥",
+    "inputPrice": 2,
+    "outputPrice": 8,
+    "cachePrice": 0.04,
+    "unit": "百万token",
+    "note": "高峰时段 09:00-12:00、14:00-18:00",
+    "source": "手动添加",
+    "verifiedAt": "2026-09-11"
+  }
+]

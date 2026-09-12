@@ -1,0 +1,1076 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #1677ff;
+  --sidebar-bg: #001529;
+  --panel-bg: #ffffff;
+  --panel-border: #e0e0e0;
+  --header-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  /* 界面缩放倍数，由 App 根节点内联覆盖 */
+  --mimo-zoom: 1;
+}
+
+/* ============================================================
+   界面缩放（放大字体）
+   ============================================================ */
+/*
+ * 用 zoom 而不是 transform: scale：
+ *   - zoom 是布局级缩放，元素会重新排版、文字重新光栅化 → 放大后依然清晰
+ *   - transform 是先按 1x 光栅化再拉伸 → 文字会发虚
+ * 代价是 clientX/clientY（视口像素）与面板坐标（画布 CSS 像素）差 zoom 倍，
+ * 所以拖拽/拖宽逻辑必须用 utils/zoom.ts 换算（见 Layout、SplitPane）。
+ */
+.app-root {
+  display: flex;
+  zoom: var(--mimo-zoom, 1);
+  /* 抵消放大导致的溢出，保证正好铺满窗口、不出现滚动条 */
+  height: calc(100vh / var(--mimo-zoom, 1));
+  overflow: hidden;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root {
+  height: 100vh;
+}
+
+/* 主内容区外层：工具条（首页）+ 可滚动画布 */
+.main-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* 主容器（视口） */
+.main-container {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+}
+
+/* 首页模式：画布可能高于视口，允许纵向滚动 */
+.main-container-home {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 面板画布：面板绝对定位的参照物 */
+.panels-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+}
+
+/* 窗口容器 */
+.window {
+  position: absolute;
+  background: var(--panel-bg);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  transition: box-shadow 0.2s;
+}
+
+.window:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* 最大化状态：铺满容器 */
+.window-maximized {
+  border-radius: 0;
+}
+
+.window-maximized .panel-header {
+  background: #fff;
+}
+
+
+/* Panel容器 */
+.panel-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 标题栏 */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  height: 40px;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--panel-border);
+  cursor: move;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 13px;
+  color: #333;
+}
+
+.menu-icon {
+  font-size: 16px;
+}
+
+/* 操作按钮 */
+.panel-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  /* 必须高于标题栏本体，否则拖动事件会把点击吃掉 */
+  position: relative;
+  z-index: 2;
+}
+
+.panel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #666;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.panel-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #333;
+}
+
+.panel-close:hover {
+  background: #ff4d4f !important;
+  color: white !important;
+}
+
+/* 内容区域 */
+.panel-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  background: #fff;
+}
+
+/* 资讯模块：iframe 内嵌成熟站点，铺满面板内容区 */
+.news-embed-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.news-embed-frame-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.news-embed-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  background: #fff;
+}
+
+.news-embed-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  z-index: 2;
+}
+
+/* 经典列表 tab：保持原有滚动行为 */
+.news-embed-legacy {
+  flex: 1;
+  min-height: 0;
+}
+
+/* RSS 订阅 tab */
+.rss-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.rss-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+}
+
+.rss-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.rss-item:hover {
+  background: #fafafa;
+}
+
+.rss-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f1f1f;
+  text-decoration: none;
+  line-height: 1.5;
+  display: block;
+}
+
+.rss-item-title:hover {
+  color: #1677ff;
+}
+
+.rss-item-meta {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.rss-item-summary {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 调整大小手柄 */
+.resize-handle {
+  position: absolute;
+  z-index: 20;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+/* 拖拽中的全局反馈 */
+body.is-dragging {
+  user-select: none;
+}
+
+body.is-dragging iframe {
+  pointer-events: none;
+}
+
+.resize-handle:hover {
+  background: rgba(22, 119, 255, 0.3);
+}
+
+.resize-e, .resize-w {
+  width: 6px;
+  top: 40px;
+  bottom: 0;
+}
+
+.resize-n, .resize-s {
+  height: 6px;
+  left: 40px;
+  right: 0;
+}
+
+.resize-ne, .resize-nw, .resize-se, .resize-sw {
+  width: 12px;
+  height: 12px;
+}
+
+.resize-se { bottom: 0; right: 0; }
+.resize-sw { bottom: 0; left: 0; }
+.resize-ne { top: 40px; right: 0; }
+.resize-nw { top: 40px; left: 0; }
+
+.resize-e { right: 0; }
+.resize-w { left: 0; }
+.resize-s { bottom: 0; }
+.resize-n { top: 40px; }
+
+/* 八方向光标 */
+.resize-e, .resize-w { cursor: ew-resize; }
+.resize-n, .resize-s { cursor: ns-resize; }
+.resize-ne, .resize-sw { cursor: nesw-resize; }
+.resize-nw, .resize-se { cursor: nwse-resize; }
+
+/* 滚动条样式 */
+.panel-body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================
+   侧边栏
+   ============================================================ */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  /* 父容器 .app-root 在缩放时高度已补偿，这里不能用 100vh（会被 zoom 再放大顶出视口） */
+  height: 100%;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  color: rgba(255, 255, 255, 0.75);
+  transition: width 0.2s ease;
+  overflow: hidden;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.sidebar-menu {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 16px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.menu-item.active {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+/* 侧栏底部：界面缩放控件（放大/缩小字体） */
+.sidebar-zoom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.zoom-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.zoom-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.zoom-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.zoom-value {
+  min-width: 46px;
+  height: 22px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s;
+}
+
+.zoom-value:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ============================================================
+   全局搜索
+   ============================================================ */
+.global-search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.global-search-box {
+  width: min(600px, 92vw);
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+/* ============================================================
+   天气模块
+   ============================================================ */
+.weather-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e6f4ff 0%, #f0f5ff 100%);
+}
+
+.weather-temp {
+  font-size: 44px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--primary-color);
+}
+
+.weather-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.weather-info .city {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.weather-info .desc {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.7;
+}
+
+/* ============================================================
+   知识库预览
+   ============================================================ */
+.kb-preview {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #333;
+  word-break: break-word;
+}
+
+.kb-preview h1 { font-size: 20px; margin: 12px 0 8px; }
+.kb-preview h2 { font-size: 17px; margin: 12px 0 8px; }
+.kb-preview h3 { font-size: 15px; margin: 10px 0 6px; }
+
+.kb-preview code {
+  padding: 1px 5px;
+  font-size: 12px;
+  border-radius: 4px;
+  background: #f5f5f5;
+}
+
+.kb-preview a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.kb-preview a.wikilink {
+  border-bottom: 1px dashed var(--primary-color);
+  cursor: pointer;
+}
+
+/* ============================================================
+   追剧模块
+   ============================================================ */
+.show-card {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.show-poster {
+  width: 64px;
+  height: 88px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+  color: #1677ff;
+}
+
+.show-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.show-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.show-progress {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* ============================================================
+   Epic 免费游戏
+   ============================================================ */
+.epic-game-card {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.epic-game-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.game-cover {
+  width: 120px;
+  height: 68px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #f5f5f5;
+  color: #999;
+}
+
+.game-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.game-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.game-price {
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.game-dates {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #999;
+}
+
+/* ============================================================
+   新闻聚合
+   ============================================================ */
+.news-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.news-item:hover {
+  background: #fafafa;
+}
+
+.news-source {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.news-title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #333;
+}
+
+.news-time {
+  font-size: 11px;
+  color: #999;
+}
+
+/* ============================================================
+   日历周视图
+   ============================================================ */
+.calendar-week-grid {
+  display: grid;
+  grid-template-columns: 44px repeat(7, minmax(0, 1fr));
+  border-top: 1px solid #f0f0f0;
+  border-left: 1px solid #f0f0f0;
+  min-width: 0;
+}
+
+.calendar-day-header {
+  padding: 6px 2px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.4;
+  border-right: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.calendar-time-slot {
+  padding: 4px 2px;
+  text-align: center;
+  font-size: 10px;
+  color: #999;
+  border-right: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.calendar-event {
+  margin-bottom: 2px;
+  padding: 2px 4px;
+  font-size: 10px;
+  color: #333;
+  background: #f0f5ff;
+  border-left: 3px solid var(--primary-color);
+  border-radius: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   首页（模块总览画布）
+   ============================================================ */
+.window-active {
+  box-shadow: 0 10px 28px rgba(22, 119, 255, 0.25) !important;
+  border-color: rgba(22, 119, 255, 0.45) !important;
+}
+
+/* 首页工具条：模块启动器 */
+.home-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.home-toolbar-title {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+}
+
+.home-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.home-chips::-webkit-scrollbar {
+  height: 4px;
+}
+
+.home-chips::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
+
+.home-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: #888;
+  background: #f5f5f5;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.home-chip:hover {
+  background: #e6f4ff;
+  color: var(--primary-color);
+}
+
+.home-chip-on {
+  background: #e6f4ff;
+  color: var(--primary-color);
+  border-color: #91caff;
+}
+
+.home-chip-action {
+  flex-shrink: 0;
+  background: #fff;
+  border-color: #d9d9d9;
+  color: #555;
+}
+
+/* 首页空状态 */
+.home-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #999;
+}
+
+.home-empty-icon {
+  font-size: 40px;
+}
+
+.home-empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+}
+
+.home-empty-desc {
+  font-size: 12px;
+}
+
+.home-empty-btn {
+  margin-top: 10px;
+  padding: 6px 16px;
+  font-size: 13px;
+  color: #fff;
+  background: var(--primary-color);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.home-empty-btn:hover {
+  opacity: 0.88;
+}
+
+/* 对齐参考线（拖动/缩放时的吸附提示） */
+.snap-guide {
+  position: absolute;
+  z-index: 99999;
+  pointer-events: none;
+  background: var(--primary-color);
+}
+
+.snap-guide-v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  opacity: 0.75;
+}
+
+.snap-guide-h {
+  left: 0;
+  right: 0;
+  height: 1px;
+  opacity: 0.75;
+}
+
+/* ============================================================
+   天气模块 · 多城市
+   ============================================================ */
+.weather-cities {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.weather-city-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px 0 10px;
+  font-size: 12px;
+  color: #666;
+  background: #f5f5f5;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.weather-city-tab:hover {
+  background: #e6f4ff;
+  color: var(--primary-color);
+}
+
+.weather-city-tab.active {
+  background: #e6f4ff;
+  color: var(--primary-color);
+  border-color: #91caff;
+  font-weight: 600;
+}
+
+.weather-city-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 11px;
+  line-height: 1;
+  border-radius: 50%;
+  color: inherit;
+  opacity: 0.55;
+}
+
+.weather-city-remove:hover {
+  background: rgba(0, 0, 0, 0.12);
+  opacity: 1;
+}
+
+/* ============================================================
+   API 价格模块
+   ============================================================ */
+.pricing-best-row > td {
+  background: #fffbe6 !important;
+}
+
+/* ============================================================
+   模块内部左右分栏（可拖动变宽）
+   ============================================================ */
+.split-pane {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+}
+
+.split-pane-left {
+  flex: 0 0 auto;
+  min-width: 0;
+  overflow: auto;
+}
+
+.split-pane-right {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+}
+
+.split-pane-divider {
+  flex: 0 0 auto;
+  width: 8px;
+  margin: 0 2px;
+  position: relative;
+  cursor: col-resize;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.split-pane-divider::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 24px;
+  border-radius: 1px;
+  background: #d9d9d9;
+  transition: background 0.15s;
+}
+
+.split-pane-divider:hover,
+.split-pane-divider.active {
+  background: rgba(22, 119, 255, 0.14);
+}
+
+.split-pane-divider:hover::after,
+.split-pane-divider.active::after {
+  background: var(--primary-color);
+}
+
+body.is-resizing {
+  user-select: none;
+  cursor: col-resize;
+}
+
+
+/* ============================================================
+   首页 react-grid-layout
+   ============================================================ */
+/* 网格中的窗口：尺寸由 RGL wrapper 控制，覆盖 .window 的 absolute */
+.window-in-grid {
+  /* 定位/尺寸完全交给 RGL 的内联样式（position:absolute + transform + width/height），
+     这里禁止覆盖 position，否则 transform 定位失效、窗口会按文档流堆叠 */
+  overflow: hidden;
+}
+
+/* 拖动时的落点占位框 */
+.react-grid-placeholder {
+  background: rgba(22, 119, 255, 0.10);
+  border: 1.5px dashed rgba(22, 119, 255, 0.55);
+  border-radius: 8px;
+}
+
+/* 八方向缩放手柄：默认透明热区，hover 高亮 */
+.react-grid-item > .react-resizable-handle {
+  transition: background 0.15s;
+}
+.react-grid-item > .react-resizable-handle:hover {
+  background: rgba(22, 119, 255, 0.18);
+  border-radius: 4px;
+}
+.react-grid-item > .react-resizable-handle::after {
+  border-right: 2px solid rgba(22, 119, 255, 0.4);
+  border-bottom: 2px solid rgba(22, 119, 255, 0.4);
+}
+/* 顶部手柄的三角方向修正（RGL 默认只有 se 样式） */
+.react-grid-item > .react-resizable-handle-n::after,
+.react-grid-item > .react-resizable-handle-ne::after,
+.react-grid-item > .react-resizable-handle-nw::after {
+  border-right: none;
+  border-bottom: none;
+  border-top: 2px solid rgba(22, 119, 255, 0.4);
+  border-left: 2px solid rgba(22, 119, 255, 0.4);
+}
+
+/* 拖动中窗口抬起效果 */
+.react-grid-item.react-draggable-dragging .window {
+  box-shadow: 0 12px 32px rgba(22, 119, 255, 0.28) !important;
+  border-color: rgba(22, 119, 255, 0.45) !important;
+}
+
+/* 顶部缩放手柄默认 20x20 压在 40px 的标题栏中央，
+   而 react-draggable 把 handle 视为拖动 cancel 区 → 标题栏中央拖不动。
+   把 n 手柄压成顶边 5px 细条，ne/nw 保留在角落。 */
+.react-grid-item > .react-resizable-handle.react-resizable-handle-n {
+  top: 0;
+  left: 25%;
+  width: 50%;
+  height: 5px;
+  margin-left: 0;
+  transform: none;
+  cursor: ns-resize;
+}
+.react-grid-item > .react-resizable-handle.react-resizable-handle-n::after {
+  border-top: 2px solid rgba(22, 119, 255, 0.4);
+  border-left: none;
+  width: 40px;
+  height: 3px;
+  top: 1px;
+  left: 50%;
+  margin-left: -20px;
+}

@@ -1,0 +1,22 @@
+node_modules/
+dist/
+dist-electron/
+.env
+.env.local
+*.log
+data/cache/
+.DS_Store
+Thumbs.db
+
+# --- 公开仓库排除项（2026-09-12 安全审计新增） ---
+# 本地备份（内含 .env 密钥副本）与 AI 工具会话数据
+.backup/
+.workbuddy/
+# 构建产物（便携版输出，数百 MB）
+release/
+# 调试截图与临时文件
+*.gz
+.shot-*.png
+.verify-fix.png
+vite.config.ts.timestamp-*.mjs
+*.tsbuildinfo

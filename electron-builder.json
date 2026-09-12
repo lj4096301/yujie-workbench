@@ -1,0 +1,25 @@
+{
+  "appId": "com.yujie.workbench",
+  "productName": "宇界工作台",
+  "disableAsarIntegrity": true,
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "public/**/*",
+    "data/**/*"
+  ],
+  "win": {
+    "target": "dir",
+    "icon": "public/icon.png",
+    "signExecutable": false
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  }
+}
