@@ -42,6 +42,7 @@ const SpreadsheetModule: React.FC = () => {
   const [activeSheet, setActiveSheet] = useState<string>('default')
   const [gridApi, setGridApi] = useState<any>(null)
   const [columnApi, setColumnApi] = useState<any>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // 从后端加载数据
   const loadSheets = useCallback(async () => {
