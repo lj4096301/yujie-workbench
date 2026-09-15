@@ -12,7 +12,7 @@ import {
 } from '@ant-design/icons'
 import CodeMirror from '@uiw/react-codemirror'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
-import SplitPane from '@/components/SplitPane'
+import SplitPane from '@/shared/split-pane'
 import MarkdownView from './MarkdownView'
 import GraphView from './GraphView'
 import './knowledge.css'

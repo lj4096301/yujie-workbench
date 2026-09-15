@@ -11,7 +11,7 @@ import {
   LoadingOutlined,
   EditOutlined,
 } from '@ant-design/icons'
-import SplitPane from '@/components/SplitPane'
+import SplitPane from '@/shared/split-pane'
 
 interface Chapter {
   id: string
