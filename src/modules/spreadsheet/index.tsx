@@ -492,8 +492,8 @@ const SpreadsheetModule: React.FC = () => {
           </Tooltip>
           <Tooltip title="导出 CSV">
             <Button icon={<DownloadOutlined />} onClick={exportCSV}>导出 CSV</Button>
-          <Button icon={<SaveOutlined />} onClick={saveAll} type="primary">保存</Button>
           </Tooltip>
+          <Button icon={<SaveOutlined />} onClick={saveAll} type="primary">保存</Button>
         </Space>
       </div>
 
