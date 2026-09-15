@@ -312,6 +312,14 @@ const SpreadsheetModule: React.FC = () => {
       {/* 工具栏 */}
       <div style={{ marginBottom: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Space>
+          <Button icon={<UploadOutlined />} onClick={() => fileInputRef.current?.click()}>导入</Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            style={{ display: 'none' }}
+            onChange={handleImportExcel}
+          />
           <Button icon={<PlusOutlined />} onClick={addRow}>添加行</Button>
           <Button icon={<PlusOutlined />} onClick={addColumn}>添加列</Button>
           <Popconfirm
