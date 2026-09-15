@@ -1,6 +1,10 @@
+@import "./design-tokens.css";
+@import "./components.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
 
 :root {
   --primary-color: #1677ff;
@@ -1073,4 +1077,99 @@ body.is-resizing {
   top: 1px;
   left: 50%;
   margin-left: -20px;
+}
+/* ============================================================
+   书签 / 任务 / 剪贴板 模块（效率基座三件套）
+   ============================================================ */
+.mod-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.mod-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #fff;
+  margin-bottom: 8px;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.mod-row:hover {
+  background: #fafafa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.mod-click {
+  cursor: pointer;
+}
+
+.mod-row-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mod-row-sub {
+  font-size: 11px;
+  color: #999;
+}
+
+.mod-muted {
+  color: #999;
+  font-size: 12px;
+}
+
+.clip-text {
+  font-size: 12px;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 60px;
+  overflow: hidden;
+}
+/* ============================================================
+   主题选择器
+   ============================================================ */
+.sidebar-theme {
+  padding: 6px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.theme-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  user-select: none;
+}
+
+.theme-trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.theme-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: background 0.2s;
 }

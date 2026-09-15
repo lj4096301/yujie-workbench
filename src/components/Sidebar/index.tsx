@@ -1,8 +1,10 @@
 import React from 'react'
+import { Dropdown, Tooltip } from 'antd'
 import { useLayoutStore, HOME_ID } from '@/stores/layoutStore'
 import { useUIStore, ZOOM_MAX, ZOOM_MIN } from '@/stores/uiStore'
 import { getMainAreaBounds } from '@/utils/layoutBounds'
 import { MODULE_META } from '@/modules/registry'
+import { THEMES, getTheme } from '@/themes'
 
 /** 导航清单来自模块注册表（title 复用为 label，改名只改 registry） */
 const MENU_ITEMS = MODULE_META.map((m) => ({ id: m.id, icon: m.icon, label: m.title }))
@@ -70,6 +72,59 @@ const Sidebar: React.FC = () => {
             {!sidebarCollapsed && <span>{item.label}</span>}
           </div>
         ))}
+      </div>
+
+      {/* 主题选择器 */}
+      <div className="sidebar-theme">
+        <Dropdown
+          menu={{
+            selectedKeys: [useUIStore.getState().themeId],
+            onClick: ({ key }) => useUIStore.getState().setTheme(key as string),
+            items: THEMES.map((t) => ({
+              key: t.id,
+              label: (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 12,
+                      height: 12,
+                      borderRadius: 3,
+                      background: t.preview.sidebar,
+                      border: `1.5px solid ${t.preview.primary}`,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span>{t.label}</span>
+                  <span
+                    style={{
+                      marginLeft: 'auto',
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: t.preview.primary,
+                      flexShrink: 0,
+                    }}
+                  />
+                </span>
+              ),
+            })),
+          }}
+          trigger={['click']}
+          placement="topRight"
+        >
+          <Tooltip title="切换主题" placement="right">
+            <div className="theme-trigger">
+              <span
+                className="theme-swatch"
+                style={{ background: getTheme(useUIStore.getState().themeId).preview.primary }}
+              />
+              {!sidebarCollapsed && (
+                <span>{getTheme(useUIStore.getState().themeId).label}</span>
+              )}
+            </div>
+          </Tooltip>
+        </Dropdown>
       </div>
 
       {/* 界面缩放：整体放大字体（Ctrl+= / Ctrl+- 同效） */}

@@ -9,6 +9,8 @@ import MainLayout from '@/components/Layout'
 import GlobalSearch from '@/components/GlobalSearch'
 import { useLayoutStore, MODULE_ORDER } from '@/stores/layoutStore'
 import { useUIStore } from '@/stores/uiStore'
+import { getTheme } from '@/themes'
+import { useClipboardStore } from '@/stores/clipboardStore'
 import { getMainAreaBounds } from '@/utils/layoutBounds'
 
 dayjs.extend(isoWeek)
@@ -18,6 +20,7 @@ const App: React.FC = () => {
   const searchVisible = useLayoutStore((s) => s.searchVisible)
   const setSearchVisible = useLayoutStore((s) => s.setSearchVisible)
   const zoom = useUIStore((s) => s.zoom)
+  const theme = useUIStore((s) => s.themeId)
   const zoomIn = useUIStore((s) => s.zoomIn)
   const zoomOut = useUIStore((s) => s.zoomOut)
   const resetZoom = useUIStore((s) => s.resetZoom)
@@ -178,8 +181,30 @@ const App: React.FC = () => {
     })
   }, [goHome, zoomIn, zoomOut, resetZoom, newNote, resetLayout, refreshVisible])
 
+  // 全局剪贴板监听：应用内 copy/cut + Electron 主进程推送的系统剪贴板变化，
+  // 统一写入 clipboardStore，保证面板隐藏时也能记录历史（剪切板模块只负责渲染）。
+  useEffect(() => {
+    const onCopy = () => {
+      const sel = window.getSelection()?.toString()
+      if (sel && sel.trim()) useClipboardStore.getState().add(sel, 'copy')
+    }
+    document.addEventListener('copy', onCopy)
+
+    const api = window.electronAPI
+    let unsub: (() => void) | undefined
+    if (api?.onClipboardChange) {
+      unsub = api.onClipboardChange((text: string) => {
+        if (text && text.trim()) useClipboardStore.getState().add(text, 'global')
+      })
+    }
+    return () => {
+      document.removeEventListener('copy', onCopy)
+      unsub?.()
+    }
+  }, [])
+
   return (
-    <ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: '#1677ff' } }}>
+    <ConfigProvider locale={zhCN} theme={{ token: getTheme(theme).antToken }}>
       {/*
         界面缩放的落点：zoom 是布局级缩放（元素重新排版 + 文字重新光栅化），
         比 transform: scale 清晰，且 antd 组件、自定义 px 字号会一起放大。
@@ -204,7 +229,7 @@ const App: React.FC = () => {
         >
           <div style={{ fontSize: 13, lineHeight: 2, color: '#555' }}>
             <div>宇界工作台 · 个人工作台</div>
-            <div>模块：{MODULE_ORDER.length} 个（知识库 / 小说 / 日程 / 天气 / 免费游戏 / 新闻 / 追剧 / API 价格）</div>
+            <div>模块：{MODULE_ORDER.length} 个（知识库 / 小说 / 日程 / 天气 / 免费游戏 / 新闻 / 追剧 / API 价格 / 书签 / 待办 / 剪贴板）</div>
             <div>当前界面缩放：{Math.round(zoom * 100)}%</div>
             <div style={{ color: '#999', fontSize: 12, marginTop: 6 }}>
               快捷键：Ctrl+K 搜索 · Ctrl+0 首页 · Ctrl+1~9 切模块 · Ctrl+=/- 缩放

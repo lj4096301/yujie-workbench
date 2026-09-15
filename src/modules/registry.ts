@@ -26,4 +26,7 @@ export const MODULE_META: ModuleMeta[] = [
   { id: 'news', title: '新闻聚合', icon: '📰' },
   { id: 'tv', title: '追剧管理', icon: '📺' },
   { id: 'api-monitor', title: 'API 价格', icon: '📊' },
+  { id: 'bookmarks', title: '书签启动', icon: '🔖' },
+  { id: 'tasks', title: '待办任务', icon: '✅' },
+  { id: 'clipboard', title: '剪贴板', icon: '📋' },
 ]

@@ -37,6 +37,10 @@ declare global {
       platform: string
       /** 订阅主进程菜单命令，返回取消订阅函数 */
       onMenuCommand?: (cb: (command: string) => void) => () => void
+      /** 订阅主进程推送的系统剪贴板变化（桌面端全局复制），返回取消订阅函数 */
+      onClipboardChange?: (cb: (text: string) => void) => () => void
+      /** 从本机浏览器（Edge/Chrome/Brave）导入书签 */
+      importBookmarks?: () => Promise<Array<{ id: string; title: string; url: string; icon: string; group: string }>>
     }
   }
 }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, session, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, session, shell, clipboard } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
@@ -405,10 +405,129 @@ ipcMain.handle('get-app-info', () => ({
   webServerPort: WEB_SERVER_PORT,
 }))
 
+// -----------------------------------------------------------------------
+// 浏览器书签导入
+// Chromium 系（Edge / Chrome / Brave）使用相同 JSON 格式：
+//   { roots: { bookmark_bar: Node, other: Node, ... }, version, ... }
+// Node: { name, type:'url'|'folder', url?, children?: Node[] }
+// -----------------------------------------------------------------------
+interface BookmarkNode {
+  name: string
+  type: 'url' | 'folder'
+  url?: string
+  children?: BookmarkNode[]
+}
+
+interface BrowserBookmark {
+  id: string
+  title: string
+  url: string
+  icon: string
+  group: string
+}
+
+/**
+ * 递归遍历书签树，扁平化为统一数组。
+ * @param node   当前节点
+ * @param group  当前累计的分组路径（用于嵌套文件夹层级展示）
+ * @param out    收集结果
+ */
+function flattenBookmarks(
+  node: BookmarkNode,
+  group: string,
+  out: BrowserBookmark[]
+): void {
+  if (node.type === 'url' && node.url) {
+    out.push({
+      id: `bm-import-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      title: node.name || node.url,
+      url: node.url,
+      icon: '🌐',
+      group,
+    })
+  } else if (node.type === 'folder' && node.children) {
+    const g = group ? `${group} / ${node.name}` : node.name
+    for (const child of node.children) {
+      flattenBookmarks(child, g, out)
+    }
+  }
+}
+
+/**
+ * 扫描一个浏览器的书签文件，返回扁平化的书签数组。
+ * @param bookmarkFile  Bookmarks JSON 文件的完整路径
+ * @param browserLabel  浏览器显示名（如 "Edge"）
+ */
+function parseBrowserBookmarks(bookmarkFile: string, browserLabel: string): BrowserBookmark[] {
+  const out: BrowserBookmark[] = []
+  try {
+    if (!fs.existsSync(bookmarkFile)) return out
+    const raw = fs.readFileSync(bookmarkFile, 'utf8')
+    const data = JSON.parse(raw) as { roots?: Record<string, BookmarkNode> }
+    if (!data.roots) return out
+    for (const [, node] of Object.entries(data.roots)) {
+      flattenBookmarks(node, browserLabel, out)
+    }
+  } catch (err) {
+    console.warn(`[bookmarks] 读取 ${bookmarkFile} 失败:`, (err as Error).message)
+  }
+  return out
+}
+
+ipcMain.handle('bookmarks:import', (): BrowserBookmark[] => {
+  const appData = process.env.APPDATA || ''
+  if (!appData) return []
+
+  const profileCandidates = ['', '/Default', '/Profile 1', '/Profile 2', '/Profile 3']
+  const result: BrowserBookmark[] = []
+
+  const browsers: Array<{ root: string; label: string }> = [
+    { root: path.join(appData, 'Microsoft', 'Edge'), label: 'Edge' },
+    { root: path.join(appData, 'Google', 'Chrome'), label: 'Chrome' },
+    { root: path.join(appData, 'BraveSoftware', 'Brave-Browser'), label: 'Brave' },
+  ]
+
+  for (const { root, label } of browsers) {
+    for (const profile of profileCandidates) {
+      const file = path.join(root, profile, 'Bookmarks')
+      const items = parseBrowserBookmarks(file, label)
+      result.push(...items)
+    }
+  }
+
+  return result
+})
+
+// 全局剪贴板监听：主进程轮询系统剪贴板，变化即推给渲染进程（用于剪贴板历史模块）。
+// 即使剪贴板面板未打开，复制操作也被记录，切回面板即可看到历史。
+let lastClipboard = ''
+let clipboardTimer: ReturnType<typeof setInterval> | null = null
+function startClipboardWatch() {
+  if (clipboardTimer) return
+  try {
+    lastClipboard = clipboard.readText()
+  } catch {
+    /* 读取失败忽略 */
+  }
+  clipboardTimer = setInterval(() => {
+    let text = ''
+    try {
+      text = clipboard.readText()
+    } catch {
+      return
+    }
+    if (text && text !== lastClipboard) {
+      lastClipboard = text
+      mainWindow?.webContents.send('clipboard:change', text)
+    }
+  }, 1000)
+}
+
 app.whenReady().then(() => {
   buildAppMenu()
   startWebServer()
   createWindow()
+  startClipboardWatch()
   createTray()
 
   app.on('activate', () => {

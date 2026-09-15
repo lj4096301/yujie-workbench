@@ -15,6 +15,9 @@ import EpicModule from '@/modules/epic-games'
 import NewsModule from '@/modules/news'
 import TVModule from '@/modules/tv-tracker'
 import APIMonitorModule from '@/modules/api-monitor'
+import BookmarksModule from '@/modules/bookmarks'
+import TasksModule from '@/modules/tasks'
+import ClipboardModule from '@/modules/clipboard'
 import 'react-grid-layout/css/styles.css'
 
 /** RGL 需要感知容器宽度才能按 cols 换算像素，WidthProvider 自动跟随 */
@@ -30,6 +33,9 @@ const MODULE_COMPONENTS: Record<string, React.FC> = {
   news: NewsModule,
   tv: TVModule,
   'api-monitor': APIMonitorModule,
+  bookmarks: BookmarksModule,
+  tasks: TasksModule,
+  clipboard: ClipboardModule,
 }
 
 /** 完整模块映射 = registry 元数据 + 组件（新增模块时改 registry + MODULE_COMPONENTS 两处即可） */

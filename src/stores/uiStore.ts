@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { THEMES, DEFAULT_THEME_ID, THEME_STORAGE_KEY, getTheme } from '@/themes'
 
 /**
  * 界面缩放（缩放整个界面：字体、图标、间距、antd 组件一起等比放大）。
@@ -18,6 +19,25 @@ export const ZOOM_MIN = ZOOM_STEPS[0]
 export const ZOOM_MAX = ZOOM_STEPS[ZOOM_STEPS.length - 1]
 
 const clampZoom = (value: number) => Math.min(Math.max(value, ZOOM_MIN), ZOOM_MAX)
+
+function readStoredTheme(): string {
+  try {
+    const raw = localStorage.getItem(THEME_STORAGE_KEY)
+    if (raw && THEMES.some((t) => t.id === raw)) return raw
+  } catch {
+    /* */
+  }
+  return DEFAULT_THEME_ID
+}
+
+/** 将主题 CSS 变量注入 document.documentElement */
+function applyThemeCss(themeId: string) {
+  const theme = getTheme(themeId)
+  const root = document.documentElement
+  for (const [k, v] of Object.entries(theme.colors)) {
+    root.style.setProperty(k, v)
+  }
+}
 
 function readStoredZoom(): number {
   try {
@@ -51,10 +71,25 @@ interface UIStore {
   zoomIn: () => void
   zoomOut: () => void
   resetZoom: () => void
+  /** 当前主题 id */
+  themeId: string
+  /** 切换主题 */
+  setTheme: (id: string) => void
 }
 
 export const useUIStore = create<UIStore>((set, get) => ({
   zoom: readStoredZoom(),
+  themeId: readStoredTheme(),
+
+  setTheme: (id) => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, id)
+    } catch {
+      /* */
+    }
+    applyThemeCss(id)
+    set({ themeId: id })
+  },
 
   setZoom: (zoom) => {
     const next = clampZoom(Number.isFinite(zoom) ? zoom : 1)
@@ -78,3 +113,11 @@ export const useUIStore = create<UIStore>((set, get) => ({
 
   resetZoom: () => get().setZoom(1),
 }))
+
+// 初始化时注入主题 CSS（store 创建时页面可能还未挂载，延迟到 DOM ready）
+if (typeof document !== 'undefined') {
+  const stored = readStoredTheme()
+  applyThemeCss(stored)
+  // 同步 store
+  useUIStore.setState({ themeId: stored })
+}

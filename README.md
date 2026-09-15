@@ -17,7 +17,7 @@ Electron · React · Ant Design · 本地优先 · 免密钥开箱即用
 <a id="english"></a>
 ## English
 
-YuJie Workbench is a **local-first personal workbench** for Windows, built with Electron + React. Nine practical modules live in one app behind a free-form, snapping window layout, and an embedded Express server lets you open the very same workbench in a browser (e.g. from your phone on LAN).
+YuJie Workbench is a **local-first personal workbench** for Windows, built with Electron + React. Eleven practical modules live in one app behind a free-form, snapping window layout, and an embedded Express server lets you open the very same workbench in a browser (e.g. from your phone on LAN).
 
 | Module | Highlights |
 |---|---|
@@ -29,7 +29,9 @@ YuJie Workbench is a **local-first personal workbench** for Windows, built with 
 | 🌤️ Weather | Multi-city, 7-day forecast, AQI, clothing/umbrella advice — powered by **Open-Meteo, no API key** |
 | 📺 TV Tracker | Watchlist, episode progress, ratings & notes |
 | 📰 News | Multi-source RSS aggregation, keyword filter, read-later |
-| 🧠 Info Hub | Aggregated info cards with scheduled refresh |
+| 🔖 Bookmarks & Launcher | Grouped quick-launch bookmarks, one-click open in browser |
+| ✅ Tasks | To-do list with priority, due date, active/done filters |
+| 📋 Clipboard History | Local clipboard history with app + system-wide capture |
 
 > 📌 This is the author's personal **AI-assisted coding practice** project — all features have been implemented and tested.
 >
@@ -57,7 +59,7 @@ Configuration lives in `.env` (copy `.env.example`); everything works **without 
 
 宇界工作台是一个**本地优先**的个人效率中心：知识库、小说创作、LLM API 价格监控、Epic 免费游戏、日程管理（农历/节气）、天气预报、追剧、新闻聚合等模块集成在一个窗口里，支持自由拖拽的窗口式布局；内置 Express 服务器，局域网内浏览器可远程访问同一份数据。
 
-- 🧩 **九大模块**，随时开关，各模块可独占全屏
+- 🧩 **十一大模块**，随时开关，各模块可独占全屏
 - 🪟 **自由窗口布局**：拖拽吸附对齐（带参考线）、8 方向缩放、最大化、界面 80%~160% 七档缩放
 - 🖥️ **桌面 + 浏览器双端**：Electron 桌面应用与浏览器访问同一后端
 - 🔌 **本地优先**：数据保存在本地 `data/` 目录，不经任何第三方服务器
@@ -79,7 +81,9 @@ Configuration lives in `.env` (copy `.env.example`); everything works **without 
 | 🌤️ 天气预报 | 多城市管理、7 天预报、AQI、出行建议，**免密钥** | Open-Meteo |
 | 📺 追剧管理 | 追剧列表、进度、评分/备注 | 本地 |
 | 📰 新闻聚合 | 多源 RSS、关键词过滤、稍后阅读 | RSS |
-| 🧠 信息收集 | 多源信息卡片聚合，定时 + 手动刷新 | 各公开接口 |
+| 🔖 书签启动 | 分组书签 + 快速启动，一键浏览器打开 | 本地 |
+| ✅ 待办任务 | 待办清单，优先级 + 截止日期，进行中/已完成筛选 | 本地 |
+| 📋 剪贴板 | 本地剪贴板历史，应用内 + 系统级捕获 | 本地 |
 
 ### 界面预览
 
@@ -151,7 +155,7 @@ WEB_SERVER_PORT=3001              # 后端端口
 yujie-workbench/
 ├── electron/          # Electron 主进程（窗口、托盘、便携版数据目录、内置服务器托管）
 ├── src/
-│   ├── modules/       # 九大功能模块
+│   ├── modules/       # 十一大功能模块
 │   ├── components/    # 布局引擎 / 面板容器 / 通用组件
 │   ├── server/        # Express 后端（浏览器远程访问）
 │   ├── stores/        # Zustand 状态
