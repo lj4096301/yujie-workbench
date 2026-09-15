@@ -16,7 +16,7 @@ import { PlusOutlined, DownloadOutlined, UploadOutlined, DeleteOutlined, ReloadO
 import { AgGridReact } from 'ag-grid-react'
 import type { ColDef, GridReadyEvent, CellValueChangedEvent } from 'ag-grid-community'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
-import { setLocale } from 'ag-grid-locale'
+
 // 注册所有社区模块
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -33,6 +33,36 @@ interface SheetData {
   name: string
   columns: ColumnDef[]
   rows: Record<string, any>[]
+}
+
+// AG Grid 中文本地化
+const localeText = {
+  pageSize: '每页行数',
+  morePages: '更多页',
+  filterOob: '外框过滤',
+  searchOob: '搜索...',
+  checksum: '校验和',
+  colGroupShow: '列组',
+  columnSelector: '列选择器',
+  filterBy: '筛选 {column}',
+  groupDefaultTitle: '按组排列',
+  loadingOob: '加载中...',
+  noRowsShow: '无数据',
+  noRowsToShow: '无数据',
+  toolButton: '工具按钮',
+  oRangeToolButton: '范围工具',
+  resetToolButton: '重置工具',
+  exportToolButton: '导出工具',
+  filterPanel: '筛选面板',
+  columnPanel: '列面板',
+  rowsFilter: '行过滤器',
+  selectAll: '全选',
+  selectAllSearchResults: '全选搜索结果',
+  searchOobPlaceholder: '搜索...',
+  clearAll: '全部清除',
+  applyFilters: '应用',
+  expandColumn: '展开列',
+  collapseColumn: '折叠列',
 }
 
 const STORAGE_KEY = 'mimo-spreadsheet-sheets'
@@ -354,6 +384,7 @@ const SpreadsheetModule: React.FC = () => {
         <AgGridReact
           columnDefs={columnDefs}
           rowData={rowData}
+          localeText={localeText}
           onGridReady={onGridReady}
           onCellValueChanged={onCellValueChanged}
           domLayout="normal"
