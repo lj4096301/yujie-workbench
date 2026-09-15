@@ -1,5 +1,3 @@
-/usr/bin/bash: warning: setlocale: LC_ALL: cannot change locale (zh-CN): No such file or directory
-/usr/bin/bash: warning: setlocale: LC_ALL: cannot change locale (zh-CN): No such file or directory
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { message } from 'antd'
 import ReactGridLayout, { WidthProvider, Layout } from 'react-grid-layout'
