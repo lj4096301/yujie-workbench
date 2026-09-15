@@ -69,12 +69,11 @@ const SpreadsheetModule: React.FC = () => {
   // 表格列定义
   const columnDefs = useMemo<ColDef[]>(() => {
     if (!currentSheet) return []
-    return currentSheet.columns.map(col => ({
+    return currentSheet.columns.map(({ type, ...col }) => ({
       ...col,
       editable: col.editable !== false,
       filter: true,
       resizable: true,
-      // 移除 type 字段，避免 warning #36
     }))
   }, [currentSheet])
 
@@ -160,7 +159,6 @@ const SpreadsheetModule: React.FC = () => {
       field: fieldName,
       headerName: name,
       editable: true,
-      type: 'text',
     }]
 
     setSheets(prev => prev.map(s => 
@@ -225,9 +223,9 @@ const SpreadsheetModule: React.FC = () => {
         id: 'default',
         name: '默认表格',
         columns: [
-          { field: 'name', headerName: '名称', editable: true, type: 'text', width: 150 },
-          { field: 'value', headerName: '数值', editable: true, type: 'number', width: 100 },
-          { field: 'note', headerName: '备注', editable: true, type: 'text', width: 200 },
+          { field: 'name', headerName: '名称', editable: true, width: 150 },
+          { field: 'value', headerName: '数值', editable: true, width: 100 },
+          { field: 'note', headerName: '备注', editable: true, width: 200 },
         ],
         rows: Array.from({ length: GRID_SIZE }, (_, i) => ({
           _id: `row_${i}`,
