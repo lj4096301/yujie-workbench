@@ -16,6 +16,7 @@ import { PlusOutlined, DownloadOutlined, UploadOutlined, DeleteOutlined, ReloadO
 import { AgGridReact } from 'ag-grid-react'
 import type { ColDef, GridReadyEvent, CellValueChangedEvent } from 'ag-grid-community'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
+import { setLocale } from 'ag-grid-locale'
 // 注册所有社区模块
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -86,6 +87,9 @@ const SpreadsheetModule: React.FC = () => {
     currentSheet?.rows || [],
     [currentSheet]
   )
+
+  // 初始化中文本地化
+  setLocale('zhCN')
 
   // 表格就绪
   const onGridReady = (params: GridReadyEvent) => {
