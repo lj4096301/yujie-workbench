@@ -1,5 +1,3 @@
-/usr/bin/bash: warning: setlocale: LC_ALL: cannot change locale (zh-CN): No such file or directory
-/**
  * 表格页模块
  * 
  * 使用 AG Grid 实现可编程表格：
