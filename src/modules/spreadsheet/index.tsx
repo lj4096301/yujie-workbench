@@ -301,7 +301,7 @@ const SpreadsheetModule: React.FC = () => {
       await fetch('/api/spreadsheet/columns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sheetId: activeSheet, columns: updatedColumns }),
+        body: JSON.stringify({ sheetId: activeSheet, rows: currentSheet.rows, columns: updatedColumns }),
       })
       message.success('列已添加')
     } catch {
