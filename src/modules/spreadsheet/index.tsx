@@ -244,7 +244,7 @@ const SpreadsheetModule: React.FC = () => {
       const res = await fetch('/api/spreadsheet/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sheetId: activeSheet, rows: updatedRows }),
+        body: JSON.stringify({ sheetId: activeSheet, rows: updatedRows, columns: currentSheet.columns }),
       })
       if (!res.ok) throw new Error('保存失败')
     } catch {
@@ -274,7 +274,7 @@ const SpreadsheetModule: React.FC = () => {
       await fetch('/api/spreadsheet/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sheetId: activeSheet, rows: updatedRows }),
+        body: JSON.stringify({ sheetId: activeSheet, rows: updatedRows, columns: currentSheet.columns }),
       })
     } catch {
       message.error('添加失败')
@@ -332,7 +332,7 @@ const SpreadsheetModule: React.FC = () => {
       await fetch('/api/spreadsheet/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sheetId: activeSheet, rows: updatedRows }),
+        body: JSON.stringify({ sheetId: activeSheet, rows: updatedRows, columns: currentSheet.columns }),
       })
       message.success(`已删除 ${selected.length} 行`)
     } catch {
