@@ -7,6 +7,8 @@
  * - 数据持久化（后端 JSON 存储）
  * - 支持筛选、排序、分页
  */
+import 'ag-grid-community/styles/ag-grid.css'
+import 'ag-grid-community/styles/ag-theme-alpine.css'
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { Button, Input, Space, message, Tooltip, Popconfirm } from 'antd'
 import { PlusOutlined, DownloadOutlined, UploadOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'

@@ -8,21 +8,18 @@
           "field": "name",
           "headerName": "名称",
           "editable": true,
-          "type": "text",
           "width": 150
         },
         {
           "field": "value",
           "headerName": "数值",
           "editable": true,
-          "type": "number",
           "width": 100
         },
         {
           "field": "note",
           "headerName": "备注",
           "editable": true,
-          "type": "text",
           "width": 200
         }
       ],
@@ -145,12 +142,6 @@
           "_id": "row_19",
           "name": "项目 20",
           "value": 190,
-          "note": ""
-        },
-        {
-          "_id": "1789451577033",
-          "name": "",
-          "value": 0,
           "note": ""
         }
       ]
