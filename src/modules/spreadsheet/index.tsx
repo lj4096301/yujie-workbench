@@ -11,6 +11,7 @@ import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { Button, Input, Space, message, Tooltip, Popconfirm } from 'antd'
+import * as XLSX from 'xlsx'
 import { PlusOutlined, DownloadOutlined, UploadOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
 import { AgGridReact } from 'ag-grid-react'
 import type { ColDef, GridReadyEvent, CellValueChangedEvent } from 'ag-grid-community'
@@ -197,6 +198,58 @@ const SpreadsheetModule: React.FC = () => {
     } catch {
       message.error('删除失败')
     }
+  }
+
+  // 导入 Excel
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target?.result as ArrayBuffer)
+        const workbook = XLSX.read(data, { type: 'array' })
+        const sheetName = workbook.SheetNames[0]
+        const sheet = workbook.Sheets[sheetName]
+        const jsonData = XLSX.utils.sheet_to_json<any>(sheet)
+
+        if (jsonData.length === 0) {
+          message.warning('文件内容为空')
+          return
+        }
+
+        // 获取列名
+        const headers = Object.keys(jsonData[0])
+        const columns = headers.map(h => ({
+          field: h.toLowerCase().replace(/\s+/g, '_'),
+          headerName: h,
+          editable: true,
+        }))
+
+        // 转换数据
+        const rows = jsonData.map((row, idx) => ({
+          _id: `row_${Date.now()}_${idx}`,
+          ...row,
+        }))
+
+        // 更新当前 sheet
+        setSheets(prev => prev.map(s => 
+          s.id === activeSheet ? { ...s, columns, rows } : s
+        ))
+
+        // 保存到后端
+        fetch('/api/spreadsheet/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sheetId: activeSheet, rows, columns }),
+        }).then(() => message.success('导入成功！'))
+        .catch(() => message.error('保存失败'))
+      } catch {
+        message.error('文件解析失败，请确保是有效的 Excel 文件')
+      }
+    }
+    reader.readAsArrayBuffer(file)
   }
 
   // 导出 CSV
