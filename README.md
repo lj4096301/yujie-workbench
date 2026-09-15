@@ -34,8 +34,6 @@ YuJie Workbench is a **local-first personal workbench** for Windows, built with 
 | 📋 Clipboard History | Local clipboard history with app + system-wide capture |
 
 > 📌 This is the author's personal **AI-assisted coding practice** project — all features have been implemented and tested.
->
-> 🏷️ The window title still shows **"MiMo Desktop"**, the project's early codename. It has been renamed to *YuJie Workbench*; the title will be updated in a future release and nothing else is affected.
 
 ### Quick Start
 
@@ -66,8 +64,6 @@ Configuration lives in `.env` (copy `.env.example`); everything works **without 
 - 🚫 **零密钥起步**：天气使用 Open-Meteo 免注册免密钥；不配置 `.env` 即可运行（飞书日历为可选功能）
 
 > 📌 **关于本项目**：作者本人以「AI 辅助编程练手」为目的设计开发，**所有功能均已测试通过**，可放心参考与使用。
->
-> 🏷️ 界面标题栏显示的 "MiMo Desktop" 是项目开发早期的旧名称，项目现已更名为「宇界工作台」，后续版本会同步更新标题，不影响任何功能。
 
 ### 模块一览
 

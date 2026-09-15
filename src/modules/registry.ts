@@ -27,8 +27,8 @@ export const MODULE_META: ModuleMeta[] = [
   { id: 'tv', title: '追剧管理', icon: '📺' },
   { id: 'api-monitor', title: 'API 价格', icon: '📊' },
   { id: 'bookmarks', title: '书签启动', icon: '🔖' },
+  { id: 'kanban', title: '项目看板', icon: '🎯' },
   { id: 'tasks', title: '待办任务', icon: '✅' },
   { id: 'clipboard', title: '剪贴板', icon: '📋' },
-  { id: 'spreadsheet', title: '表格页', icon: '📊' },
 
 ]

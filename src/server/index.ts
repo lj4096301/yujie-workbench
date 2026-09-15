@@ -1,5 +1,6 @@
 // 必须放在所有路由 import 之前：路由模块会在顶层读取 process.env
 import './env'
+import fs from 'fs'
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
@@ -12,7 +13,7 @@ import { createRssRouter } from './routes/rss'
 import { createTVRouter } from './routes/tv'
 import { createPricingRouter } from './routes/pricing'
 import { createCalendarRouter } from './routes/calendar'
-import { createSpreadsheetRouter } from './routes/spreadsheet'
+import { createKanbanRouter } from './routes/kanban'
 import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -41,7 +42,7 @@ app.use('/api/rss', createRssRouter())
 app.use('/api/tv', createTVRouter())
 app.use('/api/pricing', createPricingRouter())
 app.use('/api/calendar', createCalendarRouter())
-app.use('/api/spreadsheet', createSpreadsheetRouter())
+app.use('/api/kanban', createKanbanRouter())
 
 // SPA fallback
 app.get('*', (req, res) => {

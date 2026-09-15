@@ -12,14 +12,21 @@ interface Task {
   priority?: 'low' | 'mid' | 'high'
 }
 
-const STORAGE_KEY = 'mimo-tasks'
+const STORAGE_KEY = 'yujie-tasks'
+const LEGACY_KEY = 'mimo-tasks'
 
 function loadTasks(): Task[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
+    const list = Array.isArray(parsed) ? parsed : []
+    // 旧键数据自动迁移到新键（一次性）
+    if (localStorage.getItem(STORAGE_KEY) === null && localStorage.getItem(LEGACY_KEY) !== null) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+      localStorage.removeItem(LEGACY_KEY)
+    }
+    return list
   } catch {
     return []
   }
