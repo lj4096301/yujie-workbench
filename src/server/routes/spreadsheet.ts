@@ -67,12 +67,12 @@ export function createSpreadsheetRouter() {
     }
   })
 
-  // 更新工作表
+  // 更新工作表（支持 rows 和 columns 同时更新）
   router.post('/update', (req: Request, res: Response) => {
     try {
-      const { sheetId, rows } = req.body
-      if (!sheetId || !Array.isArray(rows)) {
-        return res.status(400).json({ error: '缺少必要参数' })
+      const { sheetId, rows, columns } = req.body
+      if (!sheetId) {
+        return res.status(400).json({ error: '缺少 sheetId 参数' })
       }
 
       const data = readData()
@@ -81,7 +81,13 @@ export function createSpreadsheetRouter() {
         return res.status(404).json({ error: '工作表不存在' })
       }
 
-      data.sheets[sheetIndex].rows = rows
+      if (Array.isArray(rows)) {
+        data.sheets[sheetIndex].rows = rows
+      }
+      if (Array.isArray(columns)) {
+        data.sheets[sheetIndex].columns = columns
+      }
+      
       writeData(data)
       res.json({ success: true })
     } catch (err) {
