@@ -187,7 +187,7 @@ const SpreadsheetModule: React.FC = () => {
   }
 
   // 添加新列
-  const addColumn = () => {
+  const addColumn = async () => {
     const name = prompt('请输入新列名:')
     if (!name) return
 
@@ -201,6 +201,17 @@ const SpreadsheetModule: React.FC = () => {
     setSheets(prev => prev.map(s => 
       s.id === activeSheet ? { ...s, columns: updatedColumns } : s
     ))
+
+    try {
+      await fetch('/api/spreadsheet/columns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetId: activeSheet, columns: updatedColumns }),
+      })
+      message.success('列已添加')
+    } catch {
+      message.error('保存失败')
+    }
 
     setTimeout(() => {
       gridApi?.sizeColumnsToFit()
