@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Layout, Menu, Dropdown } from '@arco-design/web-react'
+import { Layout, Menu } from '@arco-design/web-react'
 import { useLayoutStore, HOME_ID, EXTRA_MODULE_IDS } from '@/stores/layoutStore'
 import { useUIStore, ZOOM_MAX, ZOOM_MIN } from '@/stores/uiStore'
 import { getMainAreaBounds } from '@/utils/layoutBounds'
 import { MODULE_META } from '@/modules/registry'
-import { THEMES, getTheme } from '@/themes'
 
 const { Sider } = Layout
 const MenuItem = Menu.Item
@@ -25,34 +24,6 @@ const EXTRA_ITEMS = MODULE_META.filter((m) => EXTRA_SET.has(m.id)).map((m) => ({
   icon: m.icon,
   label: m.title,
 }))
-
-/** 主题切换下拉菜单（Arco Dropdown + Menu） */
-const themeMenu = (
-  <Menu
-    selectedKeys={[useUIStore.getState().themeId]}
-    onClickMenuItem={(key) => useUIStore.getState().setTheme(String(key))}
-    style={{ borderRadius: 8 }}
-  >
-    {THEMES.map((t) => (
-      <MenuItem key={t.id}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <span
-            style={{
-              display: 'inline-block',
-              width: 12,
-              height: 12,
-              borderRadius: 3,
-              background: t.preview.sidebar,
-              border: `1.5px solid ${t.preview.primary}`,
-              flexShrink: 0,
-            }}
-          />
-          <span>{t.label}</span>
-        </span>
-      </MenuItem>
-    ))}
-  </Menu>
-)
 
 /**
  * 侧边导航（Arco Layout.Sider + Menu）
@@ -148,20 +119,6 @@ const Sidebar: React.FC = () => {
       </Menu>
 
       <div className="sidebar-bottom">
-        <div className="sidebar-theme">
-          <Dropdown droplist={themeMenu} position="br" trigger="click">
-            <div className="theme-trigger" title="切换主题">
-              <span
-                className="theme-swatch"
-                style={{ background: getTheme(useUIStore.getState().themeId).preview.primary }}
-              />
-              {!sidebarCollapsed && (
-                <span>{getTheme(useUIStore.getState().themeId).label}</span>
-              )}
-            </div>
-          </Dropdown>
-        </div>
-
         <div className="sidebar-zoom">
           {sidebarCollapsed ? (
             <button
