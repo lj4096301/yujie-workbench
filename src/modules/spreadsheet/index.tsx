@@ -11,7 +11,7 @@ import 'ag-grid-community/styles/ag-theme-alpine.css'
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { Button, Input, Space, message, Tooltip, Popconfirm } from 'antd'
 import * as XLSX from 'xlsx'
-import { PlusOutlined, DownloadOutlined, UploadOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
+import { PlusOutlined, DownloadOutlined, UploadOutlined, DeleteOutlined, ReloadOutlined, SaveOutlined } from '@ant-design/icons'
 import { AgGridReact } from 'ag-grid-react'
 import type { ColDef, GridReadyEvent, CellValueChangedEvent } from 'ag-grid-community'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
@@ -411,6 +411,21 @@ const SpreadsheetModule: React.FC = () => {
     URL.revokeObjectURL(url)
   }
 
+
+  // 提交保存所有数据
+  const saveAll = async () => {
+    if (!currentSheet) return
+    try {
+      await fetch('/api/spreadsheet/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetId: activeSheet, rows: currentSheet.rows, columns: currentSheet.columns }),
+      })
+      message.success('保存成功')
+    } catch {
+      message.error('保存失败，请重试')
+    }
+  }
   // 初始化默认数据
   useEffect(() => {
     if (sheets.length === 0) {
@@ -477,6 +492,7 @@ const SpreadsheetModule: React.FC = () => {
           </Tooltip>
           <Tooltip title="导出 CSV">
             <Button icon={<DownloadOutlined />} onClick={exportCSV}>导出 CSV</Button>
+          <Button icon={<SaveOutlined />} onClick={saveAll} type="primary">保存</Button>
           </Tooltip>
         </Space>
       </div>
