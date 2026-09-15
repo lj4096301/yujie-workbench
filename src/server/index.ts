@@ -23,8 +23,11 @@ const PORT = Number(process.env.WEB_SERVER_PORT) || 3001
 app.use(cors())
 app.use(express.json())
 
-// 静态文件（生产环境）
-app.use(express.static(path.join(__dirname, '../../dist')))
+// 静态文件（仅当 dist 存在时）
+const distPath = path.join(__dirname, '../../dist')
+if (require('fs').existsSync(distPath)) {
+  app.use(express.static(distPath))
+}
 
 // API 路由
 app.use('/api/knowledge', createKnowledgeRouter())
