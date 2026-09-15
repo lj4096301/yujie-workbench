@@ -25,124 +25,179 @@
       ],
       "rows": [
         {
-          "_id": "row_0",
-          "name": "项目 1",
-          "value": 0,
-          "note": ""
+          "_id": "row_1789452514980_0",
+          "软件记录表": "序号",
+          "__EMPTY": "软件名称",
+          "__EMPTY_1": "适用功能",
+          "__EMPTY_2": "优势 特长",
+          "__EMPTY_3": "版本",
+          "__EMPTY_4": "地址",
+          "__EMPTY_5": "类型（端）",
+          "__EMPTY_6": "优势"
         },
         {
-          "_id": "row_1",
-          "name": "项目 2",
-          "value": 10,
-          "note": ""
+          "_id": "row_1789452514980_1",
+          "软件记录表": 1,
+          "__EMPTY": "pandaOCR",
+          "__EMPTY_1": "文字识别",
+          "__EMPTY_2": "文字识别带翻译",
+          "__EMPTY_3": 2.64,
+          "__EMPTY_5": "PC",
+          "__EMPTY_6": "小，方便"
         },
         {
-          "_id": "row_2",
-          "name": "项目 3",
-          "value": 20,
-          "note": ""
+          "_id": "row_1789452514980_2",
+          "软件记录表": 2,
+          "__EMPTY": "FSCapture",
+          "__EMPTY_1": "截图",
+          "__EMPTY_2": "可以对长屏幕滚动截图",
+          "__EMPTY_3": 9.4,
+          "__EMPTY_5": "PC",
+          "__EMPTY_6": "小，方便"
         },
         {
-          "_id": "row_3",
-          "name": "项目 4",
-          "value": 30,
-          "note": ""
+          "_id": "row_1789452514980_3",
+          "软件记录表": 3,
+          "__EMPTY": "Bypass",
+          "__EMPTY_1": "抢火车票",
+          "__EMPTY_2": "只有PC端",
+          "__EMPTY_3": "1.14.18",
+          "__EMPTY_5": "PC",
+          "__EMPTY_6": "抢票很方便",
+          "__EMPTY_7": "主板劲鲨 美可可  精粤X79/X99"
         },
         {
-          "_id": "row_4",
-          "name": "项目 5",
-          "value": 40,
-          "note": ""
+          "_id": "row_1789452514980_4",
+          "软件记录表": 4,
+          "__EMPTY": "黑猪视频",
+          "__EMPTY_1": "影视",
+          "__EMPTY_2": "快",
+          "__EMPTY_5": "安卓"
         },
         {
-          "_id": "row_5",
-          "name": "项目 6",
-          "value": 50,
-          "note": ""
+          "_id": "row_1789452514980_5",
+          "软件记录表": 6,
+          "__EMPTY": "老子追剧",
+          "__EMPTY_1": "影视",
+          "__EMPTY_2": "VIP看电影",
+          "__EMPTY_5": "安卓"
         },
         {
-          "_id": "row_6",
-          "name": "项目 7",
-          "value": 60,
-          "note": ""
+          "_id": "row_1789452514980_6",
+          "软件记录表": 7,
+          "__EMPTY": "islide",
+          "__EMPTY_1": "PPT设计插件",
+          "__EMPTY_5": "PC"
         },
         {
-          "_id": "row_7",
-          "name": "项目 8",
-          "value": 70,
-          "note": ""
+          "_id": "row_1789452514980_7",
+          "软件记录表": 8,
+          "__EMPTY": "utools",
+          "__EMPTY_1": "插件聚合",
+          "__EMPTY_2": "win10 快捷工具箱",
+          "__EMPTY_5": "PC"
         },
         {
-          "_id": "row_8",
-          "name": "项目 9",
-          "value": 80,
-          "note": ""
+          "_id": "row_1789452514980_8",
+          "软件记录表": 9,
+          "__EMPTY": "cute http file server（CHFS）",
+          "__EMPTY_1": "文件共享",
+          "__EMPTY_2": "全平台可登录 适用  WIFI带宽决定速度",
+          "__EMPTY_4": "https://github.com/ods-im/CuteHttpFileServer",
+          "__EMPTY_5": "PC"
         },
         {
-          "_id": "row_9",
-          "name": "项目 10",
-          "value": 90,
-          "note": ""
+          "_id": "row_1789452514980_9",
+          "软件记录表": 10,
+          "__EMPTY": "Userscript+",
+          "__EMPTY_1": "获取脚本",
+          "__EMPTY_5": "油猴插件"
         },
         {
-          "_id": "row_10",
-          "name": "项目 11",
-          "value": 100,
-          "note": ""
+          "_id": "row_1789452514980_10",
+          "软件记录表": 11,
+          "__EMPTY": "anlink",
+          "__EMPTY_1": "手机投屏到电脑",
+          "__EMPTY_2": "可传文件  延迟低",
+          "__EMPTY_5": "PC"
         },
         {
-          "_id": "row_11",
-          "name": "项目 12",
-          "value": 110,
-          "note": ""
+          "_id": "row_1789452514980_11",
+          "软件记录表": 12,
+          "__EMPTY": "TVbox",
+          "__EMPTY_1": "电视视频",
+          "__EMPTY_2": "可换源",
+          "__EMPTY_5": "TV"
         },
         {
-          "_id": "row_12",
-          "name": "项目 13",
-          "value": 120,
-          "note": ""
+          "_id": "row_1789452514980_12",
+          "软件记录表": 13,
+          "__EMPTY": "X_plore",
+          "__EMPTY_1": "电脑操作手机文件"
         },
         {
-          "_id": "row_13",
-          "name": "项目 14",
-          "value": 130,
-          "note": ""
+          "_id": "row_1789452514980_13",
+          "软件记录表": 14,
+          "__EMPTY": "LocalSend ",
+          "__EMPTY_1": "跨平台传输文件",
+          "__EMPTY_2": "安卓  pc都可以  各需下载各端",
+          "__EMPTY_3": "1.6.2",
+          "__EMPTY_4": "https://github.com/localsend/localsend/releases/tag/v1.6.2"
         },
         {
-          "_id": "row_14",
-          "name": "项目 15",
-          "value": 140,
-          "note": ""
+          "_id": "row_1789452514980_14",
+          "软件记录表": 15,
+          "__EMPTY": "itab插件",
+          "__EMPTY_1": "edge  首页定制"
         },
         {
-          "_id": "row_15",
-          "name": "项目 16",
-          "value": 150,
-          "note": ""
+          "_id": "row_1789452514980_15",
+          "软件记录表": 16,
+          "__EMPTY": "pakku",
+          "__EMPTY_1": "哔哩哔哩弹幕过滤器",
+          "__EMPTY_2": "edge插件"
         },
         {
-          "_id": "row_16",
-          "name": "项目 17",
-          "value": 160,
-          "note": ""
+          "_id": "row_1789452514980_16",
+          "软件记录表": 17,
+          "__EMPTY": "MiSmartMouse",
+          "__EMPTY_1": "小爱鼠标（智能语音输入控制）",
+          "__EMPTY_2": "语音控制",
+          "__EMPTY_3": "1.3.7",
+          "__EMPTY_4": "https://www.onlinedown.net/soft/10085788.htm"
         },
         {
-          "_id": "row_17",
-          "name": "项目 18",
-          "value": 170,
-          "note": ""
+          "_id": "row_1789452514980_17",
+          "软件记录表": 18,
+          "__EMPTY": "libretv",
+          "__EMPTY_1": "PC影视",
+          "__EMPTY_2": "免广告 影视，自己可以添加接口",
+          "__EMPTY_4": "https://libretv-2-8w2.pages.dev",
+          "__EMPTY_5": "PC"
         },
         {
-          "_id": "row_18",
-          "name": "项目 19",
-          "value": 180,
-          "note": ""
+          "_id": "row_1789452514980_18",
+          "软件记录表": 19,
+          "__EMPTY": "libretv-v1.0.114",
+          "__EMPTY_2": "app",
+          "__EMPTY_5": "安卓"
         },
         {
-          "_id": "row_19",
-          "name": "项目 20",
-          "value": 190,
-          "note": ""
+          "_id": "row_1789452514980_19",
+          "软件记录表": 20,
+          "__EMPTY": "landrop",
+          "__EMPTY_1": "互传",
+          "__EMPTY_2": "电视 电脑  安卓可用",
+          "__EMPTY_4": "https://landrop.app/#downloads"
+        },
+        {
+          "_id": "row_1789452514980_20",
+          "软件记录表": 21,
+          "__EMPTY": "电视时光",
+          "__EMPTY_1": "手机当遥控（飞鼠），控制电脑（当电视）",
+          "__EMPTY_2": "电脑端，手机端app配合使用",
+          "__EMPTY_3": "1.0.8",
+          "__EMPTY_4": "https://tv.luckylizi.cn/"
         }
       ]
     }
