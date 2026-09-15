@@ -13,17 +13,27 @@ const LAYOUT_VERSION_KEY = 'mimo-panels-version'
  * v4：模块标题去掉内嵌 emoji（图标由 Panel 的 icon 单独渲染，避免重复）。
  * v5：首页迁移到 react-grid-layout（网格坐标 grid），旧像素缓存不再兼容。
  */
-export const LAYOUT_VERSION = 5
+export const LAYOUT_VERSION = 9
 
 /** 首页视图的伪模块 id */
 export const HOME_ID = 'home'
 
 // ===================== 首页网格常量（RGL） =====================
-export const GRID_COLS = 12
+export const GRID_COLS = 24
 export const GRID_ROW_H = 8
 /** 首页模块默认占格：半宽 × 18 行（≈ 348px 高），一行两块 */
-export const HOME_ITEM_W = 6
+export const HOME_ITEM_W = 12
 export const HOME_ITEM_H = 18
+/** 首页分区标题占格高度（static grid item，不可拖拽） */
+export const SECTION_HEAD_H = 3
+/** 首页分区标题（static 元素，占满整行） */
+export const SECTION_HEADS: Array<{ id: string; title: string; y: number }> = [
+  { id: 'sec-project', title: '🎯 我的项目', y: 0 },
+  { id: 'sec-tools', title: '🧰 效率工具', y: 28 },
+  { id: 'sec-more', title: '📦 更多模块', y: 52 },
+]
+/** 低频模块：默认不上首页，点「更多模块」展开 */
+export const EXTRA_MODULE_IDS = ['novel', 'epic', 'news', 'tv', 'api-monitor', 'clipboard']
 
 interface LayoutStore {
   // 侧栏
@@ -69,6 +79,11 @@ interface LayoutStore {
   searchVisible: boolean
   setSearchVisible: (visible: boolean) => void
 
+  /** 展开/收起「更多模块」低频区 */
+  toggleExtraModules: () => void
+  /** 恢复默认首页布局（精选模块 + 分区） */
+  resetHomeLayout: () => void
+
   // 持久化
   saveLayout: () => void
   /** @returns 是否从本地缓存恢复成功 */
@@ -88,26 +103,52 @@ const MODULE_DEFS: Array<{ id: string; title: string }> = MODULE_META.map(({ id,
 const DEFAULT_WIDTH = 420
 const DEFAULT_HEIGHT = 560
 
-/** 首次启动：默认进首页，所有模块可见（挂载后由 activateHome 排布网格） */
-const DEFAULT_PANELS: PanelState[] = MODULE_DEFS.map(({ id, title }, index) => ({
-  id,
-  moduleId: id,
-  title,
-  isMaximized: false,
-  isFloating: false,
-  isVisible: true,
-  zIndex: index + 1,
-  width: DEFAULT_WIDTH,
-  height: DEFAULT_HEIGHT,
-  x: 0,
-  y: 0,
-  grid: {
+/** 各模块的初始网格排布（分区化：精选模块默认可见，低频模块默认隐藏） */
+/* 固定尺寸卡片：每个模块按内容形态设定默认占格（宽×高，ROW_H=8px） */
+const DEFAULT_GRIDS: Record<string, { x: number; y: number; w: number; h: number }> = {
+  /* 我的项目：看板大卡 + 待办清单 */
+  kanban: { x: 0, y: 3, w: 16, h: 22 },
+  tasks: { x: 16, y: 3, w: 8, h: 22 },
+  /* 效率工具：一行四卡（天气/日程/知识/书签） */
+  weather: { x: 0, y: 31, w: 6, h: 18 },
+  calendar: { x: 6, y: 31, w: 6, h: 18 },
+  knowledge: { x: 12, y: 31, w: 6, h: 18 },
+  bookmarks: { x: 18, y: 31, w: 6, h: 18 },
+  /* 更多模块：低频入口卡，一行三个 */
+  novel: { x: 0, y: 55, w: 8, h: 14 },
+  epic: { x: 8, y: 55, w: 8, h: 14 },
+  news: { x: 16, y: 55, w: 8, h: 14 },
+  tv: { x: 0, y: 72, w: 8, h: 14 },
+  'api-monitor': { x: 8, y: 72, w: 8, h: 14 },
+  clipboard: { x: 16, y: 72, w: 8, h: 14 },
+}
+
+/** 精选模块：默认在首页展示 */
+const HOME_PINNED = new Set(['kanban', 'tasks', 'weather', 'calendar', 'bookmarks', 'knowledge'])
+
+/** 首次启动：默认进首页，精选模块可见，低频模块从「更多模块」展开 */
+const DEFAULT_PANELS: PanelState[] = MODULE_DEFS.map(({ id, title }, index) => {
+  const g = DEFAULT_GRIDS[id] ?? {
     x: (index % 2) * HOME_ITEM_W,
     y: Math.floor(index / 2) * HOME_ITEM_H,
     w: HOME_ITEM_W,
     h: HOME_ITEM_H,
-  },
-}))
+  }
+  return {
+    id,
+    moduleId: id,
+    title,
+    isMaximized: false,
+    isFloating: false,
+    isVisible: HOME_PINNED.has(id),
+    zIndex: index + 1,
+    width: DEFAULT_WIDTH,
+    height: DEFAULT_HEIGHT,
+    x: 0,
+    y: 0,
+    grid: g,
+  }
+})
 
 /** 模块的固定顺序（网格排布按此顺序，保证多次排布结果一致） */
 export const MODULE_ORDER: string[] = MODULE_DEFS.map((m) => m.id)
@@ -118,21 +159,21 @@ export const MODULE_ORDER: string[] = MODULE_DEFS.map((m) => m.id)
  */
 function findFreeGridSlot(panels: PanelState[], w: number, h: number): { x: number; y: number } {
   const placed = panels.filter((p) => p.isVisible && !p.isMaximized && p.grid)
-  for (let row = 0; row < 60; row++) {
+  const blockers: Array<{ x: number; y: number; w: number; h: number }> = [
+    ...placed.map((p) => p.grid!),
+    ...SECTION_HEADS.map((s) => ({ x: 0, y: s.y, w: GRID_COLS, h: SECTION_HEAD_H })),
+  ]
+  for (let row = 0; row < 120; row++) {
     for (let col = 0; col + w <= GRID_COLS; col += w) {
       const x = col
       const y = row * h
-      const overlap = placed.some(
-        (p) =>
-          x < p.grid!.x + p.grid!.w &&
-          x + w > p.grid!.x &&
-          y < p.grid!.y + p.grid!.h &&
-          y + h > p.grid!.y
+      const overlap = blockers.some(
+        (b) => x < b.x + b.w && x + w > b.x && y < b.y + b.h && y + h > b.y
       )
       if (!overlap) return { x, y }
     }
   }
-  return { x: 0, y: 60 * h }
+  return { x: 0, y: 120 * h }
 }
 
 export const useLayoutStore = create<LayoutStore>((set, get) => ({
@@ -203,50 +244,44 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
     }
   }),
 
-  activateHome: () => set((s) => {
-    // 按固定模块顺序重排网格：一行两块，保证「重排」结果稳定
-    return {
-      activeModule: HOME_ID,
-      panels: s.panels.map((p) => {
-        const index = MODULE_ORDER.indexOf(p.id)
-        return {
-          ...p,
-          isVisible: true,
-          isFloating: false,
-          isMaximized: false,
-          zIndex: index + 1,
-          grid: {
-            x: (index % 2) * HOME_ITEM_W,
-            y: Math.floor(index / 2) * HOME_ITEM_H,
-            w: HOME_ITEM_W,
-            h: HOME_ITEM_H,
-          },
-        }
-      }),
-    }
-  }),
+  /** 进入首页：只切换视图，保留用户当前的首页模块集合与位置 */
+  activateHome: () => set({ activeModule: HOME_ID }),
 
   togglePanelAt: (id) => {
     const state = get()
     const panel = state.panels.find((p) => p.id === id)
     if (!panel) return false
 
-    if (panel.isVisible) {
-      state.updatePanel(id, { isVisible: false })
-      state.saveLayout()
-      return false
-    }
-
-    // 找第一个不与现有窗口重叠的网格位
-    const slot = findFreeGridSlot(state.panels, HOME_ITEM_W, HOME_ITEM_H)
+    // 首页为 CSS Grid 固定布局，打开/关闭仅切换可见性，位置自动排布
     state.updatePanel(id, {
-      isVisible: true,
+      isVisible: !panel.isVisible,
       isMaximized: false,
-      grid: { x: slot.x, y: slot.y, w: HOME_ITEM_W, h: HOME_ITEM_H },
-      zIndex: Math.max(0, ...state.panels.map((p) => p.zIndex)) + 1,
     })
     state.saveLayout()
-    return true
+    return !panel.isVisible
+  },
+
+  /** 展开/收起「更多模块」低频区 */
+  toggleExtraModules: () => {
+    const s = get()
+    const anyOn = s.panels.some((p) => EXTRA_MODULE_IDS.includes(p.id) && p.isVisible)
+    set({
+      panels: s.panels.map((p) => {
+        if (!EXTRA_MODULE_IDS.includes(p.id)) return p
+        if (anyOn) return { ...p, isVisible: false, isMaximized: false }
+        return { ...p, isVisible: true, isMaximized: false }
+      }),
+    })
+    get().saveLayout()
+  },
+
+  /** 恢复默认首页布局（精选模块 + 分区） */
+  resetHomeLayout: () => {
+    set({
+      activeModule: HOME_ID,
+      panels: DEFAULT_PANELS.map((p) => ({ ...p, grid: p.grid ? { ...p.grid } : undefined })),
+    })
+    get().saveLayout()
   },
 
   searchVisible: false,

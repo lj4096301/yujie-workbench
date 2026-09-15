@@ -7,11 +7,6 @@
 
 
 :root {
-  --primary-color: #1677ff;
-  --sidebar-bg: #001529;
-  --panel-bg: #ffffff;
-  --panel-border: #e0e0e0;
-  --header-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   /* 界面缩放倍数，由 App 根节点内联覆盖 */
   --mimo-zoom: 1;
 }
@@ -34,6 +29,16 @@
   overflow: hidden;
 }
 
+/* 右侧内容区：占满侧栏之外的剩余宽度，随窗口/侧栏收起自适应 */
+.app-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -41,9 +46,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f0f2f5;
-  color: #333;
+  font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  background: var(--bg-page, #f2f3f5);
+  color: var(--text-primary, #1d2129);
   overflow: hidden;
   height: 100vh;
 }
@@ -58,6 +63,14 @@ body {
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* 首页模式：顶部留空收紧，内容更靠上 */
+.main-area-home {
+  padding-top: 8px;
 }
 
 /* 主容器（视口） */
@@ -67,7 +80,7 @@ body {
   min-height: 0;
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+  background: var(--bg-page, #f2f3f5);
 }
 
 /* 首页模式：画布可能高于视口，允许纵向滚动 */
@@ -82,113 +95,7 @@ body {
   width: 100%;
   height: 100%;
   min-height: 100%;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-}
-
-/* 窗口容器 */
-.window {
-  position: absolute;
-  background: var(--panel-bg);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  border: 1px solid var(--panel-border);
-  transition: box-shadow 0.2s;
-}
-
-.window:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-/* 最大化状态：铺满容器 */
-.window-maximized {
-  border-radius: 0;
-}
-
-.window-maximized .panel-header {
-  background: #fff;
-}
-
-
-/* Panel容器 */
-.panel-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 标题栏 */
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  height: 40px;
-  background: var(--header-bg);
-  border-bottom: 1px solid var(--panel-border);
-  cursor: move;
-  user-select: none;
-  flex-shrink: 0;
-}
-
-.panel-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 13px;
-  color: #333;
-}
-
-.menu-icon {
-  font-size: 16px;
-}
-
-/* 操作按钮 */
-.panel-actions {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  /* 必须高于标题栏本体，否则拖动事件会把点击吃掉 */
-  position: relative;
-  z-index: 2;
-}
-
-.panel-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #666;
-  transition: all 0.2s;
-  line-height: 1;
-}
-
-.panel-btn:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: #333;
-}
-
-.panel-close:hover {
-  background: #ff4d4f !important;
-  color: white !important;
-}
-
-/* 内容区域 */
-.panel-body {
-  flex: 1;
-  overflow: auto;
-  padding: 12px;
-  background: #fff;
+  background: var(--bg-page, #f2f3f5);
 }
 
 /* 资讯模块：iframe 内嵌成熟站点，铺满面板内容区 */
@@ -357,134 +264,6 @@ body.is-dragging iframe {
 
 .panel-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
-}
-
-/* ============================================================
-   侧边栏
-   ============================================================ */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  /* 父容器 .app-root 在缩放时高度已补偿，这里不能用 100vh（会被 zoom 再放大顶出视口） */
-  height: 100%;
-  flex-shrink: 0;
-  background: var(--sidebar-bg);
-  color: rgba(255, 255, 255, 0.75);
-  transition: width 0.2s ease;
-  overflow: hidden;
-}
-
-.sidebar-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 48px;
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.sidebar-logo h1 {
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.sidebar-menu {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 8px 0;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 40px;
-  padding: 0 16px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.75);
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.2s, color 0.2s;
-}
-
-.menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
-.menu-item.active {
-  background: var(--primary-color);
-  color: #fff;
-}
-
-.sidebar-menu::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-menu::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-}
-
-/* 侧栏底部：界面缩放控件（放大/缩小字体） */
-.sidebar-zoom {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  flex-shrink: 0;
-  padding: 6px 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.zoom-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 22px;
-  padding: 0 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.08);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, opacity 0.15s;
-}
-
-.zoom-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-}
-
-.zoom-btn:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-.zoom-value {
-  min-width: 46px;
-  height: 22px;
-  padding: 0 4px;
-  font-size: 12px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-variant-numeric: tabular-nums;
-  transition: background 0.15s;
-}
-
-.zoom-value:hover {
-  background: rgba(255, 255, 255, 0.22);
 }
 
 /* ============================================================
@@ -741,154 +520,6 @@ body.is-dragging iframe {
 }
 
 /* ============================================================
-   首页（模块总览画布）
-   ============================================================ */
-.window-active {
-  box-shadow: 0 10px 28px rgba(22, 119, 255, 0.25) !important;
-  border-color: rgba(22, 119, 255, 0.45) !important;
-}
-
-/* 首页工具条：模块启动器 */
-.home-toolbar {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  padding: 6px 10px;
-  background: #fff;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-}
-
-.home-toolbar-title {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #555;
-  white-space: nowrap;
-}
-
-.home-chips {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-x: auto;
-  padding-bottom: 2px;
-}
-
-.home-chips::-webkit-scrollbar {
-  height: 4px;
-}
-
-.home-chips::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 2px;
-}
-
-.home-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 26px;
-  padding: 0 10px;
-  font-size: 12px;
-  color: #888;
-  background: #f5f5f5;
-  border: 1px solid transparent;
-  border-radius: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.home-chip:hover {
-  background: #e6f4ff;
-  color: var(--primary-color);
-}
-
-.home-chip-on {
-  background: #e6f4ff;
-  color: var(--primary-color);
-  border-color: #91caff;
-}
-
-.home-chip-action {
-  flex-shrink: 0;
-  background: #fff;
-  border-color: #d9d9d9;
-  color: #555;
-}
-
-/* 首页空状态 */
-.home-empty {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  color: #999;
-}
-
-.home-empty-icon {
-  font-size: 40px;
-}
-
-.home-empty-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #666;
-}
-
-.home-empty-desc {
-  font-size: 12px;
-}
-
-.home-empty-btn {
-  margin-top: 10px;
-  padding: 6px 16px;
-  font-size: 13px;
-  color: #fff;
-  background: var(--primary-color);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.home-empty-btn:hover {
-  opacity: 0.88;
-}
-
-/* 对齐参考线（拖动/缩放时的吸附提示） */
-.snap-guide {
-  position: absolute;
-  z-index: 99999;
-  pointer-events: none;
-  background: var(--primary-color);
-}
-
-.snap-guide-v {
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  opacity: 0.75;
-}
-
-.snap-guide-h {
-  left: 0;
-  right: 0;
-  height: 1px;
-  opacity: 0.75;
-}
-
-/* ============================================================
    天气模块 · 多城市
    ============================================================ */
 .weather-cities {
@@ -1138,38 +769,4 @@ body.is-resizing {
   word-break: break-word;
   max-height: 60px;
   overflow: hidden;
-}
-/* ============================================================
-   主题选择器
-   ============================================================ */
-.sidebar-theme {
-  padding: 6px 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  flex-shrink: 0;
-}
-
-.theme-trigger {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  transition: background 0.15s;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
-  user-select: none;
-}
-
-.theme-trigger:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.theme-swatch {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  flex-shrink: 0;
-  transition: background 0.2s;
 }

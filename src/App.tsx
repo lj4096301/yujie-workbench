@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { ConfigProvider, Modal } from 'antd'
+import { ConfigProvider } from 'antd'
+import { Modal } from '@arco-design/web-react'
 import zhCN from 'antd/locale/zh_CN'
 import dayjs from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import Sidebar from '@/components/Sidebar'
+import TopBar from '@/components/TopBar'
 import MainLayout from '@/components/Layout'
 import GlobalSearch from '@/components/GlobalSearch'
 import { useLayoutStore, MODULE_ORDER } from '@/stores/layoutStore'
@@ -203,6 +205,13 @@ const App: React.FC = () => {
     }
   }, [])
 
+  // 顶部栏「关于」→ 打开关于弹窗
+  useEffect(() => {
+    const open = () => setAboutVisible(true)
+    window.addEventListener('mimo:show-about', open)
+    return () => window.removeEventListener('mimo:show-about', open)
+  }, [])
+
   return (
     <ConfigProvider locale={zhCN} theme={{ token: getTheme(theme).antToken }}>
       {/*
@@ -215,17 +224,18 @@ const App: React.FC = () => {
         style={{ '--mimo-zoom': String(zoom) } as React.CSSProperties}
       >
         <Sidebar />
-        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', padding: 12, background: '#f0f2f5' }}>
+        <div className="app-main">
+          <TopBar />
           <MainLayout />
         </div>
         {searchVisible && <GlobalSearch />}
 
         <Modal
           title="关于 宇界工作台"
-          open={aboutVisible}
+          visible={aboutVisible}
           onCancel={() => setAboutVisible(false)}
           footer={null}
-          width={380}
+          style={{ width: 420 }}
         >
           <div style={{ fontSize: 13, lineHeight: 2, color: '#555' }}>
             <div>宇界工作台 · 个人工作台</div>

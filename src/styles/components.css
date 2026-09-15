@@ -1,5 +1,5 @@
 /* ============================================================
-   Panel 面板组件样式
+   Panel 面板组件样式（Arco：白底 8px 圆角，分割线 #E5E6EB）
    ============================================================ */
 .panel-container {
   position: relative;
@@ -10,13 +10,13 @@
   background: var(--panel-bg);
   border-radius: var(--radius-lg);
   border: 1px solid var(--panel-border);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.15s ease;
 }
 
 .panel-container:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 /* 标题栏 */
@@ -24,9 +24,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-sm) var(--space-md);
+  padding: 0 16px;
   height: 40px;
-  background: var(--panel-header-bg);
+  background: var(--panel-bg);
   border-bottom: 1px solid var(--panel-border);
   cursor: move;
   user-select: none;
@@ -36,14 +36,14 @@
 .panel-title {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 8px;
   font-weight: 500;
-  font-size: var(--fs-sm);
+  font-size: 14px;
   color: var(--text-primary);
 }
 
 .panel-icon {
-  font-size: var(--fs-lg);
+  font-size: 15px;
   line-height: 1;
 }
 
@@ -71,7 +71,7 @@
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 4px;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -119,7 +119,7 @@
 }
 
 /* ============================================================
-   Sidebar 侧栏样式优化
+   Sidebar 侧栏（Arco 中后台：白底 + 主色选中态竖条）
    ============================================================ */
 .sidebar {
   display: flex;
@@ -128,115 +128,303 @@
   flex-shrink: 0;
   background: var(--sidebar-bg);
   color: var(--sidebar-text);
-  transition: width 0.2s ease;
+  border-right: 1px solid var(--sidebar-border);
+  transition: width 0.15s ease;
   overflow: hidden;
 }
 
 .sidebar-logo {
-  padding: var(--space-lg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--sidebar-border);
 }
 
 .sidebar-logo h1 {
-  font-size: var(--fs-lg);
+  font-size: 15px;
   font-weight: 600;
-  color: #fff;
-  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 0;
 }
 
 .sidebar-menu {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-sm) 0;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  padding: 8px;
+}
+
+/* 隐藏滚动条但保留滚动（菜单项过多时不出现"拖动栏"） */
+.sidebar-menu::-webkit-scrollbar {
+  width: 0;
+  display: none;
+}
+
+/* 压缩菜单项高度，减少溢出概率 */
+.sidebar-menu .arco-menu-item {
+  height: 36px;
+  line-height: 36px;
 }
 
 .menu-item {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-sm) var(--space-lg);
-  cursor: pointer;
-  transition: all 0.15s ease;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--sidebar-text);
   white-space: nowrap;
-  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
 }
 
 .menu-item:hover {
   background: var(--sidebar-hover);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .menu-item.active {
   background: var(--sidebar-active);
-  color: #fff;
+  color: var(--sidebar-active-text);
+  font-weight: 500;
+}
+
+.menu-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--primary-color);
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
 }
 
 .menu-icon {
-  font-size: var(--fs-lg);
+  font-size: 15px;
   width: 20px;
   text-align: center;
   flex-shrink: 0;
 }
 
 .menu-item span:last-child {
-  font-size: var(--fs-sm);
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ============================================================
-   首页工具条样式
-   ============================================================ */
-.home-toolbar {
+/* 侧栏底部：界面缩放控件 */
+.sidebar-zoom {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
-  padding: var(--space-md) var(--space-lg);
-  background: var(--panel-bg);
-  border-bottom: 1px solid var(--panel-border);
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.zoom-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.zoom-btn:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.zoom-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.zoom-value {
+  min-width: 46px;
+  height: 28px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s;
+}
+
+.zoom-value:hover {
+  background: var(--bg-hover);
+}
+
+/* 主题选择器 */
+.sidebar-theme {
+  padding: 8px;
+  border-top: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+}
+
+.theme-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  font-size: 13px;
+  color: var(--sidebar-text);
+  user-select: none;
+}
+
+.theme-trigger:hover {
+  background: var(--sidebar-hover);
+}
+
+.theme-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+/* ============================================================
+   TopBar 顶部操作栏（Arco 布局规范）
+   ============================================================ */
+.topbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e6eb;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-user {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+/* 通知面板 / 用户菜单（Dropdown 浮层） */
+.topbar-notif {
+  width: 260px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 12px;
+}
+
+.topbar-notif-head {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d2129;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e6eb;
+}
+
+.topbar-notif-empty {
+  font-size: 12px;
+  color: #86909c;
+  padding: 20px 0;
+  text-align: center;
+}
+
+/* ============================================================
+   首页工具条（Arco：32px 次级按钮 chips）
+   ============================================================ */
+.home-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 12px;
 }
 
 .home-toolbar-title {
-  font-size: var(--fs-md);
+  flex-shrink: 0;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary);
-}
-
-.home-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
+  color: #1d2129;
+  white-space: nowrap;
 }
 
 .home-chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md);
-  background: var(--bg-page);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  font-size: var(--fs-sm);
-  color: var(--text-secondary);
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+  color: #4e5969;
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 
 .home-chip:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color: #165dff;
+  color: #165dff;
 }
 
 .home-chip-on {
-  background: var(--primary-bg);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  background: rgba(22, 93, 255, 0.1);
+  border-color: #165dff;
+  color: #165dff;
+  font-weight: 500;
 }
 
 .home-chip-action {
+  flex-shrink: 0;
   margin-left: auto;
 }
 
@@ -246,15 +434,15 @@
 .window {
   position: absolute;
   background: var(--panel-bg);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   border: 1px solid var(--panel-border);
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.15s ease;
 }
 
 .window:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .window-maximized {
@@ -274,36 +462,237 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  gap: var(--space-md);
+  gap: 12px;
 }
 
 .home-empty-icon {
-  font-size: 48px;
-  opacity: 0.5;
+  font-size: 44px;
+  opacity: 0.4;
 }
 
 .home-empty-title {
-  font-size: var(--fs-lg);
+  font-size: 16px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .home-empty-desc {
-  font-size: var(--fs-sm);
+  font-size: 13px;
   color: var(--text-muted);
 }
 
 .home-empty-btn {
-  padding: var(--space-sm) var(--space-lg);
+  padding: 6px 16px;
   background: var(--primary-color);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 6px;
   color: #fff;
-  font-size: var(--fs-sm);
+  font-size: 13px;
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
 .home-empty-btn:hover {
   background: var(--primary-hover);
+}
+
+/* ============================================================
+   首页欢迎横幅（Arco Pro 模式：问候大标题 + 时间日期 + 天气）
+   ============================================================ */
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 20px;
+  background: #ffffff;
+  border: 1px solid #e5e6eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 12px;
+}
+
+.home-header-greet-main {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d2129;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+
+.home-header-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4e5969;
+}
+
+.home-header-clock {
+  font-variant-numeric: tabular-nums;
+  color: #165dff;
+  font-weight: 500;
+}
+
+.home-header-dot {
+  color: #c9cdd4;
+}
+
+.home-header-weather {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #4e5969;
+  flex-shrink: 0;
+}
+
+.home-header-wicon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.home-header-temp {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d2129;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-header-desc {
+  color: #86909c;
+}
+
+.home-header-city {
+  font-size: 12px;
+  color: #4e5969;
+  background: #f2f3f5;
+  border: 1px solid #e5e6eb;
+  border-radius: 6px;
+  padding: 2px 10px;
+}
+
+.home-header-weather-fallback {
+  font-size: 12px;
+  color: #86909c;
+}
+
+/* 分区标题行：主色竖条 + 16px 标题 */
+.home-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px;
+  color: var(--text-secondary);
+  box-sizing: border-box;
+}
+
+.home-section-head::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--sec-color, #165dff);
+  flex-shrink: 0;
+}
+
+.home-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d2129;
+}
+
+/* ============================================================
+   首页 CSS Grid 固定比例布局（替代 RGL 网格）
+   ============================================================ */
+.home-canvas {
+  height: auto !important;
+  min-height: 100%;
+}
+
+.home-section {
+  margin-bottom: 16px;
+}
+
+.home-section-head {
+  margin-bottom: 8px;
+}
+
+/* ============================================================
+   Arco 设计 Token 覆写（用户规范锁定：圆角 钮/输入 6px、卡 8px）
+   ============================================================ */
+:root {
+  --border-radius-small: 6px;
+  --border-radius-medium: 6px;
+  --border-radius-large: 8px;
+}
+
+.home-toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   模块管理下拉面板（Arco 浮层：白底 / 8px 圆角 / 0 4px 16px 阴影）
+   ============================================================ */
+.module-manager {
+  width: 224px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+}
+
+.module-manager-head {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1d2129;
+  padding: 6px 10px 10px;
+  border-bottom: 1px solid #e5e6eb;
+  margin-bottom: 6px;
+}
+
+.module-manager-list {
+  max-height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.module-manager-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #4e5969;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.module-manager-item:hover {
+  background: #f2f3f5;
+}
+
+.module-manager-item-on {
+  color: #1d2129;
+}
+
+.module-manager-icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.module-manager-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

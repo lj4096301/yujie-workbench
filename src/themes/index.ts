@@ -47,6 +47,14 @@ export interface Theme {
     colorBorder: string
     colorText: string
     colorTextSecondary: string
+    /** Arco 规范：文本占位色 #86909C */
+    colorTextTertiary?: string
+    /** Arco 规范：分割线 #E5E6EB */
+    colorSplit?: string
+    /** Arco 规范：按钮/输入框圆角 6px */
+    borderRadius?: number
+    /** Arco 规范：正文 14px */
+    fontSize?: number
   }
   preview: {
     sidebar: string
@@ -60,29 +68,33 @@ export interface Theme {
 export const THEMES: Theme[] = [
   {
     id: 'default',
-    label: '静谧蓝',
+    label: 'Arco 蓝',
     colors: {
-      '--primary-color': '#1677ff',
-      '--sidebar-bg': '#001529',
-      '--sidebar-text': 'rgba(255, 255, 255, 0.75)',
-      '--sidebar-active': '#1677ff',
-      '--sidebar-hover': 'rgba(255, 255, 255, 0.08)',
+      '--primary-color': '#165dff',
+      '--sidebar-bg': '#ffffff',
+      '--sidebar-text': '#4e5969',
+      '--sidebar-active': '#f2f3f5',
+      '--sidebar-hover': '#f2f3f5',
       '--panel-bg': '#ffffff',
-      '--panel-border': '#e0e0e0',
-      '--content-bg': '#f0f2f5',
+      '--panel-border': '#e5e6eb',
+      '--content-bg': '#f2f3f5',
       '--toolbar-bg': '#ffffff',
-      '--text-primary': '#262626',
-      '--text-secondary': '#595959',
-      '--text-muted': '#999999',
+      '--text-primary': '#1d2129',
+      '--text-secondary': '#4e5969',
+      '--text-muted': '#86909c',
     },
     antToken: {
-      colorPrimary: '#1677ff',
+      colorPrimary: '#165dff',
       colorBgContainer: '#ffffff',
-      colorBorder: '#e0e0e0',
-      colorText: '#262626',
-      colorTextSecondary: '#595959',
+      colorBorder: '#e5e6eb',
+      colorText: '#1d2129',
+      colorTextSecondary: '#4e5969',
+      colorTextTertiary: '#86909c',
+      colorSplit: '#e5e6eb',
+      borderRadius: 6,
+      fontSize: 14,
     },
-    preview: { sidebar: '#001529', primary: '#1677ff', content: '#f0f2f5' },
+    preview: { sidebar: '#ffffff', primary: '#165dff', content: '#f2f3f5' },
   },
   {
     id: 'mint',

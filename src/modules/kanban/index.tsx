@@ -75,9 +75,9 @@ const KanbanModule: React.FC = () => {
   const [editVisible, setEditVisible] = useState(false)
   const [editCard, setEditCard] = useState<KanbanCard | null>(null)
   const [editStatus, setEditStatus] = useState<Status>('todo')
-  const [renameVisible, setRenameVisible] = useState(false)
+  const [manageVisible, setManageVisible] = useState(false)
   const [form] = Form.useForm()
-  const [renameForm] = Form.useForm()
+  const [manageForm] = Form.useForm()
 
   const load = useCallback(async () => {
     try {
@@ -209,23 +209,44 @@ const KanbanModule: React.FC = () => {
   const removeCard = (id: string) =>
     persist({ ...state, cards: state.cards.filter((c) => c.id !== id) })
 
-  /* ---------------- 项目改名 ---------------- */
-  const openRename = () => {
-    renameForm.setFieldsValue({
-      n1: state.projects[0]?.name ?? '',
-      n2: state.projects[1]?.name ?? '',
-    })
-    setRenameVisible(true)
+  /* ---------------- 项目管理（增删改） ---------------- */
+  const openManage = () => {
+    manageForm.setFieldsValue({ projects: state.projects })
+    setManageVisible(true)
   }
 
-  const submitRename = async () => {
-    const v = await renameForm.validateFields()
-    const projects = state.projects.map((p, i) => ({
-      ...p,
-      name: String(i === 0 ? v.n1 : v.n2 || p.name).trim() || p.name,
-    }))
-    await persist({ ...state, projects })
-    setRenameVisible(false)
+  const submitManage = async () => {
+    const v = await manageForm.validateFields()
+    const rows: Array<{ id?: string; name?: string }> = Array.isArray(v.projects) ? v.projects : []
+    const names = rows.map((r) => String(r?.name ?? '').trim()).filter(Boolean)
+    if (names.length === 0) {
+      message.warning('至少保留一个项目')
+      return
+    }
+    // 同名去重：只保留第一个出现的 id
+    const seen = new Map<string, string>()
+    for (const r of rows) {
+      const n = String(r?.name ?? '').trim()
+      if (!n || seen.has(n)) continue
+      seen.set(n, String(r?.id ?? ''))
+    }
+    const existing = state.projects
+    const projects = names.map((name) => {
+      const oldId = seen.get(name)
+      const hit = oldId ? existing.find((e) => e.id === oldId) : existing.find((e) => e.name === name)
+      return {
+        id: hit?.id ?? `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        name,
+      }
+    })
+    // 被删除项目下的卡片一并移除
+    const removedIds = new Set(
+      existing.filter((e) => !projects.some((n) => n.id === e.id)).map((e) => e.id)
+    )
+    const cards = state.cards.filter((c) => !removedIds.has(c.projectId))
+    await persist({ projects, cards })
+    if (filter !== 'all' && !projects.some((p) => p.id === filter)) setFilter('all')
+    setManageVisible(false)
   }
 
   const visibleCards =
@@ -243,8 +264,8 @@ const KanbanModule: React.FC = () => {
               ...state.projects.map((p) => ({ label: p.name, value: p.id })),
             ]}
           />
-          <Tooltip title="重命名项目">
-            <Button size="small" icon={<SettingOutlined />} onClick={openRename} style={{ marginLeft: 8 }} />
+          <Tooltip title="管理项目（增删改）">
+            <Button size="small" icon={<SettingOutlined />} onClick={openManage} style={{ marginLeft: 8 }} />
           </Tooltip>
           <span style={{ flex: 1 }} />
           <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => openCreate('todo')}>
@@ -355,21 +376,73 @@ const KanbanModule: React.FC = () => {
       </Modal>
 
       <Modal
-        title="重命名项目"
-        open={renameVisible}
-        onOk={submitRename}
-        onCancel={() => setRenameVisible(false)}
+        title="项目管理"
+        open={manageVisible}
+        onOk={submitManage}
+        onCancel={() => setManageVisible(false)}
         okText="保存"
         cancelText="取消"
-        width={380}
+        width={420}
       >
-        <Form form={renameForm} layout="vertical">
-          <Form.Item name="n1" label="项目一" rules={[{ required: true, message: '请输入名称' }]}>
-            <Input maxLength={12} placeholder="项目A" />
-          </Form.Item>
-          <Form.Item name="n2" label="项目二" rules={[{ required: true, message: '请输入名称' }]}>
-            <Input maxLength={12} placeholder="项目B" />
-          </Form.Item>
+        <Form form={manageForm} layout="vertical">
+          <Form.List name="projects">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map((field, idx) => {
+                  const pid = manageForm.getFieldValue(['projects', field.name, 'id'])
+                  const cnt = pid ? state.cards.filter((c) => c.projectId === pid).length : 0
+                  return (
+                    <div
+                      key={field.key}
+                      style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 8 }}
+                    >
+                      <Form.Item name={[field.name, 'id']} hidden noStyle>
+                        <Input />
+                      </Form.Item>
+                      <Form.Item
+                        name={[field.name, 'name']}
+                        rules={[{ required: true, message: '请输入项目名' }]}
+                        style={{ flex: 1, marginBottom: 0 }}
+                      >
+                        <Input maxLength={12} placeholder="项目名称" />
+                      </Form.Item>
+                      <Button
+                        danger
+                        type="text"
+                        icon={<DeleteOutlined />}
+                        disabled={fields.length <= 1}
+                        onClick={() => {
+                          const pname =
+                            manageForm.getFieldValue(['projects', field.name, 'name']) || '该项目'
+                          if (cnt > 0) {
+                            Modal.confirm({
+                              title: `删除「${pname}」？`,
+                              content: `该项目下有 ${cnt} 张卡片，将一并删除。`,
+                              okText: '删除',
+                              okButtonProps: { danger: true },
+                              cancelText: '取消',
+                              onOk: () => remove(field.name),
+                            })
+                          } else {
+                            remove(field.name)
+                          }
+                        }}
+                      />
+                    </div>
+                  )
+                })}
+                <Button
+                  type="dashed"
+                  block
+                  icon={<PlusOutlined />}
+                  onClick={() => add({ id: '', name: '' })}
+                  style={{ marginTop: 4 }}
+                >
+                  添加项目
+                </Button>
+              </>
+            )}
+          </Form.List>
         </Form>
       </Modal>
     </ConfigProvider>

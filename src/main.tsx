@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './styles/index.css'
+import '@arco-design/web-react/dist/css/arco.css'
 
 /**
  * 白屏兜底：模块加载或渲染抛错时把错误显示在页面上，
