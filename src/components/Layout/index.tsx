@@ -1,3 +1,5 @@
+/usr/bin/bash: warning: setlocale: LC_ALL: cannot change locale (zh-CN): No such file or directory
+/usr/bin/bash: warning: setlocale: LC_ALL: cannot change locale (zh-CN): No such file or directory
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { message } from 'antd'
 import ReactGridLayout, { WidthProvider, Layout } from 'react-grid-layout'
@@ -17,6 +19,7 @@ import TVModule from '@/modules/tv-tracker'
 import APIMonitorModule from '@/modules/api-monitor'
 import BookmarksModule from '@/modules/bookmarks'
 import TasksModule from '@/modules/tasks'
+import TasksKanbanModule from '@/modules/tasks-kanban'
 import ClipboardModule from '@/modules/clipboard'
 import 'react-grid-layout/css/styles.css'
 
@@ -35,6 +38,7 @@ const MODULE_COMPONENTS: Record<string, React.FC> = {
   'api-monitor': APIMonitorModule,
   bookmarks: BookmarksModule,
   tasks: TasksModule,
+  'tasks-kanban': TasksKanbanModule,
   clipboard: ClipboardModule,
 }
 

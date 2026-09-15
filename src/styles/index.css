@@ -1,5 +1,7 @@
+/usr/bin/bash: warning: setlocale: LC_ALL: cannot change locale (zh-CN): No such file or directory
 @import "./design-tokens.css";
 @import "./components.css";
+@import "./kanban.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -29,4 +29,6 @@ export const MODULE_META: ModuleMeta[] = [
   { id: 'bookmarks', title: '书签启动', icon: '🔖' },
   { id: 'tasks', title: '待办任务', icon: '✅' },
   { id: 'clipboard', title: '剪贴板', icon: '📋' },
+
+  { id: 'tasks-kanban', title: '任务看板', icon: '📋' },
 ]
