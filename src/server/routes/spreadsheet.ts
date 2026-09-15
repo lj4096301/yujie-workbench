@@ -39,11 +39,15 @@ export function createSpreadsheetRouter() {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
   }
 
-  // 获取所有工作表
+  // 获取所有工作表（移除 type 字段避免 AG Grid warning #36）
   router.get('/sheets', (_req: Request, res: Response) => {
     try {
       const data = readData()
-      res.json(data.sheets || [])
+      const sheets = (data.sheets || []).map((sheet: any) => ({
+        ...sheet,
+        columns: sheet.columns?.map(({ type, ...col }: any) => col) || [],
+      }))
+      res.json(sheets)
     } catch (err) {
       res.status(500).json({ error: '读取数据失败' })
     }
