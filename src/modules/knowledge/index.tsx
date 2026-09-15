@@ -77,12 +77,22 @@ const KnowledgeModule: React.FC = () => {
   const [files, setFiles] = useState<KBFile[]>([])
   const [flatFiles, setFlatFiles] = useState<KBFile[]>([])
   const [selectedFile, setSelectedFile] = useState<KBFileDetail | null>(null)
+  const [selectedPath, setSelectedPath] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('kb-selected-path')
+    } catch { return null }
+  })
   const [searchQuery, setSearchQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [loading, setLoading] = useState(false)
   const [previewContent, setPreviewContent] = useState('')
   const [loadError, setLoadError] = useState('')
-  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([])
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>(() => {
+    try {
+      const saved = localStorage.getItem('kb-expanded-keys')
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
 
   // 视图模式：阅读 / 编辑 / 分屏 / 图谱
   const [mode, setMode] = useState<ViewMode>('read')
@@ -129,13 +139,25 @@ const KnowledgeModule: React.FC = () => {
         const data: KBFile[] = await res.json()
         setFiles(data)
         setFlatFiles(flattenFiles(data))
-        // 默认展开全部文件夹，避免"看起来是空的"
-        setExpandedKeys(collectFolderKeys(data))
+        // 恢复上次的展开状态，或仅展开根目录
+        try {
+          const saved = localStorage.getItem('kb-expanded-keys')
+          if (saved) {
+            setExpandedKeys(JSON.parse(saved))
+          } else {
+            setExpandedKeys(collectFolderKeys(data).slice(0, 3)) // 只展开前3层
+          }
+        } catch {
+          setExpandedKeys(collectFolderKeys(data).slice(0, 3))
+        }
         // 全局搜索（Ctrl+K）接力：打开指定笔记
         const pending = sessionStorage.getItem('mimo-open-path')
         if (pending) {
           sessionStorage.removeItem('mimo-open-path')
           setTimeout(() => { void handleSelect(pending) }, 0)
+        } else if (selectedPath) {
+          // 恢复上次打开的文件
+          setTimeout(() => { void handleSelect(selectedPath) }, 0)
         }
       } else {
         setLoadError(`服务返回异常（${res.status}）`)
@@ -158,6 +180,22 @@ const KnowledgeModule: React.FC = () => {
     }
     return acc
   }
+
+  // 持久化展开状态
+  useEffect(() => {
+    try {
+      localStorage.setItem('kb-expanded-keys', JSON.stringify(expandedKeys))
+    } catch {}
+  }, [expandedKeys])
+
+  // 持久化选中文件
+  useEffect(() => {
+    try {
+      if (selectedFile) {
+        localStorage.setItem('kb-selected-path', selectedFile.path)
+      }
+    } catch {}
+  }, [selectedFile])
 
   // 搜索（结果带上下文摘要）
   const handleSearch = async (value: string) => {
