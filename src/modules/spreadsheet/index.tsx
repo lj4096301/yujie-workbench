@@ -12,8 +12,9 @@ import { Button, Input, Space, message, Tooltip, Popconfirm } from 'antd'
 import { PlusOutlined, DownloadOutlined, UploadOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
 import { AgGridReact } from 'ag-grid-react'
 import type { ColDef, GridReadyEvent, CellValueChangedEvent } from 'ag-grid-community'
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-alpine.css'
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
+// 注册所有社区模块
+ModuleRegistry.registerModules([AllCommunityModule])
 
 interface ColumnDef {
   field: string
@@ -73,6 +74,7 @@ const SpreadsheetModule: React.FC = () => {
       editable: col.editable !== false,
       filter: true,
       resizable: true,
+      // 移除 type 字段，避免 warning #36
     }))
   }, [currentSheet])
 
@@ -297,6 +299,8 @@ const SpreadsheetModule: React.FC = () => {
           pagination={true}
           paginationPageSize={50}
           suppressExcelExport={true}
+          theme="legacy"
+          suppressFieldDotNotation={true}
         />
       </div>
     </div>
