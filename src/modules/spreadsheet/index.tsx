@@ -119,7 +119,6 @@ const SpreadsheetModule: React.FC = () => {
   )
 
   // 初始化中文本地化
-  setLocale('zhCN')
 
   // 表格就绪
   const onGridReady = (params: GridReadyEvent) => {
