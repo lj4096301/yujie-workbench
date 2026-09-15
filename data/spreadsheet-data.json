@@ -6,143 +6,23 @@
       "columns": [
         {
           "field": "name",
-          "headerName": "名称",
-          "editable": true,
-          "width": 150
+          "headerName": "����"
         },
         {
           "field": "value",
-          "headerName": "数值",
-          "editable": true,
-          "width": 100
+          "headerName": "��ֵ"
         },
         {
           "field": "note",
-          "headerName": "备注",
-          "editable": true,
-          "width": 200
+          "headerName": "��ע"
         }
       ],
       "rows": [
         {
           "_id": "row_0",
-          "name": "项目 1",
-          "value": 0,
-          "note": ""
-        },
-        {
-          "_id": "row_1",
-          "name": "项目 2",
-          "value": 10,
-          "note": ""
-        },
-        {
-          "_id": "row_2",
-          "name": "项目 3",
-          "value": 20,
-          "note": ""
-        },
-        {
-          "_id": "row_3",
-          "name": "项目 4",
-          "value": 30,
-          "note": ""
-        },
-        {
-          "_id": "row_4",
-          "name": "项目 5",
-          "value": 40,
-          "note": ""
-        },
-        {
-          "_id": "row_5",
-          "name": "项目 6",
-          "value": 50,
-          "note": ""
-        },
-        {
-          "_id": "row_6",
-          "name": "项目 7",
-          "value": 60,
-          "note": ""
-        },
-        {
-          "_id": "row_7",
-          "name": "项目 8",
-          "value": 70,
-          "note": ""
-        },
-        {
-          "_id": "row_8",
-          "name": "项目 9",
-          "value": 80,
-          "note": ""
-        },
-        {
-          "_id": "row_9",
-          "name": "项目 10",
-          "value": 90,
-          "note": ""
-        },
-        {
-          "_id": "row_10",
-          "name": "项目 11",
-          "value": 100,
-          "note": ""
-        },
-        {
-          "_id": "row_11",
-          "name": "项目 12",
-          "value": 110,
-          "note": ""
-        },
-        {
-          "_id": "row_12",
-          "name": "项目 13",
-          "value": 120,
-          "note": ""
-        },
-        {
-          "_id": "row_13",
-          "name": "项目 14",
-          "value": 130,
-          "note": ""
-        },
-        {
-          "_id": "row_14",
-          "name": "项目 15",
-          "value": 140,
-          "note": ""
-        },
-        {
-          "_id": "row_15",
-          "name": "项目 16",
-          "value": 150,
-          "note": ""
-        },
-        {
-          "_id": "row_16",
-          "name": "项目 17",
-          "value": 160,
-          "note": ""
-        },
-        {
-          "_id": "row_17",
-          "name": "项目 18",
-          "value": 170,
-          "note": ""
-        },
-        {
-          "_id": "row_18",
-          "name": "项目 19",
-          "value": 180,
-          "note": ""
-        },
-        {
-          "_id": "row_19",
-          "name": "项目 20",
-          "value": 190,
-          "note": ""
+          "name": "���޸�",
+          "value": 999,
+          "note": "�������"
         }
       ]
     }
