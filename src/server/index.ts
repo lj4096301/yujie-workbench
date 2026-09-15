@@ -25,9 +25,11 @@ app.use(express.json())
 
 // 静态文件（仅当 dist 存在时）
 const distPath = path.join(__dirname, '../../dist')
-if (require('fs').existsSync(distPath)) {
-  app.use(express.static(distPath))
-}
+try {
+  if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath))
+  }
+} catch {}
 
 // API 路由
 app.use('/api/knowledge', createKnowledgeRouter())
