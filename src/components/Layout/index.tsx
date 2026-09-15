@@ -18,6 +18,7 @@ import APIMonitorModule from '@/modules/api-monitor'
 import BookmarksModule from '@/modules/bookmarks'
 import TasksModule from '@/modules/tasks'
 import ClipboardModule from '@/modules/clipboard'
+import SpreadsheetModule from '@/modules/spreadsheet'
 import 'react-grid-layout/css/styles.css'
 
 /** RGL 需要感知容器宽度才能按 cols 换算像素，WidthProvider 自动跟随 */
@@ -36,6 +37,7 @@ const MODULE_COMPONENTS: Record<string, React.FC> = {
   bookmarks: BookmarksModule,
   tasks: TasksModule,
   clipboard: ClipboardModule,
+  spreadsheet: SpreadsheetModule,
 }
 
 /** 完整模块映射 = registry 元数据 + 组件（新增模块时改 registry + MODULE_COMPONENTS 两处即可） */
