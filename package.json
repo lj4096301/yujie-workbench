@@ -30,6 +30,7 @@
     "gray-matter": "^4.0.3",
     "html-to-image": "^1.11.13",
     "lunar-javascript": "^1.7.7",
+    "mind-elixir": "5.15.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-grid-layout": "^1.4.4",
