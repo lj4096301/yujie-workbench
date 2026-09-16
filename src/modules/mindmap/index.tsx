@@ -93,8 +93,44 @@ function MindmapEditor() {
     }
     mind.bus.addListener('operation', onOperation)
 
+    // 右键菜单定位校正：内置菜单按窗口高度判断，容器内存在 transform 祖先时
+    // fixed 会退化为 absolute 导致菜单位置偏下被裁剪，这里按容器可视区重算位置。
+    const fixContextMenu = () => {
+      requestAnimationFrame(() => {
+        const menu = el.querySelector<HTMLElement>('.menu-list')
+        if (!menu) return
+        const mRect = menu.getBoundingClientRect()
+        const cRect = el.getBoundingClientRect()
+        if (mRect.height === 0 || cRect.height === 0) return
+        const pad = 6
+        const overBottom = mRect.bottom - cRect.bottom + pad
+        const overRight = mRect.right - cRect.right + pad
+        const overTop = cRect.top + pad - mRect.top
+        const overLeft = cRect.left + pad - mRect.left
+        if (overBottom <= 0 && overRight <= 0 && overTop <= 0 && overLeft <= 0) return
+
+        const targetTop = Math.max(cRect.top + pad, mRect.top - Math.max(overBottom, 0) + Math.max(overTop, 0))
+        const targetLeft = Math.max(cRect.left + pad, mRect.left - Math.max(overRight, 0) + Math.max(overLeft, 0))
+        // offsetParent 为实际定位祖先（transform 祖先也算），换算成相对坐标
+        const parent = menu.offsetParent as HTMLElement | null
+        let baseTop = 0
+        let baseLeft = 0
+        if (parent && parent !== document.body) {
+          const pRect = parent.getBoundingClientRect()
+          baseTop = pRect.top
+          baseLeft = pRect.left
+        }
+        menu.style.top = `${targetTop - baseTop}px`
+        menu.style.bottom = ''
+        menu.style.left = `${targetLeft - baseLeft}px`
+        menu.style.right = ''
+      })
+    }
+    mind.bus.addListener('showContextMenu', fixContextMenu)
+
     return () => {
       mind.bus.removeListener('operation', onOperation)
+      mind.bus.removeListener('showContextMenu', fixContextMenu)
       mind.destroy()
       mindRef.current = null
     }
