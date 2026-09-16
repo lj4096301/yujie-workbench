@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Spin, Empty, Select, Alert, Button, message, Tooltip } from 'antd'
+import { createPortal } from 'react-dom'
+import { Spin, Empty, Select, Alert, Button, message } from 'antd'
 
 interface ForecastDay {
   date: string
@@ -180,7 +181,7 @@ const fmtTime = (iso?: string | null) => {
   return iso.slice(11, 16)
 }
 
-const WeatherModule: React.FC = () => {
+const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [cities, setCities] = useState<CityItem[]>(() => loadCities())
   const [activeId, setActiveId] = useState<string>('')
   const [dataMap, setDataMap] = useState<Record<string, WeatherData>>({})
@@ -192,6 +193,13 @@ const WeatherModule: React.FC = () => {
   const [searching, setSearching] = useState(false)
   const [searchValue, setSearchValue] = useState<string | undefined>(undefined)
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
 
   /** 按坐标取天气（多城市统一走坐标，避免重复解析城市名） */
   const fetchByCoords = useCallback(
@@ -347,34 +355,35 @@ const WeatherModule: React.FC = () => {
     return raw
   })()
 
+  const citySearch = (
+    <Select
+      size="small"
+      showSearch
+      allowClear
+      value={searchValue}
+      placeholder="🔍 搜索添加城市"
+      style={{ width: 220 }}
+      filterOption={false}
+      onSearch={handleSearch}
+      onSelect={handleAddCity}
+      onClear={() => {
+        setSearchValue(undefined)
+        setOptions([])
+      }}
+      notFoundContent={searching ? <Spin size="small" /> : searchValue ? '未找到匹配城市' : '输入城市名开始搜索'}
+      options={options.map((o) => ({
+        value: o.id,
+        label: [o.name, o.admin1, o.country].filter(Boolean).join(' · '),
+      }))}
+    />
+  )
+  const headerActions = actionsHost
+    ? createPortal(<div className="weather-header-actions">{citySearch}</div>, actionsHost)
+    : null
+
   return (
     <div>
-      {/* 城市管理：搜索添加 + 刷新 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-        <Select
-          size="small"
-          showSearch
-          allowClear
-          value={searchValue}
-          placeholder="🔍 搜索并添加城市（中英文均可）"
-          style={{ flex: 1, minWidth: 0 }}
-          filterOption={false}
-          onSearch={handleSearch}
-          onSelect={handleAddCity}
-          onClear={() => {
-            setSearchValue(undefined)
-            setOptions([])
-          }}
-          notFoundContent={searching ? <Spin size="small" /> : searchValue ? '未找到匹配城市' : '输入城市名开始搜索'}
-          options={options.map((o) => ({
-            value: o.id,
-            label: [o.name, o.admin1, o.country].filter(Boolean).join(' · '),
-          }))}
-        />
-        <Tooltip title="刷新当前城市天气">
-          <Button size="small" icon="🔄" onClick={refresh} loading={loading} />
-        </Tooltip>
-      </div>
+      {headerActions}
 
       {/* 城市标签 */}
       {cities.length > 0 && (
