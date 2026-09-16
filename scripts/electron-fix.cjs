@@ -9,7 +9,7 @@ const path = require('path')
 
 const ROOT = path.resolve(__dirname, '..')
 const BACKUP = path.join(__dirname, 'electron-fix')
-const NEEDED = ['dist/chrome_100_percent.pak', 'dist/chrome_200_percent.pak', 'checksums.json']
+const NEEDED = ['dist/chrome_100_percent.pak', 'dist/chrome_200_percent.pak', 'checksums.json', 'cli.js']
 
 // 定位 electron 包目录（pnpm 虚拟 store）
 function findElectronPkg() {

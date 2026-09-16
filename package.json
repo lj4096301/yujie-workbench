@@ -8,7 +8,7 @@
     "dev:web": "concurrently -n api,web -c green,blue \"tsx watch src/server/index.ts\" \"vite --port 5173\"",
     "build:electron": "tsc -p tsconfig.node.json",
     "build:server": "vite build --ssr src/server/index.ts --outDir dist/server --emptyOutDir false",
-    "dev:electron": "node scripts/electron-fix.cjs && npm run build:electron && concurrently -n vite,api,app -c blue,green,magenta \"vite --port 5173\" \"tsx watch src/server/index.ts\" \"wait-on http://localhost:5173 http://localhost:3001 && electron .\"",
+    "dev:electron": "node scripts/electron-fix.cjs && npm run build:electron && concurrently -n vite,api,app -c blue,green,magenta \"vite --port 5173\" \"tsx watch src/server/index.ts\" \"wait-on http://localhost:5173 http://localhost:3001 && electron . --remote-debugging-port=9222\"",
     "build": "node scripts/electron-fix.cjs && npm run build:electron && tsc -p tsconfig.json && vite build && npm run build:server",
     "start": "electron .",
     "preview": "vite preview",

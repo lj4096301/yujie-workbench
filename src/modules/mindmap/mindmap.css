@@ -1,5 +1,12 @@
 /* ============ 思维导图模块 ============ */
+/*
+ * zoom: 1 —— 抵消全局界面缩放（--mimo-zoom）。
+ * 全局 zoom ≠ 1 时，clientX/clientY（视口像素）与画布 CSS 像素相差 zoom 倍，
+ * Mind Elixir 内部框选/右键菜单用 clientX - rect 换算坐标会偏差。
+ * 画布模块固定 1x，保证坐标空间与视口 1:1。
+ */
 .mind-mod {
+  zoom: 1;
   height: 100%;
   min-height: 520px;
   display: flex;
