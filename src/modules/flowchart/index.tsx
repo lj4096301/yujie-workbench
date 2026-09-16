@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -21,6 +22,7 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { Modal, message } from 'antd'
+import { Button, Dropdown, Menu } from '@arco-design/web-react'
 import { toPng, toSvg } from 'html-to-image'
 import './flowchart.css'
 
@@ -129,7 +131,7 @@ function FlowNode({ id, data, selected }: NodeProps<FlowNodeType>) {
 
 const nodeTypes: NodeTypes = { flow: FlowNode }
 
-function FlowEditor() {
+function FlowEditor({ panelId }: { panelId?: string }) {
   const [nodes, setNodes, onNodesChange] = useNodesState<FlowNodeType>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
   const { screenToFlowPosition } = useReactFlow()
@@ -166,6 +168,13 @@ function FlowEditor() {
     }, 400)
     return () => clearTimeout(t)
   }, [nodes, edges])
+
+  // 标题栏操作按钮挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
 
   const onConnect = useCallback(
     (conn: Connection) =>
@@ -320,32 +329,42 @@ function FlowEditor() {
     })
   }, [nodes.length, setNodes, setEdges])
 
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="flow-header-actions">
+          <Dropdown
+            position="br"
+            droplist={
+              <Menu
+                onClickMenuItem={(key) => {
+                  if (key === 'png') void exportImage('png')
+                  else if (key === 'svg') void exportImage('svg')
+                  else exportJson()
+                }}
+              >
+                <Menu.Item key="png">导出 PNG</Menu.Item>
+                <Menu.Item key="svg">导出 SVG</Menu.Item>
+                <Menu.Item key="json">导出 JSON</Menu.Item>
+              </Menu>
+            }
+          >
+            <Button size="mini" type="secondary">
+              导出 ▾
+            </Button>
+          </Dropdown>
+          <Button size="mini" type="secondary" onClick={importJson}>
+            导入
+          </Button>
+          <Button size="mini" type="text" style={{ color: '#f53f3f' }} onClick={clearAll}>
+            清空
+          </Button>
+        </div>,
+        actionsHost
+      )
+    : null
+
   return (
     <div className="flow-mod">
-      <div className="flow-toolbar">
-        <div className="flow-toolbar-left">
-          <span className="flow-title">📐 流程图编辑器</span>
-        </div>
-        <div className="flow-toolbar-right">
-          {savedAt && <span className="flow-saved">已自动保存 {savedAt}</span>}
-          <button type="button" className="flow-btn" onClick={() => void exportImage('png')} title="导出 PNG 图片">
-            🖼 导出 PNG
-          </button>
-          <button type="button" className="flow-btn" onClick={() => void exportImage('svg')} title="导出 SVG 矢量图">
-            🧾 导出 SVG
-          </button>
-          <button type="button" className="flow-btn" onClick={exportJson} title="导出流程图数据 JSON">
-            💾 导出 JSON
-          </button>
-          <button type="button" className="flow-btn" onClick={importJson} title="从 JSON 导入流程图">
-            📤 导入
-          </button>
-          <button type="button" className="flow-btn flow-btn-danger" onClick={clearAll} title="清空画布">
-            🗑 清空
-          </button>
-        </div>
-      </div>
-
       <div className="flow-main">
         <div className="flow-panel">
           <div className="flow-panel-title">节点</div>
@@ -366,6 +385,7 @@ function FlowEditor() {
         </div>
 
         <div className="flow-canvas" ref={canvasRef} onDrop={onDrop} onDragOver={onDragOver}>
+          {savedAt && <span className="flow-saved-float">已自动保存 {savedAt}</span>}
           {nodes.length === 0 && (
             <div className="flow-empty">
               <div className="flow-empty-icon">📐</div>
@@ -403,13 +423,14 @@ function FlowEditor() {
           </ReactFlow>
         </div>
       </div>
+      {headerActions}
     </div>
   )
 }
 
-const FlowchartModule: React.FC = () => (
+const FlowchartModule: React.FC<{ panelId?: string }> = ({ panelId }) => (
   <ReactFlowProvider>
-    <FlowEditor />
+    <FlowEditor panelId={panelId} />
   </ReactFlowProvider>
 )
 

@@ -66,6 +66,7 @@ const Panel: React.FC<PanelProps> = ({ id, title, icon, children, onClose, onDra
           <span className="panel-title-text">{title}</span>
         </div>
         <div className="panel-actions">
+          <div id={'panel-actions-' + id} className="panel-module-actions" />
           <button 
             type="button" 
             onClick={handleRefresh} 

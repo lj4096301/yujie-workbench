@@ -15,69 +15,7 @@
   border: 1px solid #e5e6eb;
   border-radius: 8px;
   overflow: hidden;
-}
-
-.mind-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  border-bottom: 1px solid #e5e6eb;
-  background: #fff;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.mind-toolbar-left,
-.mind-toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.mind-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1d2129;
-}
-
-.mind-saved {
-  font-size: 12px;
-  color: #86909c;
-  margin-right: 4px;
-}
-
-.mind-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 32px;
-  padding: 0 12px;
-  font-size: 13px;
-  color: #1d2129;
-  background: #fff;
-  border: 1px solid #e5e6eb;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.mind-btn:hover {
-  border-color: #165dff;
-  color: #165dff;
-  background: #f2f3f5;
-}
-
-.mind-btn-danger:hover {
-  border-color: #f53f3f;
-  color: #f53f3f;
-}
-
-.mind-canvas {
+}.mind-canvas {
   flex: 1;
   min-height: 0;
   position: relative;
@@ -87,4 +25,18 @@
 /* mind-elixir 内部微调：让节点文字在 Arco 风格下更清晰 */
 .mind-canvas .mind-elixir {
   border-radius: 0 0 8px 8px;
+}
+
+/* 自动保存提示（浮动画布右上角，不占布局层） */
+.mind-saved-float {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 12px;
+  color: #86909c;
+  z-index: 5;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2px 8px;
+  border-radius: 6px;
 }

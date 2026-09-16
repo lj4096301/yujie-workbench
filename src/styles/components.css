@@ -62,6 +62,16 @@
   z-index: 2;
 }
 
+/* 模块自定义操作按钮（portal 到窗口标题栏） */
+.panel-module-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 4px;
+  padding-right: 8px;
+  border-right: 1px solid var(--panel-border);
+}
+
 .panel-btn {
   display: inline-flex;
   align-items: center;

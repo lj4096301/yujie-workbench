@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import MindElixir, { type MindElixirData } from 'mind-elixir'
 import 'mind-elixir/style.css'
 import { zh_CN } from 'mind-elixir/i18n'
 import { Modal, message } from 'antd'
+import { Button, Dropdown, Menu } from '@arco-design/web-react'
 import './mindmap.css'
 
 const STORAGE_KEY = 'yujie-mindmap'
@@ -60,7 +62,7 @@ function loadData(): MindElixirData {
   return demoData()
 }
 
-function MindmapEditor() {
+function MindmapEditor({ panelId }: { panelId?: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mindRef = useRef<MindElixir | null>(null)
   const [savedAt, setSavedAt] = useState('')
@@ -135,6 +137,13 @@ function MindmapEditor() {
       mindRef.current = null
     }
   }, [])
+
+  // 标题栏操作按钮挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
 
   const saveFile = async (payload: { defaultName: string; content: string; encoding?: 'utf8' | 'base64' }) => {
     const api = window.electronAPI
@@ -223,45 +232,76 @@ function MindmapEditor() {
     })
   }
 
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="mind-header-actions">
+          <Button
+            size="mini"
+            type="secondary"
+            onClick={() => mindRef.current?.undo()}
+            title="撤销"
+          >
+            ↩
+          </Button>
+          <Button
+            size="mini"
+            type="secondary"
+            onClick={() => mindRef.current?.redo()}
+            title="重做"
+          >
+            ↪
+          </Button>
+          <Button
+            size="mini"
+            type="secondary"
+            onClick={() => mindRef.current?.scaleFit()}
+            title="适应画布"
+          >
+            ⤢
+          </Button>
+          <Button size="mini" type="secondary" onClick={toggleTheme} title="切换明暗主题">
+            {dark ? '☀ 亮色' : '🌙 暗色'}
+          </Button>
+          <Dropdown
+            position="br"
+            droplist={
+              <Menu
+                onClickMenuItem={(key) => {
+                  if (key === 'png') void exportPng()
+                  else if (key === 'svg') void exportSvg()
+                  else void exportJson()
+                }}
+              >
+                <Menu.Item key="png">导出 PNG</Menu.Item>
+                <Menu.Item key="svg">导出 SVG</Menu.Item>
+                <Menu.Item key="json">导出 JSON</Menu.Item>
+              </Menu>
+            }
+          >
+            <Button size="mini" type="secondary">
+              导出 ▾
+            </Button>
+          </Dropdown>
+          <Button size="mini" type="text" style={{ color: '#f53f3f' }} onClick={clearAll}>
+            清空
+          </Button>
+        </div>,
+        actionsHost
+      )
+    : null
+
   return (
     <div className="mind-mod">
-      <div className="mind-toolbar">
-        <div className="mind-toolbar-left">
-          <span className="mind-title">🧠 思维导图</span>
-        </div>
-        <div className="mind-toolbar-right">
-          {savedAt && <span className="mind-saved">已自动保存 {savedAt}</span>}
-          <button type="button" className="mind-btn" onClick={() => mindRef.current?.undo()} title="撤销">
-            ↩ 撤销
-          </button>
-          <button type="button" className="mind-btn" onClick={() => mindRef.current?.redo()} title="重做">
-            ↪ 重做
-          </button>
-          <button type="button" className="mind-btn" onClick={() => mindRef.current?.scaleFit()} title="适应画布">
-            ⤢ 适应
-          </button>
-          <button type="button" className="mind-btn" onClick={toggleTheme} title="切换明暗主题">
-            {dark ? '☀ 亮色' : '🌙 暗色'}
-          </button>
-          <button type="button" className="mind-btn" onClick={() => void exportPng()} title="导出 PNG 图片">
-            🖼 导出 PNG
-          </button>
-          <button type="button" className="mind-btn" onClick={() => void exportSvg()} title="导出 SVG 矢量图">
-            🧾 导出 SVG
-          </button>
-          <button type="button" className="mind-btn" onClick={() => void exportJson()} title="导出思维导图数据 JSON">
-            💾 导出 JSON
-          </button>
-          <button type="button" className="mind-btn mind-btn-danger" onClick={clearAll} title="清空重置">
-            🗑 清空
-          </button>
-        </div>
+      <div className="mind-canvas" ref={containerRef}>
+        {savedAt && <span className="mind-saved-float">已自动保存 {savedAt}</span>}
       </div>
-      <div className="mind-canvas" ref={containerRef} />
+      {headerActions}
     </div>
   )
 }
 
-const MindmapModule: React.FC = () => <MindmapEditor />
+const MindmapModule: React.FC<{ panelId?: string }> = ({ panelId }) => (
+  <MindmapEditor panelId={panelId} />
+)
 
 export default MindmapModule

@@ -39,7 +39,7 @@ const MODULE_COMPONENTS: Record<string, React.FC> = {
 }
 
 /** 完整模块映射 = registry 元数据 + 组件 */
-const MODULE_MAP: Record<string, { component: React.FC; title: string; icon: string }> =
+const MODULE_MAP: Record<string, { component: React.FC<{ panelId?: string }>; title: string; icon: string }> =
   Object.fromEntries(
     MODULE_META.map((m) => [m.id, { component: MODULE_COMPONENTS[m.id], title: m.title, icon: m.icon }])
   )
@@ -86,7 +86,7 @@ const MainLayout: React.FC = () => {
     const Component = mod.component
     return (
       <Panel id={panel.id} title={panel.title} icon={mod.icon} onClose={() => handleClose(panel.id)}>
-        <Component key={panel.id} />
+        <Component key={panel.id} panelId={panel.id} />
       </Panel>
     )
   }

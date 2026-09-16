@@ -17,63 +17,6 @@
   overflow: hidden;
 }
 
-/* 工具栏 */
-.flow-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  border-bottom: 1px solid #e5e6eb;
-  background: #fff;
-  flex-shrink: 0;
-}
-
-.flow-toolbar-left,
-.flow-toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.flow-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1d2129;
-}
-
-.flow-saved {
-  font-size: 12px;
-  color: #86909c;
-  margin-right: 4px;
-}
-
-.flow-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 32px;
-  padding: 0 12px;
-  font-size: 13px;
-  color: #1d2129;
-  background: #fff;
-  border: 1px solid #e5e6eb;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  user-select: none;
-}
-
-.flow-btn:hover {
-  border-color: #165dff;
-  color: #165dff;
-  background: #f2f3f5;
-}
-
-.flow-btn-danger:hover {
-  border-color: #f53f3f;
-  color: #f53f3f;
-}
-
 /* 主体：左侧节点面板 + 画布 */
 .flow-main {
   display: flex;
@@ -344,4 +287,18 @@
   background: #f7f8fa;
   border-style: dashed;
   font-size: 12px;
+}
+
+/* 自动保存提示（浮动画布右上角，不占布局层） */
+.flow-saved-float {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 12px;
+  color: #86909c;
+  z-index: 5;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2px 8px;
+  border-radius: 6px;
 }
