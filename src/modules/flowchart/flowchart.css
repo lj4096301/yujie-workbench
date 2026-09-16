@@ -1,0 +1,315 @@
+/* ============ 流程图模块 ============ */
+.flow-mod {
+  height: 100%;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 工具栏 */
+.flow-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e5e6eb;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.flow-toolbar-left,
+.flow-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flow-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d2129;
+}
+
+.flow-saved {
+  font-size: 12px;
+  color: #86909c;
+  margin-right: 4px;
+}
+
+.flow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #1d2129;
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.flow-btn:hover {
+  border-color: #165dff;
+  color: #165dff;
+  background: #f2f3f5;
+}
+
+.flow-btn-danger:hover {
+  border-color: #f53f3f;
+  color: #f53f3f;
+}
+
+/* 主体：左侧节点面板 + 画布 */
+.flow-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.flow-panel {
+  width: 168px;
+  flex-shrink: 0;
+  border-right: 1px solid #e5e6eb;
+  background: #fafbfc;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.flow-panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #86909c;
+  margin-bottom: 2px;
+}
+
+.flow-panel-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 6px;
+  cursor: grab;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.flow-panel-item:hover {
+  border-color: #165dff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.flow-panel-item:active {
+  cursor: grabbing;
+}
+
+.flow-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.flow-panel-label {
+  font-size: 13px;
+  color: #1d2129;
+}
+
+.flow-panel-tip {
+  font-size: 12px;
+  color: #86909c;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* 画布 */
+.flow-canvas {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  background: #f2f3f5;
+}
+
+.flow-canvas .react-flow__node {
+  cursor: grab;
+}
+
+.flow-canvas .react-flow__node.dragging {
+  cursor: grabbing;
+}
+
+.flow-canvas .react-flow__edge-path {
+  stroke: #165dff;
+  stroke-width: 1.5;
+}
+
+.flow-canvas .react-flow__controls {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.flow-canvas .react-flow__minimap {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 空态 */
+.flow-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #86909c;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.flow-empty-icon {
+  font-size: 40px;
+  opacity: 0.6;
+}
+
+.flow-empty-sub {
+  font-size: 12px;
+  color: #c9cdd4;
+}
+
+/* ============ 自定义节点 ============ */
+.flow-node {
+  min-width: 110px;
+  max-width: 220px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+  border: 1.5px solid;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.flow-node.selected {
+  box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.35), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.flow-node .fn-content {
+  position: relative;
+  z-index: 1;
+  line-height: 1.4;
+}
+
+.flow-node .fn-label {
+  display: inline-block;
+  word-break: break-word;
+}
+
+.flow-node input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #165dff;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 13px;
+  text-align: center;
+  outline: none;
+  background: #fff;
+  color: #1d2129;
+  font-family: inherit;
+}
+
+.flow-node .react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: #86909c;
+  border: 2px solid #fff;
+}
+
+/* 类型样式 */
+.n-start {
+  border-color: #00b42a;
+  color: #00b42a;
+  background: #e8ffea;
+  border-radius: 18px;
+  font-weight: 500;
+}
+
+.n-process {
+  border-color: #165dff;
+  color: #165dff;
+  background: #e8f3ff;
+}
+
+.n-decision {
+  border: none;
+  background: transparent;
+  min-width: 132px;
+  min-height: 60px;
+  padding: 0;
+  color: #fff;
+}
+
+.n-decision .fn-shape {
+  position: absolute;
+  inset: 0;
+  background: #ff7d00;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  box-shadow: 0 2px 8px rgba(255, 125, 0, 0.25);
+}
+
+.n-decision .fn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  padding: 14px 20px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.n-decision input {
+  background: #fff;
+  color: #1d2129;
+}
+
+.n-end {
+  border-color: #f53f3f;
+  color: #f53f3f;
+  background: #ffece8;
+  border-radius: 18px;
+  font-weight: 500;
+}
+
+.n-sub {
+  border-color: #722ed1;
+  color: #722ed1;
+  background: #f5edff;
+  border-style: dashed;
+}
+
+.n-note {
+  border-color: #c9cdd4;
+  color: #4e5969;
+  background: #f7f8fa;
+  border-style: dashed;
+  font-size: 12px;
+}

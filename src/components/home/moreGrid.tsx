@@ -21,7 +21,8 @@ const HomeMoreGrid: React.FC<{
     setHidden((h) => h.filter((id) => panels.find((p) => p.id === id)?.isVisible))
   }, [panels])
 
-  const list = EXTRA_MODULE_IDS.filter((id) => !hidden.includes(id))
+  // 保持首页「更多模块」6 宫格一行，其余低频模块从侧栏「更多功能」进入
+  const list = EXTRA_MODULE_IDS.filter((id) => !hidden.includes(id)).slice(0, 6)
   if (list.length === 0) return null
 
   const remove = (id: string) => {

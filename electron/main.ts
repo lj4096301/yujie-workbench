@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, session, shell, clipboard } from 'electron'
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, session, shell, clipboard, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
@@ -473,6 +473,27 @@ function parseBrowserBookmarks(bookmarkFile: string, browserLabel: string): Brow
   }
   return out
 }
+
+/**
+ * 通用文件保存：弹出系统保存对话框并写入内容（流程图导出等）。
+ * encoding 支持 utf8 / base64。
+ */
+ipcMain.handle('file:save', async (event, payload: {
+  defaultName?: string
+  content: string
+  encoding?: 'utf8' | 'base64'
+}) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  const result = await dialog.showSaveDialog(win ?? undefined!, {
+    defaultPath: payload.defaultName ?? 'untitled',
+    filters: [
+      { name: '全部文件', extensions: ['*'] },
+    ],
+  })
+  if (result.canceled || !result.filePath) return { canceled: true }
+  fs.writeFileSync(result.filePath, payload.content, payload.encoding ?? 'utf8')
+  return { canceled: false, path: result.filePath }
+})
 
 ipcMain.handle('bookmarks:import', (): BrowserBookmark[] => {
   const appData = process.env.APPDATA || ''

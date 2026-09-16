@@ -41,6 +41,12 @@ declare global {
       onClipboardChange?: (cb: (text: string) => void) => () => void
       /** 从本机浏览器（Edge/Chrome/Brave）导入书签 */
       importBookmarks?: () => Promise<Array<{ id: string; title: string; url: string; icon: string; group: string }>>
+      /** 弹出系统保存对话框写文件（流程图等导出用），返回是否取消与保存路径 */
+      saveFile?: (payload: {
+        defaultName?: string
+        content: string
+        encoding?: 'utf8' | 'base64'
+      }) => Promise<{ canceled: boolean; path?: string }>
     }
   }
 }

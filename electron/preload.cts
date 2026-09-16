@@ -31,4 +31,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
    */
   importBookmarks: (): Promise<Array<{ id: string; title: string; url: string; icon: string; group: string }>> =>
     ipcRenderer.invoke('bookmarks:import'),
+  /** 弹出系统保存对话框写文件（流程图导出），encoding 支持 utf8 / base64 */
+  saveFile: (payload: {
+    defaultName?: string
+    content: string
+    encoding?: 'utf8' | 'base64'
+  }): Promise<{ canceled: boolean; path?: string }> => ipcRenderer.invoke('file:save', payload),
 })
