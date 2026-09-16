@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { Spin, Button, Modal, Form, Input, DatePicker, message } from 'antd'
 import dayjs, { Dayjs } from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
@@ -28,7 +29,14 @@ const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日']
 
 type ViewMode = 'month' | 'week' | 'day'
 
-const CalendarModule: React.FC = () => {
+const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
+
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(false)
   const [view, setView] = useState<ViewMode>('month')
@@ -162,25 +170,13 @@ const CalendarModule: React.FC = () => {
 
   const dayLunar = getDayLunarInfo(activeDay.toDate())
 
-  return (
-    <div>
-      {/* 操作栏 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div style={{ display: 'flex', gap: 4 }}>
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="cal-header-actions">
           <Button size="small" icon="←" onClick={handlePrev} />
           <Button size="small" onClick={handleToday}>今天</Button>
           <Button size="small" icon="→" onClick={handleNext} />
-        </div>
-        <div style={{ textAlign: 'center', lineHeight: 1.3 }}>
-          <span style={{ fontSize: 13, fontWeight: 600 }}>{viewTitle}</span>
-          {view === 'day' && dayLunar.full && (
-            <div style={{ fontSize: 11, color: '#888' }}>
-              {dayLunar.full} · {dayLunar.ganZhi}
-              {dayLunar.festival ? ` · ${dayLunar.festival}` : ''}
-            </div>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: 4 }}>
+          <span style={{ width: 10 }} />
           <Button size="small" type={view === 'month' ? 'primary' : 'default'} onClick={() => setView('month')}>月</Button>
           <Button size="small" type={view === 'week' ? 'primary' : 'default'} onClick={() => setView('week')}>周</Button>
           <Button
@@ -194,9 +190,23 @@ const CalendarModule: React.FC = () => {
             日
           </Button>
           <Button size="small" type="primary" icon="＋" onClick={() => setModalVisible(true)} />
-        </div>
-      </div>
+        </div>,
+        actionsHost
+      )
+    : null
 
+  return (
+    <div>
+      {headerActions}
+      <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
+        {viewTitle}
+        {view === 'day' && dayLunar.full && (
+          <div style={{ fontSize: 11, color: '#888' }}>
+            {dayLunar.full} · {dayLunar.ganZhi}
+            {dayLunar.festival ? ` · ${dayLunar.festival}` : ''}
+          </div>
+        )}
+      </div>
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
       ) : view === 'month' ? (

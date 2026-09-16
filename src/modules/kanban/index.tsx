@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Button,
   Modal,
@@ -66,7 +67,14 @@ const PRIORITY_ORDER: Array<'low' | 'mid' | 'high'> = ['low', 'mid', 'high']
 const popupContainer = (trigger?: HTMLElement) =>
   (trigger?.closest('.panel-body') as HTMLElement | null) ?? document.body
 
-const KanbanModule: React.FC = () => {
+const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
+
   const [state, setState] = useState<KanbanState>({ projects: [], cards: [] })
   const [filter, setFilter] = useState<string>('all')
   const [loading, setLoading] = useState(true)
@@ -252,10 +260,9 @@ const KanbanModule: React.FC = () => {
   const visibleCards =
     filter === 'all' ? state.cards : state.cards.filter((c) => c.projectId === filter)
 
-  return (
-    <ConfigProvider getPopupContainer={popupContainer}>
-      <div style={{ height: '100%', minHeight: 340, display: 'flex', flexDirection: 'column' }}>
-        <div className="mod-bar" style={{ marginBottom: 10 }}>
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="kb-header-actions">
           <Segmented
             value={filter}
             onChange={(v) => setFilter(v as string)}
@@ -265,13 +272,19 @@ const KanbanModule: React.FC = () => {
             ]}
           />
           <Tooltip title="管理项目（增删改）">
-            <Button size="small" icon={<SettingOutlined />} onClick={openManage} style={{ marginLeft: 8 }} />
+            <Button size="small" icon={<SettingOutlined />} onClick={openManage} />
           </Tooltip>
-          <span style={{ flex: 1 }} />
           <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => openCreate('todo')}>
             新建卡片
           </Button>
-        </div>
+        </div>,
+        actionsHost
+      )
+    : null
+
+  return (
+    <ConfigProvider getPopupContainer={popupContainer}>      <div style={{ height: '100%', minHeight: 340, display: 'flex', flexDirection: 'column' }}>
+        {headerActions}
 
         {loading ? (
           <div style={{ padding: 32, textAlign: 'center' }}>

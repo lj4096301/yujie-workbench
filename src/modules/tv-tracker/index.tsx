@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { Spin, Empty, Tag, Button, Modal, Form, Input, InputNumber, Rate, Select, Popconfirm, Progress, message } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 
@@ -34,7 +35,14 @@ type StatusKey = keyof typeof STATUS_MAP
 
 const QUICK_STATUS: StatusKey[] = ['plan', 'watching', 'completed', 'dropped']
 
-const TVTrackerModule: React.FC = () => {
+const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
+
   const [shows, setShows] = useState<TVShow[]>([])
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -187,8 +195,42 @@ const TVTrackerModule: React.FC = () => {
     return <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
   }
 
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="tv-header-actions">
+          {['all', 'watching', 'plan', 'completed', 'dropped'].map((f) => (
+            <Button
+              key={f}
+              size="small"
+              type={filter === f ? 'primary' : 'default'}
+              onClick={() => setFilter(f)}
+            >
+              {f === 'all' ? '全部' : STATUS_MAP[f as StatusKey]?.label}
+            </Button>
+          ))}
+          <Select
+            size="small"
+            value={sortBy}
+            onChange={setSortBy}
+            style={{ width: 110 }}
+            options={[
+              { value: 'added', label: '按添加时间' },
+              { value: 'title', label: '按剧名' },
+              { value: 'progress', label: '按进度' },
+              { value: 'nextAir', label: '按更新日' },
+            ]}
+          />
+          <Button size="small" type="primary" icon={<PlusOutlined />} onClick={openAdd}>
+            追剧
+          </Button>
+        </div>,
+        actionsHost
+      )
+    : null
+
   return (
     <div>
+      {headerActions}
       {/* 统计栏 */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap', fontSize: 12, color: '#666', background: '#fafafa', borderRadius: 8, padding: '8px 12px' }}>
         <span>📺 共 {shows.length} 部</span>
@@ -197,36 +239,6 @@ const TVTrackerModule: React.FC = () => {
         <span>✅ 已看完 {stats.completed}</span>
         {stats.upcoming > 0 && <span style={{ color: '#1677ff' }}>🔔 7 天内更新 {stats.upcoming} 部</span>}
       </div>
-
-      {/* 筛选 / 排序 / 添加 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        {['all', 'watching', 'plan', 'completed', 'dropped'].map((f) => (
-          <Button
-            key={f}
-            size="small"
-            type={filter === f ? 'primary' : 'default'}
-            onClick={() => setFilter(f)}
-          >
-            {f === 'all' ? '全部' : STATUS_MAP[f as StatusKey]?.label}
-          </Button>
-        ))}
-        <Select
-          size="small"
-          value={sortBy}
-          onChange={setSortBy}
-          style={{ width: 110 }}
-          options={[
-            { value: 'added', label: '按添加时间' },
-            { value: 'title', label: '按剧名' },
-            { value: 'progress', label: '按进度' },
-            { value: 'nextAir', label: '按更新日' },
-          ]}
-        />
-        <Button size="small" type="primary" icon={<PlusOutlined />} onClick={openAdd} style={{ marginLeft: 'auto' }}>
-          追剧
-        </Button>
-      </div>
-
       {/* 剧集列表 */}
       {filteredShows.length > 0 ? (
         <div>

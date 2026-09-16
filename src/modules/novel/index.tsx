@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { Tabs, Input, Button, Card, Tag, Empty, Modal, Form, message, Progress, Popconfirm, Select, Tooltip } from 'antd'
 import {
   UserOutlined,
@@ -62,7 +63,14 @@ function countWords(text: string): number {
   return cjk + en
 }
 
-const NovelModule: React.FC = () => {
+const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
+
   const [activeTab, setActiveTab] = useState('outline')
   const [data, setData] = useState<NovelData>(EMPTY)
   const [loaded, setLoaded] = useState(false)
@@ -725,8 +733,20 @@ const NovelModule: React.FC = () => {
     </div>
   )
 
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="novel-header-actions">
+          <Button size="small" icon={<DownloadOutlined />} onClick={() => window.open('/api/novel/export')}>
+            导出全本
+          </Button>
+        </div>,
+        actionsHost
+      )
+    : null
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {headerActions}
       {/* 写作统计条（对标 novelWriter 的 Writing Targets） */}
       <div
         style={{
@@ -752,9 +772,6 @@ const NovelModule: React.FC = () => {
         ) : (
           <Tag color="warning" style={{ margin: 0 }}>待保存…</Tag>
         )}
-        <Button size="small" icon={<DownloadOutlined />} onClick={() => window.open('/api/novel/export')}>
-          导出全本
-        </Button>
       </div>
 
       <Tabs
