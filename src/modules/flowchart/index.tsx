@@ -55,7 +55,7 @@ const NODE_COLOR: Record<FlowNodeKind, string> = {
 
 /** 自定义节点：双击编辑文字，形状按类型区分 */
 function FlowNode({ id, data, selected }: NodeProps<FlowNodeType>) {
-  const { setNodes } = useReactFlow()
+  const { setNodes, deleteElements } = useReactFlow()
   const [editing, setEditing] = useState(false)
   const [text, setText] = useState(data.label)
 
@@ -67,6 +67,14 @@ function FlowNode({ id, data, selected }: NodeProps<FlowNodeType>) {
       nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, label } as FlowNodeData } : n))
     )
   }, [text, data.label, id, setNodes])
+
+  const removeNode = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      deleteElements({ nodes: [{ id }] })
+    },
+    [deleteElements, id]
+  )
 
   return (
     <div
@@ -83,6 +91,16 @@ function FlowNode({ id, data, selected }: NodeProps<FlowNodeType>) {
           <Handle type="target" position={Position.Left} />
           <Handle type="source" position={Position.Right} />
         </>
+      )}
+      {selected && (
+        <span
+          className="fn-del"
+          role="button"
+          title="删除节点"
+          onClick={removeNode}
+        >
+          ✕
+        </span>
       )}
       <div className="fn-content">
         {editing ? (
@@ -366,6 +384,7 @@ function FlowEditor() {
             fitViewOptions={{ padding: 0.25, maxZoom: 1.2 }}
             minZoom={0.2}
             maxZoom={2}
+            deleteKeyCode={['Backspace', 'Delete']}
             proOptions={{ hideAttribution: true }}
             defaultEdgeOptions={{
               markerEnd: { type: MarkerType.ArrowClosed, color: '#165dff' },

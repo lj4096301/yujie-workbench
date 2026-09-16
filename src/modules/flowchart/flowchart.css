@@ -212,6 +212,31 @@
   box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.35), 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* 选中节点右上角删除按钮 */
+.fn-del {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f53f3f;
+  color: #fff;
+  font-size: 11px;
+  line-height: 17px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  z-index: 2;
+  user-select: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.fn-del:hover {
+  background: #d63e3e;
+  transform: scale(1.1);
+}
+
 .flow-node .fn-content {
   position: relative;
   z-index: 1;
