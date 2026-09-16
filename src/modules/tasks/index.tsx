@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Input, Button, Checkbox, Tag, Popconfirm, Empty, message, DatePicker, Select, ConfigProvider } from 'antd'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
@@ -48,12 +49,19 @@ const PRIORITY_META: Record<string, { label: string; color: string }> = {
 
 type FilterKey = 'all' | 'active' | 'done'
 
-const TasksModule: React.FC = () => {
+const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [tasks, setTasks] = useState<Task[]>(() => loadTasks())
   const [filter, setFilter] = useState<FilterKey>('all')
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState<'low' | 'mid' | 'high'>('mid')
   const [due, setDue] = useState<dayjs.Dayjs | null>(null)
+
+    // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
 
   useEffect(() => {
     saveTasks(tasks)
@@ -101,32 +109,39 @@ const TasksModule: React.FC = () => {
   const popupContainer = (trigger?: HTMLElement) =>
     (trigger?.closest('.panel-body') as HTMLElement | null) ?? document.body
 
-  return (
-    <div>
-      <ConfigProvider getPopupContainer={popupContainer}>
-        <div className="mod-bar">
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="tk-header-actions">
           <Input
             placeholder="添加任务，回车确认"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onPressEnter={add}
-            style={{ flex: 1, minWidth: 100 }}
+            style={{ width: 200 }}
           />
           <Select
             value={priority}
             onChange={setPriority}
-            style={{ width: 76 }}
+            style={{ width: 70 }}
             options={[
               { value: 'low', label: '低' },
               { value: 'mid', label: '中' },
               { value: 'high', label: '高' },
             ]}
           />
-          <DatePicker value={due} onChange={setDue} placeholder="截止" style={{ width: 130 }} />
+          <DatePicker value={due} onChange={setDue} placeholder="截止" style={{ width: 120 }} />
           <Button type="primary" size="small" icon={<PlusOutlined />} onClick={add}>
             添加
           </Button>
-        </div>
+        </div>,
+        actionsHost
+      )
+    : null
+
+  return (
+    <div>
+      <ConfigProvider getPopupContainer={popupContainer}>
+        {headerActions}
 
         <div className="mod-bar" style={{ marginBottom: 8 }}>
         <Button size="small" type={filter === 'all' ? 'primary' : 'default'} onClick={() => setFilter('all')}>

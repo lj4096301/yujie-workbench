@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Input, Button, Tag, Empty, message } from 'antd'
 import { useClipboardStore, ClipboardItem } from '@/stores/clipboardStore'
 
@@ -19,12 +20,18 @@ const SOURCE_META: Record<ClipboardItem['source'], { label: string; color: strin
   manual: { label: '手动', color: 'default' },
 }
 
-const ClipboardModule: React.FC = () => {
+const ClipboardModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const items = useClipboardStore((s) => s.items)
   const add = useClipboardStore((s) => s.add)
   const remove = useClipboardStore((s) => s.remove)
   const clear = useClipboardStore((s) => s.clear)
   const [query, setQuery] = useState('')
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -50,23 +57,30 @@ const ClipboardModule: React.FC = () => {
     }
   }
 
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="cp-header-actions">
+          <Input
+            placeholder="搜索历史..."
+            allowClear
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{ width: 200 }}
+          />
+          <Button size="small" onClick={captureNow} title="读取当前系统剪贴板">
+            捕获
+          </Button>
+          <Button size="small" danger onClick={clear} disabled={items.length === 0}>
+            清空
+          </Button>
+        </div>,
+        actionsHost
+      )
+    : null
+
   return (
     <div>
-      <div className="mod-bar">
-        <Input
-          placeholder="搜索历史..."
-          allowClear
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          style={{ flex: 1, minWidth: 120 }}
-        />
-        <Button size="small" onClick={captureNow} title="读取当前系统剪贴板">
-          捕获
-        </Button>
-        <Button size="small" danger onClick={clear} disabled={items.length === 0}>
-          清空
-        </Button>
-      </div>
+      {headerActions}
 
       {visible.length === 0 ? (
         <Empty

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Input,
   Button,
@@ -94,9 +95,16 @@ function bookmarksToTreeData(bookmarks: ImportedBookmark[]): DataNode[] {
 }
 
 // ── 主组件 ───────────────────────────────────────────────────────────────
-const BookmarksModule: React.FC = () => {
+const BookmarksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadBookmarks())
   const [query, setQuery] = useState('')
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
+
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Bookmark | null>(null)
   const [form, setForm] = useState({ title: '', url: '', icon: '🔗', group: '' })
@@ -242,29 +250,30 @@ const BookmarksModule: React.FC = () => {
 
   const importedTreeData = useMemo(() => bookmarksToTreeData(imported), [imported])
 
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="bm-header-actions">
+          <Input
+            placeholder="搜索书签..."
+            allowClear
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{ width: 200 }}
+          />
+          <Button size="small" icon={<UploadOutlined />} onClick={openImport} title="从 Edge / Chrome / Brave 导入书签">
+            导入
+          </Button>
+          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={openAdd}>
+            新增
+          </Button>
+        </div>,
+        actionsHost
+      )
+    : null
+
   return (
     <div>
-      {/* ── 工具栏 ────────────────────────────────────────────────────── */}
-      <div className="mod-bar">
-        <Input
-          placeholder="搜索书签..."
-          allowClear
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          style={{ flex: 1, minWidth: 120 }}
-        />
-        <Button
-          size="small"
-          icon={<UploadOutlined />}
-          onClick={openImport}
-          title="从 Edge / Chrome / Brave 导入书签"
-        >
-          导入
-        </Button>
-        <Button type="primary" size="small" icon={<PlusOutlined />} onClick={openAdd}>
-          新增
-        </Button>
-      </div>
+      {headerActions}
 
       {/* ── 书签列表 ──────────────────────────────────────────────────── */}
       {bookmarks.length === 0 ? (
