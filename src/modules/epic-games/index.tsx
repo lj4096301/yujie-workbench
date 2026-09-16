@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Spin, Empty, Tag, Button, message } from 'antd'
 
 interface GameItem {
@@ -18,7 +19,14 @@ interface GameItem {
 type StoreTab = 'epic' | 'steam'
 type FilterKey = 'all' | 'free' | 'upcoming'
 
-const FreeGamesModule: React.FC = () => {
+const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
+
   const [store, setStore] = useState<StoreTab>('epic')
   const [epicGames, setEpicGames] = useState<GameItem[]>([])
   const [steamGames, setSteamGames] = useState<GameItem[]>([])
@@ -108,32 +116,37 @@ const FreeGamesModule: React.FC = () => {
   const storeLinkLabel = store === 'epic' ? '🔗 前往 Epic 商店' : '🔗 前往领取页面'
   const emptyText = store === 'epic' ? '当前没有 Epic 限免信息' : '当前没有 Steam 限免信息'
 
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="fg-header-actions">
+          <Button size="small" type={store === 'epic' ? 'primary' : 'default'} onClick={() => setStore('epic')}>
+            Epic
+          </Button>
+          <Button size="small" type={store === 'steam' ? 'primary' : 'default'} onClick={() => setStore('steam')}>
+            Steam
+          </Button>
+          <Button size="small" type={filter === 'all' ? 'primary' : 'default'} onClick={() => setFilter('all')}>
+            全部
+          </Button>
+          <Button size="small" type={filter === 'free' ? 'primary' : 'default'} onClick={() => setFilter('free')}>
+            🎮 免费领
+          </Button>
+          {store === 'epic' && (
+            <Button size="small" type={filter === 'upcoming' ? 'primary' : 'default'} onClick={() => setFilter('upcoming')}>
+              ⏰ 即将免费
+            </Button>
+          )}
+          <Button size="small" icon="🔄" onClick={refresh} title="刷新（服务端缓存 30 分钟）">
+            刷新
+          </Button>
+        </div>,
+        actionsHost
+      )
+    : null
+
   return (
     <div>
-      {/* 商店切换 + 筛选 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-        <Button size="small" type={store === 'epic' ? 'primary' : 'default'} onClick={() => setStore('epic')}>
-          Epic
-        </Button>
-        <Button size="small" type={store === 'steam' ? 'primary' : 'default'} onClick={() => setStore('steam')}>
-          Steam
-        </Button>
-        <span style={{ width: 8 }} />
-        <Button size="small" type={filter === 'all' ? 'primary' : 'default'} onClick={() => setFilter('all')}>
-          全部
-        </Button>
-        <Button size="small" type={filter === 'free' ? 'primary' : 'default'} onClick={() => setFilter('free')}>
-          🎁 免费中
-        </Button>
-        {store === 'epic' && (
-          <Button size="small" type={filter === 'upcoming' ? 'primary' : 'default'} onClick={() => setFilter('upcoming')}>
-            ⏰ 即将免费
-          </Button>
-        )}
-        <Button size="small" icon="🔄" onClick={refresh} style={{ marginLeft: 'auto' }} title="刷新（服务端缓存 30 分钟）">
-          刷新
-        </Button>
-      </div>
+      {headerActions}
 
       {/* 游戏列表 */}
       {loading ? (

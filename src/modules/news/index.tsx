@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Spin } from 'antd'
+import { createPortal } from 'react-dom'
+import { Button, Spin, Dropdown, Menu } from 'antd'
 import LegacyNewsPanel from './legacy'
 import RssPanel from './RssPanel'
 
@@ -60,7 +61,14 @@ const SOURCES: NewsSource[] = [
   },
 ]
 
-const NewsModule: React.FC = () => {
+const NewsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
+
   const [source, setSource] = useState<NewsSource>(SOURCES[0])
   const [loading, setLoading] = useState(true)
 
@@ -69,30 +77,45 @@ const NewsModule: React.FC = () => {
     setLoading(true)
   }, [source])
 
+  const sourceMenu = (
+    <Menu
+      onClick={({ key }) => {
+        const hit = SOURCES.find((s) => s.key === key)
+        if (hit) setSource(hit)
+      }}
+    >
+      {SOURCES.map((s) => (
+        <Menu.Item key={s.key}>
+          {s.label}
+          {s.key === source.key ? ' ✓' : ''}
+        </Menu.Item>
+      ))}
+    </Menu>
+  )
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="news-header-actions">
+          <Dropdown overlay={sourceMenu} trigger={['click']}>
+            <Button size="small">
+              {source.label} ▾
+            </Button>
+          </Dropdown>
+          {source.url && (
+            <Button
+              size="small"
+              icon="↗"
+              title="在系统浏览器/新标签页打开"
+              onClick={() => window.open(source.url, '_blank')}
+            />
+          )}
+        </div>,
+        actionsHost
+      )
+    : null
+
   return (
     <div className="news-embed-root">
-      {/* 源切换工具条 */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        {SOURCES.map((s) => (
-          <Button
-            key={s.key}
-            size="small"
-            type={source.key === s.key ? 'primary' : 'default'}
-            onClick={() => setSource(s)}
-          >
-            {s.label}
-          </Button>
-        ))}
-        {source.url && (
-          <Button
-            size="small"
-            icon="↗"
-            style={{ marginLeft: 'auto' }}
-            title="在系统浏览器/新标签页打开"
-            onClick={() => window.open(source.url, '_blank')}
-          />
-        )}
-      </div>
+      {headerActions}
 
       {/* 当前源说明 */}
       {source.key !== 'legacy' && source.key !== 'rss' && (

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Spin,
   Empty,
@@ -60,7 +61,14 @@ const SORT_KEY_LABEL: Record<SortKey, string> = {
   outputPriceCny: '输出价',
 }
 
-const APIMonitorModule: React.FC = () => {
+const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
+  // 标题栏操作挂载点（Panel 的 panel-actions）
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!panelId) return
+    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
+  }, [panelId])
+
   const [items, setItems] = useState<PricingEntry[]>([])
   const [fxRate, setFxRate] = useState(7.1)
   const [loading, setLoading] = useState(false)
@@ -361,51 +369,57 @@ const APIMonitorModule: React.FC = () => {
     },
   ]
 
+  const headerActions = actionsHost
+    ? createPortal(
+        <div className="am-header-actions">
+          <Button size="small" icon="🔄" onClick={fetchPricings} title="刷新价格">
+            刷新
+          </Button>
+          <Select
+            size="small"
+            value={sortKey}
+            onChange={(v) => setSortKey(v)}
+            options={SORT_OPTIONS}
+            style={{ width: 140 }}
+            suffixIcon={null}
+          />
+          <Button
+            size="small"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            title="切换升序 / 降序"
+          >
+            {sortOrder === 'asc' ? '↑' : '↓'}
+          </Button>
+          <Select
+            size="small"
+            mode="multiple"
+            allowClear
+            maxTagCount={1}
+            placeholder="平台"
+            value={providerFilter}
+            onChange={setProviderFilter}
+            options={providers.map((p) => ({ value: p, label: p }))}
+            style={{ width: 140 }}
+          />
+          <Button size="small" icon="＋" type="primary" onClick={openCreate}>
+            新增
+          </Button>
+          <Button
+            size="small"
+            icon="🧮"
+            type={showCalc ? 'primary' : 'default'}
+            onClick={() => setShowCalc(!showCalc)}
+          >
+            计算器
+          </Button>
+        </div>,
+        actionsHost
+      )
+    : null
+
   return (
     <div>
-      {/* 操作栏 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <Button size="small" icon="🔄" onClick={fetchPricings}>
-          刷新
-        </Button>
-        <Select
-          size="small"
-          value={sortKey}
-          onChange={(v) => setSortKey(v)}
-          options={SORT_OPTIONS}
-          style={{ width: 196 }}
-          suffixIcon={null}
-        />
-        <Button
-          size="small"
-          onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-          title="切换升序 / 降序"
-        >
-          {sortOrder === 'asc' ? '↑ 从低到高' : '↓ 从高到低'}
-        </Button>
-        <Select
-          size="small"
-          mode="multiple"
-          allowClear
-          maxTagCount={1}
-          placeholder="筛选平台"
-          value={providerFilter}
-          onChange={setProviderFilter}
-          options={providers.map((p) => ({ value: p, label: p }))}
-          style={{ minWidth: 150, maxWidth: 240 }}
-        />
-        <Button size="small" icon="➕" type="primary" onClick={openCreate}>
-          新增 API
-        </Button>
-        <Button
-          size="small"
-          icon="🧮"
-          type={showCalc ? 'primary' : 'default'}
-          onClick={() => setShowCalc(!showCalc)}
-        >
-          成本计算器
-        </Button>
-      </div>
+      {headerActions}
 
       {/* 成本计算器 */}
       {showCalc && (
