@@ -41,13 +41,20 @@
   padding: 6px 16px 10px;
 }
 
-/* ---------- ① 欢迎横幅 ---------- */
+/* ---------- ① 欢迎横幅（大时钟 + 简天气） ---------- */
 .hw-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 10px 20px;
+  padding: 14px 20px;
+}
+
+.hw-banner-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .hw-banner-greet {
@@ -57,27 +64,35 @@
   line-height: 1.4;
 }
 
-.hw-banner-sub {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 0;
-  font-size: 12px;
+.hw-banner-date {
+  font-size: 13px;
   color: var(--text-secondary, #4e5969);
+  line-height: 1.5;
 }
 
+/* 大时钟：HH:mm 主 + 秒辅助 */
 .hw-banner-clock {
-  color: var(--primary-color, #ff6700);
-  font-weight: 500;
+  display: flex;
+  align-items: baseline;
   font-family: var(--font-num, ui-monospace, monospace);
   font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.hw-banner-dot {
-  color: #c9cdd4;
+.hw-banner-clock-hm {
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2329);
+  letter-spacing: 1px;
 }
 
-/* 右侧：天气 hero + 模块管理 */
+.hw-banner-clock-sec {
+  font-size: 15px;
+  color: var(--text-muted, #86909c);
+  margin-left: 2px;
+}
+
 .hw-banner-right {
   display: flex;
   align-items: center;
@@ -85,14 +100,19 @@
   flex-shrink: 0;
 }
 
+/* 简天气：图标 + 温度 + 描述（详细指标在天气卡，不重复） */
 .hw-banner-weather {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-subtle, #f7f8fa);
+  border: 1px solid var(--border-light, #f2f3f5);
+  border-radius: var(--radius-md, 8px);
 }
 
 .hw-banner-wicon {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
 }
 
@@ -106,102 +126,8 @@
 
 .hw-banner-wdesc {
   font-size: 12px;
-  color: var(--text-muted, #86909c);
+  color: var(--text-secondary, #4e5969);
   line-height: 1.5;
-}
-
-.hw-banner-wcity {
-  font-size: 12px;
-  color: var(--text-secondary, #4e5969);
-  background: var(--bg-subtle, #f7f8fa);
-  border: 1px solid var(--border, #e5e6eb);
-  border-radius: var(--radius-pill, 999px);
-  padding: 1px 10px;
-}
-
-.hw-banner-aqi {
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: var(--radius-pill, 999px);
-  padding: 1px 8px;
-}
-
-.hw-banner-aqi-ok { background: #00b42a1a; color: #00b42a; }
-.hw-banner-aqi-mid { background: #ff7d001a; color: #ff7d00; }
-.hw-banner-aqi-bad { background: #f53f3f1a; color: #f53f3f; }
-
-.hw-module-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 12px;
-  font-size: 13px;
-  color: var(--text-secondary, #4e5969);
-  background: #ffffff;
-  border: 1px solid var(--border, #e5e6eb);
-  border-radius: var(--radius-md, 8px);
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
-}
-
-.hw-module-btn:hover {
-  border-color: var(--primary-color, #ff6700);
-  color: var(--primary-color, #ff6700);
-}
-
-.hw-module-panel {
-  width: 260px;
-  padding: 4px;
-  background: #fff;
-  border: 1px solid var(--border, #e5e6eb);
-  border-radius: var(--radius-lg, 12px);
-  box-shadow: var(--shadow-popup, 0 8px 24px rgba(0, 0, 0, 0.1));
-}
-
-.hw-module-head {
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted, #86909c);
-}
-
-.hw-module-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: var(--radius-md, 8px);
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--text-secondary, #4e5969);
-  transition: background-color 0.15s ease;
-}
-
-.hw-module-item:hover {
-  background: var(--bg-hover, rgba(0, 0, 0, 0.04));
-}
-
-.hw-module-item-on {
-  color: var(--text-primary, #1f2329);
-}
-
-.hw-module-icon {
-  font-size: 15px;
-}
-
-.hw-module-reset {
-  margin: 4px 8px 0;
-  padding: 7px 12px;
-  border-top: 1px solid var(--border-light, #f2f3f5);
-  font-size: 12px;
-  color: var(--primary-color, #ff6700);
-  cursor: pointer;
-  border-radius: var(--radius-md, 8px);
-}
-
-.hw-module-reset:hover {
-  background: var(--bg-hover, rgba(0, 0, 0, 0.04));
 }
 
 /* ---------- ② KPI 摘要行 ---------- */

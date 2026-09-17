@@ -27,18 +27,10 @@ interface HomeWeather {
   uvIndex?: number
 }
 
-function aqiClass(aqi?: number): string {
-  if (aqi == null) return ''
-  if (aqi <= 100) return 'hw-banner-aqi-ok'
-  if (aqi <= 200) return 'hw-banner-aqi-mid'
-  return 'hw-banner-aqi-bad'
-}
-
 /** ① 欢迎横幅：问候 + 时间日期 | 天气 hero + AQI | 模块管理 */
 const HomeBanner: React.FC = () => {
   const panels = useLayoutStore((s) => s.panels)
   const togglePanelAt = useLayoutStore((s) => s.togglePanelAt)
-  const resetHomeLayout = useLayoutStore((s) => s.resetHomeLayout)
 
   const [now, setNow] = useState(() => new Date())
   const [weather, setWeather] = useState<HomeWeather | null>(null)
@@ -97,58 +89,39 @@ const HomeBanner: React.FC = () => {
           </div>
         )
       })}
-      <div className="hw-module-reset" onClick={resetHomeLayout}>
-        恢复默认布局
-      </div>
     </div>
   )
 
   return (
     <div className="hw-card hw-banner">
-      <div>
+      <div className="hw-banner-left">
         <div className="hw-banner-greet">{greet}，宇界工作台</div>
-        <div className="hw-banner-sub">
-          <span className="hw-banner-clock">
-            {hh}:{mm}:{ss}
-          </span>
-          <span className="hw-banner-dot">·</span>
-          <span>{dateText}</span>
-        </div>
+        <div className="hw-banner-date">{dateText}</div>
       </div>
       <div className="hw-banner-right">
-        <div className="hw-banner-weather">
+        <div className="hw-banner-clock" title="当前时间">
+          <span className="hw-banner-clock-hm">{hh}:{mm}</span>
+          <span className="hw-banner-clock-sec">:{ss}</span>
+        </div>
+        <div className="hw-banner-weather" title="进入天气预报" onClick={() => {}} style={{ cursor: 'default' }}>
           {weatherErr ? (
             <span className="hw-banner-wdesc">天气加载失败</span>
           ) : weather ? (
             <>
               <span className="hw-banner-wicon">{WMO_ICONS[weather.icon ?? ''] ?? '🌤️'}</span>
               <span className="hw-banner-temp">
-                {weather.temp != null ? `${weather.temp}°C` : '--'}
+                {weather.temp != null ? `${weather.temp}°` : '--'}
               </span>
-              <span className="hw-banner-wdesc">
-                {weather.description ?? ''}
-                {weather.feelsLike != null ? ` · 体感 ${weather.feelsLike}°C` : ''}
-              </span>
-              {weather.city && (
-                <span className="hw-banner-wcity">
-                  {weather.city}
-                  {weather.admin1 ? ` · ${weather.admin1}` : ''}
-                </span>
-              )}
-              {weather.aqi != null && (
-                <span className={'hw-banner-aqi ' + aqiClass(weather.aqi)}>AQI {weather.aqi}</span>
-              )}
+              <span className="hw-banner-wdesc">{weather.description ?? ''}</span>
             </>
           ) : (
             <span className="hw-banner-wdesc">--</span>
           )}
         </div>
-        <Dropdown droplist={moduleDropdown} position="bl" trigger="click">
-          <Button type="button" variant="outline" size="sm" className="hw-module-btn">
-            <IconApps style={{ fontSize: 14 }} />
-            模块管理
-          </Button>
-        </Dropdown>
+        <Button type="button" variant="outline" size="sm" className="hw-module-btn">
+          <IconApps style={{ fontSize: 14 }} />
+          模块管理
+        </Button>
       </div>
     </div>
   )

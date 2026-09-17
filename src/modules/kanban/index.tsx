@@ -18,6 +18,13 @@ import {
 import { PlusOutlined, DeleteOutlined, SettingOutlined, HistoryOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import './kanban.css'
 
 type Status = 'todo' | 'doing' | 'done'
@@ -653,59 +660,59 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         </Form>
       </Modal>
 
-      <Modal
-        title={`📋 操作记录（完成 / 删除）`}
-        open={recordVisible}
-        onCancel={() => setRecordVisible(false)}
-        footer={[
-          <Popconfirm key="clear" title="清空全部操作记录？" onConfirm={clearRecords} okText="清空" cancelText="取消">
-            <Button danger type="text">
-              清空记录
-            </Button>
-          </Popconfirm>,
-          <Button key="ok" type="primary" onClick={() => setRecordVisible(false)}>
-            关闭
-          </Button>,
-        ]}
-        width={560}
-      >
-        {state.records.length === 0 ? (
-          <Empty description="暂无操作记录，完成或删除的卡片会归档到这里" />
-        ) : (
-          <div style={{ maxHeight: 420, overflow: 'auto' }}>
-            {state.records.map((r) => (
-              <div
-                key={r.id}
-                style={{
-                  display: 'flex',
-                  gap: 10,
-                  alignItems: 'flex-start',
-                  padding: '10px 0',
-                  borderBottom: '1px solid #f2f3f5',
-                }}
-              >
-                <Tag
-                  color={r.action === 'done' ? 'success' : 'error'}
-                  style={{ marginTop: 1, flexShrink: 0 }}
+            <Dialog open={recordVisible} onOpenChange={setRecordVisible}>
+        <DialogContent className="max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>📋 操作记录（完成 / 删除）</DialogTitle>
+          </DialogHeader>
+          {state.records.length === 0 ? (
+            <Empty description="暂无操作记录，完成或删除的卡片会归档到这里" />
+          ) : (
+            <div style={{ maxHeight: 420, overflow: 'auto' }}>
+              {state.records.map((r) => (
+                <div
+                  key={r.id}
+                  style={{
+                    display: 'flex',
+                    gap: 10,
+                    alignItems: 'flex-start',
+                    padding: '10px 0',
+                    borderBottom: '1px solid #f2f3f5',
+                  }}
                 >
-                  {r.action === 'done' ? '✅ 完成' : '🗑️ 删除'}
-                </Tag>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 500, fontSize: 13 }}>{r.title}</div>
-                  {r.content && (
-                    <div style={{ fontSize: 12, color: '#86909c', marginTop: 2 }}>
-                      {r.content}
+                  <Tag
+                    color={r.action === 'done' ? 'success' : 'error'}
+                    style={{ marginTop: 1, flexShrink: 0 }}
+                  >
+                    {r.action === 'done' ? '✅ 完成' : '🗑️ 删除'}
+                  </Tag>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 500, fontSize: 13 }}>{r.title}</div>
+                    {r.content && (
+                      <div style={{ fontSize: 12, color: '#86909c', marginTop: 2 }}>
+                        {r.content}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 12, color: '#4e5969', marginTop: 2 }}>
+                      {r.projectName} · {dayjs(r.at).format('YYYY-MM-DD HH:mm')}
                     </div>
-                  )}
-                  <div style={{ fontSize: 12, color: '#4e5969', marginTop: 2 }}>
-                    {r.projectName} · {dayjs(r.at).format('YYYY-MM-DD HH:mm')}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Modal>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Popconfirm key="clear" title="清空全部操作记录？" onConfirm={clearRecords} okText="清空" cancelText="取消">
+              <Button danger type="text">
+                清空记录
+              </Button>
+            </Popconfirm>
+            <Button key="ok" type="primary" onClick={() => setRecordVisible(false)}>
+              关闭
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ConfigProvider>
   )
 }

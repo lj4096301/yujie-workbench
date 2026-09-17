@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface KpiItem {
   key: string
@@ -108,7 +109,23 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
     }
   }, [])
 
-  if (kpis.length === 0) return null
+  if (kpis.length === 0) {
+    // 加载中：骨架卡展示
+    return (
+      <div className="hw-kpis">
+        {[0, 1, 2, 3].map((i) => (
+          <Card key={i} className="hw-kpi-card">
+            <div className="hw-kpi-card-head">
+              <Skeleton className="h-3 w-14 rounded" />
+              <Skeleton className="h-4 w-4 rounded" />
+            </div>
+            <Skeleton className="h-7 w-16 rounded" />
+            <Skeleton className="mt-2 h-3 w-20 rounded" />
+          </Card>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="hw-kpis">

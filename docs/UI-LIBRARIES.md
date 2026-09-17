@@ -25,12 +25,16 @@
 ## 已集成：shadcn/ui（Card 试水 ✅）
 
 - 组件（`src/components/ui/`，MIT，Tailwind 类）：
-  - `card.tsx`：Card / CardHeader / CardTitle / CardDescription / CardContent / CardFooter（纯 Tailwind，零额外依赖）
-  - `button.tsx`：Button（variant: default/destructive/outline/secondary/ghost/link；size: sm/default/lg/icon；依赖 class-variance-authority + @radix-ui/react-slot）
-  - `badge.tsx`：Badge（variant: default/secondary/destructive/outline；依赖 class-variance-authority）
-- 工具：`cn()`（`src/lib/utils.ts`，clsx + tailwind-merge）；图标：lucide-react 已装（按需引入）
+  - `card.tsx`：Card 系列（纯 Tailwind）
+  - `button.tsx`：Button（5 variant × 4 size；CVA + Radix Slot）
+  - `badge.tsx`：Badge（4 variant；CVA）
+  - `input.tsx` / `textarea.tsx`：输入框 / 多行文本域（纯 Tailwind，圆角 6px、focus 主色环）
+  - `label.tsx`：表单标签（纯 HTML label）
+  - `skeleton.tsx`：骨架屏（加载占位）
+  - `dialog.tsx`：弹窗（Radix Dialog，圆角 8px、z-[60]、浮层阴影；需 @radix-ui/react-dialog）
+- 工具：`cn()`（clsx + tailwind-merge）；图标：lucide-react 已装（按需引入）
 - 配置：`tailwind.config.js` 已映射 card/border/input/muted/rounded-xl/shadow-sm 到 DESIGN-SPEC Token（白底 / #E5E6EB 边框 / 12px 圆角 / 极轻阴影）；primary 收敛为 #ff6700
-- 试水（已实测通过）：首页 KPI 行 4 张 shadcn Card；banner「模块管理」与空态「恢复默认布局」按钮用 shadcn Button；看板「记录」计数用 shadcn Badge
+- 试水（已实测通过）：首页 KPI 行 4 张 shadcn Card；banner「模块管理」与空态「恢复默认布局」按钮用 shadcn Button；看板「记录」计数用 shadcn Badge；首页 KPI 加载骨架屏（Skeleton）；看板「操作记录」弹窗用 shadcn Dialog
 - 约定：按 shadcn 源码手动复制进 `src/components/ui/`（不跑 CLI，避免生成式污染）；交互组件（Popover/Select 等）按需引入对应 Radix 原语；所有组件视觉必须收敛 DESIGN-SPEC Token
 - ⚠️ 工程坑：装/卸 npm 包后必须重启 vite dev server（依赖预构建失效会导致 Electron 白屏，无报错）
 
