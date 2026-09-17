@@ -648,5 +648,10 @@
 
 @media (max-width: 767px) {
   .hw-tools { grid-template-columns: 1fr; }
+  .hw-main { grid-template-columns: 1fr; }
   .hw-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .mg-grid { grid-template-columns: repeat(2, 1fr); }
+  .hw-banner-right { flex-wrap: wrap; gap: 8px; }
+  .hw-kpis { grid-template-columns: 1fr 1fr; }
+  .hw-banner-temp { font-size: 18px; }
 }

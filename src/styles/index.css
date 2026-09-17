@@ -770,3 +770,41 @@ body.is-resizing {
   max-height: 60px;
   overflow: hidden;
 }
+
+/* ============================================================
+   平板适配（响应式断点）
+   1024px 以下：侧栏自动收起为图标栏（App resize 逻辑）
+   768px 以下：侧栏隐藏 → 底部 Tab 栏导航
+   ============================================================ */
+@media (max-width: 1024px) {
+  .topbar {
+    padding: 0 16px;
+  }
+  /* 平板横屏：侧栏收起后菜单文字仍可能溢出，隐藏收起态下的文字 */
+  .sidebar .arco-menu-item .menu-icon {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-root .sidebar {
+    display: none !important;
+  }
+  .tabbar {
+    display: flex;
+  }
+  .app-main {
+    padding-bottom: 56px;
+  }
+  .topbar {
+    padding: 0 12px;
+  }
+  .topbar-right {
+    gap: 6px;
+  }
+  /* 触控目标放大：顶栏按钮 */
+  .topbar .arco-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
