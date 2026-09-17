@@ -51,16 +51,30 @@ function fmtToday(): string {
   ).padStart(2, '0')}`
 }
 
-/** 天气卡：逐时 5 条 + 湿度/风/UV */
+/** 天气卡（小米风格）：大温度 + 指标行 + AQI 圆点 + 逐时条 */
+interface WeatherFull extends WeatherData {
+  temp?: number
+  description?: string
+  aqi?: number
+  city?: string
+}
+
+function aqiState(aqi?: number): { text: string; cls: string } {
+  if (aqi == null) return { text: '', cls: '' }
+  if (aqi <= 100) return { text: aqi <= 50 ? '优' : '良', cls: 'wx-aqi-ok' }
+  if (aqi <= 200) return { text: aqi <= 150 ? '轻度' : '中度', cls: 'wx-aqi-mid' }
+  return { text: '重度', cls: 'wx-aqi-bad' }
+}
+
 const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
-  const [w, setW] = useState<WeatherData | null>(null)
+  const [w, setW] = useState<WeatherFull | null>(null)
 
   useEffect(() => {
     let cancelled = false
     fetch('/api/weather?city=北京')
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((d) => {
-        if (!cancelled) setW(d as WeatherData)
+        if (!cancelled) setW(d as WeatherFull)
       })
       .catch(() => undefined)
     return () => {
@@ -69,18 +83,45 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
   }, [])
 
   const hours = (w?.hourly ?? []).slice(0, 5)
+  const icon = WMO_ICONS[w?.hourly?.[0]?.icon ?? ''] ?? '🌤️'
+  const aqi = aqiState(w?.aqi)
 
   return (
     <div
-      className="hw-card"
+      className="hw-card wx-card"
       onClick={() => onOpen('weather')}
       title="进入天气预报"
       style={{ cursor: 'pointer' }}
     >
       <div className="hw-card-head">
-        <span className="hw-card-title">🌤 天气</span>
+        <span className="hw-card-title">🌤 {w?.city ?? '北京'} · {w?.description ?? '天气'}</span>
+        {aqi.cls && (
+          <span className={'wx-aqi ' + aqi.cls} title={'AQI ' + (w?.aqi ?? '')}>
+            <i className="wx-aqi-dot" />
+            <span className="num-mono">{aqi.text} {w?.aqi}</span>
+          </span>
+        )}
       </div>
-      <div className="hw-card-body">
+      <div className="hw-card-body wx-body">
+        <div className="wx-hero">
+          <span className="wx-temp">{w?.temp != null ? `${w.temp}°` : '--'}</span>
+          <span className="wx-icon">{icon}</span>
+        </div>
+        <div className="wx-metrics">
+          <div className="wx-metric">
+            湿度<b>{w?.humidity != null ? `${w.humidity}%` : '--'}</b>
+          </div>
+          <div className="wx-metric">
+            风
+            <b>
+              {w?.windDir ?? ''}
+              {w?.windScale != null ? `${w.windScale}级` : ''}
+            </b>
+          </div>
+          <div className="wx-metric">
+            紫外线<b>{w?.uvIndex != null ? `${w.uvIndex}` : '--'}</b>
+          </div>
+        </div>
         <div className="tg-weather-hourly">
           {hours.map((h, i) => {
             const t = h.time ?? ''
@@ -93,21 +134,6 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
               </div>
             )
           })}
-        </div>
-        <div className="tg-weather-metrics">
-          <div className="tg-metric">
-            湿度<b>{w?.humidity != null ? `${w.humidity}%` : '--'}</b>
-          </div>
-          <div className="tg-metric">
-            风
-            <b>
-              {w?.windDir ?? ''}
-              {w?.windScale != null ? `${w.windScale}级` : ''}
-            </b>
-          </div>
-          <div className="tg-metric">
-            紫外线<b>{w?.uvIndex != null ? `${w.uvIndex}` : '--'}</b>
-          </div>
         </div>
       </div>
     </div>

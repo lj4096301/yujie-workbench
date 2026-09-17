@@ -706,3 +706,81 @@
   .hw-banner-temp { font-size: 18px; }
   .hw-kpi { padding: 10px 12px; }
 }
+
+/* ---------- 天气卡（小米风格） ---------- */
+.wx-card {
+  overflow: hidden;
+}
+
+.wx-aqi {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.wx-aqi-dot {
+  width: var(--dot-size, 5px);
+  height: var(--dot-size, 5px);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.wx-aqi-ok { color: var(--success, #00b42a); }
+.wx-aqi-ok .wx-aqi-dot { background: var(--success, #00b42a); box-shadow: 0 0 0 4px rgba(0, 180, 42, 0.12); }
+.wx-aqi-mid { color: var(--warning, #ff7d00); }
+.wx-aqi-mid .wx-aqi-dot { background: var(--warning, #ff7d00); box-shadow: 0 0 0 4px rgba(255, 125, 0, 0.12); }
+.wx-aqi-bad { color: var(--error, #f53f3f); }
+.wx-aqi-bad .wx-aqi-dot { background: var(--error, #f53f3f); box-shadow: 0 0 0 4px rgba(245, 63, 63, 0.12); }
+
+.wx-body {
+  padding-top: 2px;
+}
+
+.wx-hero {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0 8px;
+}
+
+.wx-temp {
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--text-primary, #1f2329);
+  font-family: var(--font-num, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.wx-metrics {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-light, #f2f3f5);
+  margin-bottom: 6px;
+}
+
+.wx-metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 11px;
+  color: var(--text-muted, #86909c);
+}
+
+.wx-metric b {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary, #1f2329);
+  font-family: var(--font-num, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
