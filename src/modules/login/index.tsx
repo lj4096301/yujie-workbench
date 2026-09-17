@@ -33,8 +33,9 @@ const LoginModule: React.FC = () => {
       localStorage.setItem(LOGIN_STORAGE_KEY, '1')
       setLoggedIn(true)
       message.success('登录成功，正在跳转...')
-      // 延迟一下让用户看到成功提示，然后跳转
+      // 延迟一下让用户看到成功提示，然后跳转到首页
       setTimeout(() => {
+        window.localStorage.setItem('mimo-active-module', 'home')
         window.location.reload()
       }, 800)
     } else {
