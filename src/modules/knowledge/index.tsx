@@ -582,7 +582,7 @@ const KnowledgeModule: React.FC = () => {
   /* ---------- 视图 ---------- */
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
     <SplitPane
       storageKey="mimo-split-knowledge"
       defaultWidth={200}
