@@ -62,7 +62,8 @@ const Sidebar: React.FC = () => {
   return (
     <Sider
       className="sidebar"
-      width={200}
+      width={240}
+      collapsedWidth={56}
       collapsible
       collapsed={sidebarCollapsed}
       onCollapse={toggleSidebar}

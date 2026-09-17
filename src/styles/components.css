@@ -181,6 +181,26 @@
   line-height: 36px;
 }
 
+/* Arco 原生菜单选中态收敛到 Mi Console 橙色（覆盖组件默认蓝） */
+.sidebar-menu .arco-menu-item:hover {
+  background: var(--sidebar-hover) !important;
+}
+
+.sidebar-menu .arco-menu-selected {
+  background: var(--sidebar-active) !important;
+  color: var(--sidebar-active-text) !important;
+  border-radius: var(--radius-md, 8px);
+}
+
+.sidebar-menu .arco-menu-selected .arco-menu-icon,
+.sidebar-menu .arco-menu-selected .arco-menu-title {
+  color: var(--sidebar-active-text) !important;
+}
+
+.sidebar-menu .arco-menu-inline-header:hover {
+  background: var(--sidebar-hover) !important;
+}
+
 .menu-item {
   position: relative;
   display: flex;
@@ -389,14 +409,14 @@
 }
 
 .home-chip:hover {
-  border-color: #165dff;
-  color: #165dff;
+  border-color: #ff6700;
+  color: #ff6700;
 }
 
 .home-chip-on {
   background: rgba(22, 93, 255, 0.1);
-  border-color: #165dff;
-  color: #165dff;
+  border-color: #ff6700;
+  color: #ff6700;
   font-weight: 500;
 }
 
@@ -507,7 +527,7 @@
 
 .home-header-clock {
   font-variant-numeric: tabular-nums;
-  color: #165dff;
+  color: #ff6700;
   font-weight: 500;
 }
 
@@ -569,7 +589,7 @@
   width: 4px;
   height: 16px;
   border-radius: 2px;
-  background: var(--sec-color, #165dff);
+  background: var(--sec-color, #ff6700);
   flex-shrink: 0;
 }
 
@@ -672,4 +692,147 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ============================================================
+   TabBar 底部导航（手机 <600px 替代侧栏）
+   5 个固定 Tab：首页 / 模块 / 搜索 / 通知 / 我的，热区 ≥48vp
+   ============================================================ */
+.tabbar {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 56px;
+  background: #ffffff;
+  border-top: 1px solid #e5e6eb;
+  align-items: stretch;
+  justify-content: space-around;
+  z-index: var(--z-sticky);
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.tabbar-item {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 2px;
+  border-radius: 8px;
+  color: #86909c;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabbar-item.active {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.tabbar-item:active {
+  background: #f2f3f5;
+}
+
+.tabbar-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.tabbar-label {
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* 「模块」宫格弹层 */
+.tabbar-module-panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  width: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 12px;
+  box-shadow: var(--shadow-popup);
+}
+
+.tabbar-module-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #4e5969;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tabbar-module-item.active {
+  background: var(--primary-subtle);
+  color: var(--primary-color);
+}
+
+.tabbar-module-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.tabbar-module-name {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* 「通知 / 我的」小弹层 */
+.tabbar-pop {
+  width: 240px;
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 12px;
+  box-shadow: var(--shadow-popup);
+  padding: 8px;
+}
+
+.tabbar-pop-head {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2329;
+  padding: 6px 8px 8px;
+  border-bottom: 1px solid #f2f3f5;
+}
+
+.tabbar-pop-empty {
+  font-size: 12px;
+  color: #86909c;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.tabbar-pop-item {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #4e5969;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tabbar-pop-item:active {
+  background: #f2f3f5;
 }

@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import Sidebar from '@/components/Sidebar'
+import TabBar from '@/components/TabBar'
 import TopBar from '@/components/TopBar'
 import MainLayout from '@/components/Layout'
 import GlobalSearch from '@/components/GlobalSearch'
@@ -231,6 +232,7 @@ const App: React.FC = () => {
           <TopBar />
           <MainLayout />
         </div>
+        <TabBar />
         {searchVisible && <GlobalSearch />}
 
         <Modal

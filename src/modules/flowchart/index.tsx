@@ -48,7 +48,7 @@ const NODE_PALETTE: { key: FlowNodeKind; label: string; hint: string }[] = [
 
 const NODE_COLOR: Record<FlowNodeKind, string> = {
   start: '#00b42a',
-  process: '#165dff',
+  process: '#ff6700',
   decision: '#ff7d00',
   sub: '#722ed1',
   end: '#f53f3f',
@@ -180,7 +180,7 @@ function FlowEditor({ panelId }: { panelId?: string }) {
     (conn: Connection) =>
       setEdges((eds) =>
         addEdge(
-          { ...conn, markerEnd: { type: MarkerType.ArrowClosed, color: '#165dff' } },
+          { ...conn, markerEnd: { type: MarkerType.ArrowClosed, color: '#ff6700' } },
           eds
         )
       ),
@@ -407,8 +407,8 @@ function FlowEditor({ panelId }: { panelId?: string }) {
             deleteKeyCode={['Backspace', 'Delete']}
             proOptions={{ hideAttribution: true }}
             defaultEdgeOptions={{
-              markerEnd: { type: MarkerType.ArrowClosed, color: '#165dff' },
-              style: { stroke: '#165dff', strokeWidth: 1.5 },
+              markerEnd: { type: MarkerType.ArrowClosed, color: '#ff6700' },
+              style: { stroke: '#ff6700', strokeWidth: 1.5 },
             }}
           >
             <Background variant={BackgroundVariant.Dots} gap={18} size={1.2} color="#c9cdd4" />

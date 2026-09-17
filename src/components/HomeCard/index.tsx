@@ -186,7 +186,7 @@ const HomeCard: React.FC<HomeCardProps> = ({ moduleId, title, icon, onOpen, onCl
             sub: `共 ${cards.length} 张卡片`,
             stats: [
               { label: '待推进', value: todo, color: '#86909c' },
-              { label: '进行中', value: doing, color: '#165dff' },
+              { label: '进行中', value: doing, color: '#ff6700' },
               { label: '已完成', value: doneN, color: '#00b42a' },
             ],
             progress: cards.length ? Math.round((doneN / cards.length) * 100) : 0,

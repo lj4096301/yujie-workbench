@@ -62,9 +62,9 @@ const STATUS_META: Record<Status, { label: string; color: string }> = {
 }
 
 const DOT_COLOR: Record<Status, string> = {
-  todo: '#8f959e',
-  doing: '#3370ff',
-  done: '#3370ff',
+  todo: '#c9cdd4',
+  doing: '#ff6700',
+  done: '#00b42a',
 }
 
 const PRIORITY_META: Record<'low' | 'mid' | 'high', { label: string; color: string }> = {

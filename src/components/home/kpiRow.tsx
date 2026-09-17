@@ -69,7 +69,7 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
           value: projects.length,
           sub: `共 ${cards.length} 张卡片`,
           icon: '🎯',
-          color: '#165dff',
+          color: '#ff6700',
           moduleId: 'kanban',
         },
         {

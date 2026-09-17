@@ -57,7 +57,7 @@
 }
 
 .flow-panel-item:hover {
-  border-color: #165dff;
+  border-color: #ff6700;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
 }
@@ -102,7 +102,7 @@
 }
 
 .flow-canvas .react-flow__edge-path {
-  stroke: #165dff;
+  stroke: #ff6700;
   stroke-width: 1.5;
 }
 
@@ -201,7 +201,7 @@
 .flow-node input {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #165dff;
+  border: 1px solid #ff6700;
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 13px;
@@ -229,8 +229,8 @@
 }
 
 .n-process {
-  border-color: #165dff;
-  color: #165dff;
+  border-color: #ff6700;
+  color: #ff6700;
   background: #e8f3ff;
 }
 

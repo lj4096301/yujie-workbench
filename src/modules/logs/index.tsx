@@ -99,9 +99,9 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       render: (t: string) => (
         <Tag
           style={{
-            color: '#165DFF',
-            background: '#E8F3FF',
-            borderColor: '#A9C7FF',
+            color: '#ff6700',
+            background: '#FFF3E8',
+            borderColor: '#FFC8A8',
             marginInlineEnd: 0,
           }}
         >

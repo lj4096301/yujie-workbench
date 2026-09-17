@@ -11,64 +11,24 @@
   ],
   "cards": [
     {
-      "id": "kb-1789630623114-fam8",
-      "title": "自学：AI",
-      "content": "管理页拆分:监控和配置，AI行为管理。",
-      "projectId": "p2",
+      "id": "kb-1789645015249-u9xl",
+      "title": "新增功能：文件夹分析，自动整理建库",
+      "content": "22",
+      "projectId": "p1",
       "priority": "mid",
       "status": "todo",
-      "createdAt": 1789630623114,
-      "updatedAt": 1789630623114
-    },
-    {
-      "id": "kb-1789630310656-rm6d",
-      "title": "自学：AI管理优化",
-      "content": "1:功能调整：目的以向外部AI提问的复制的提示词的动作按钮，全面升级也能向内部AI提问，但注意要与已有的功能查重。也就是功能不能重复",
-      "projectId": "p2",
-      "priority": "mid",
-      "status": "todo",
-      "createdAt": 1789630310656,
-      "updatedAt": 1789630310656
+      "createdAt": 1789645015249,
+      "updatedAt": 1789645015249
     },
     {
       "id": "kb-1789629499860-k9ah",
-      "title": "自学：删除文本",
+      "title": "自学：删除文本334444",
       "content": "删除：提升提示那部分提示不必显示",
       "projectId": "p2",
       "priority": "mid",
       "status": "done",
       "createdAt": 1789629499860,
-      "updatedAt": 1789634389730
-    },
-    {
-      "id": "kb-1789502700638-z34u",
-      "title": "项目看板文字卡片高度自适应",
-      "content": "文字显示不全",
-      "projectId": "p1",
-      "priority": "mid",
-      "status": "todo",
-      "createdAt": 1789502700638,
-      "updatedAt": 1789502716131
-    },
-    {
-      "id": "kb-1789502554957-lqtd",
-      "title": "自学工作台展示优化",
-      "content": "1。首页和其他各页的数据统计块就是兴趣多少个那一行不必显示，占位置太大了，先暂时隐藏，万一以后要用呢\n2.其他各页内容，二层标题首层标题之间还有空间没占满，平铺占满",
-      "projectId": "p2",
-      "priority": "high",
-      "status": "todo",
-      "createdAt": 1789502554957,
-      "updatedAt": 1789628152800
-    },
-    {
-      "id": "kb-1789491889423-4hu9",
-      "title": "新增功能：自动建库",
-      "content": "分析文件夹中的文件，按类别分类文件",
-      "projectId": "p1",
-      "priority": "mid",
-      "status": "todo",
-      "createdAt": 1789491889423,
-      "updatedAt": 1789491889423
+      "updatedAt": 1789644680577
     },
     {
       "id": "kb-1789465945128-5y2c",
@@ -79,6 +39,71 @@
       "status": "todo",
       "createdAt": 1789465945128,
       "updatedAt": 1789465964507
+    }
+  ],
+  "records": [
+    {
+      "id": "rec-1789645035739-ktpg",
+      "action": "deleted",
+      "title": "项目看板文字卡片高度自适应",
+      "content": "文字显示不全",
+      "projectName": "宇界工作台",
+      "priority": "mid",
+      "at": 1789645035739
+    },
+    {
+      "id": "rec-1789644904058-ade8",
+      "action": "done",
+      "title": "新增功能：自动建库",
+      "content": "分析文件夹中的文件，按类别分类文件",
+      "projectName": "宇界工作台",
+      "priority": "mid",
+      "at": 1789644904058
+    },
+    {
+      "id": "rec-1789644680577-dozn",
+      "action": "done",
+      "title": "自学：删除文本334444",
+      "content": "删除：提升提示那部分提示不必显示",
+      "projectName": "自学工作台",
+      "priority": "mid",
+      "at": 1789644680577
+    },
+    {
+      "id": "rec-1789644370494-lsdw",
+      "action": "deleted",
+      "title": "自学工作台展示优化",
+      "content": "1。首页和其他各页的数据统计块就是兴趣多少个那一行不必显示，占位置太大了，先暂时隐藏，万一以后要用呢\n2.其他各页内容，二层标题首层标题之间还有空间没占满，平铺占满",
+      "projectName": "自学工作台",
+      "priority": "high",
+      "at": 1789644370494
+    },
+    {
+      "id": "rec-1789644368053-ybc3",
+      "action": "done",
+      "title": "项目看板文字卡片高度自适应",
+      "content": "文字显示不全",
+      "projectName": "宇界工作台",
+      "priority": "mid",
+      "at": 1789644368053
+    },
+    {
+      "id": "rec-1789643188219-db7y",
+      "action": "deleted",
+      "title": "自学：AI管理优化",
+      "content": "1:功能调整：目的以向外部AI提问的复制的提示词的动作按钮，全面升级也能向内部AI提问，但注意要与已有的功能查重。也就是功能不能重复",
+      "projectName": "自学工作台",
+      "priority": "mid",
+      "at": 1789643188219
+    },
+    {
+      "id": "rec-1789642285347-37ja",
+      "action": "deleted",
+      "title": "自学：AI",
+      "content": "管理页拆分:监控和配置，AI行为管理。",
+      "projectName": "自学工作台",
+      "priority": "mid",
+      "at": 1789642285347
     }
   ]
 }

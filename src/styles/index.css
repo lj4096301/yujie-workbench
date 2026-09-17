@@ -29,6 +29,13 @@
   overflow: hidden;
 }
 
+/* Mi Console 桌面端：主内容 ≤1440px 居中（≥840dp 结构） */
+.main-content {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
 /* 右侧内容区：占满侧栏之外的剩余宽度，随窗口/侧栏收起自适应 */
 .app-main {
   flex: 1 1 auto;
@@ -80,7 +87,9 @@ body {
   min-height: 0;
   width: 100%;
   overflow: hidden;
-  background: var(--bg-page, #f2f3f5);
+  background: var(--bg-page, #ffffff);
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 /* 首页模式：画布可能高于视口，允许纵向滚动 */
@@ -769,4 +778,44 @@ body.is-resizing {
   word-break: break-word;
   max-height: 60px;
   overflow: hidden;
+}
+
+/* ============================================================
+   Mi Console v3 三端适配
+   结构断点：600px / 840px（骨架）
+   密度断点：768px / 1024px / 1280px（仅调间距/字号/卡片密度）
+   ============================================================ */
+
+/* 密度断点 1280px：桌面三栏密度收紧 */
+@media (max-width: 1280px) {
+  .topbar { padding: 0 16px; }
+}
+
+/* 密度断点 1024px：间距/字号微调 */
+@media (max-width: 1024px) {
+  .topbar { padding: 0 12px; }
+}
+
+/* 密度断点 768px：卡片密度收紧 */
+@media (max-width: 768px) {
+  .topbar { padding: 0 12px; }
+  .topbar-right { gap: 6px; }
+  .topbar .arco-btn { width: 36px; height: 36px; }
+}
+
+/* 结构断点 <600px：手机单栏 + 底部 Tab，侧栏隐藏 */
+@media (max-width: 599px) {
+  .app-root .sidebar {
+    display: none !important;
+  }
+  .tabbar {
+    display: flex;
+  }
+  .app-main {
+    padding-bottom: 56px;
+  }
+  .topbar {
+    padding: 0 12px;
+    height: 48px;
+  }
 }

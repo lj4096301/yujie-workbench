@@ -32,7 +32,7 @@ const STATUS_TEXT: Record<string, string> = {
 }
 
 function statusBadge(status?: string): string {
-  return 'wo-badge wo-badge-' + (status === 'done' ? 'done' : status === 'doing' ? 'doing' : 'todo')
+  return 'wo-status wo-status-' + (status === 'done' ? 'done' : status === 'doing' ? 'doing' : 'todo')
 }
 
 /** ③ 左：看板总览——项目进度条 + 三态计数 + 最近卡片 */
@@ -98,7 +98,7 @@ const KanbanOverview: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOp
                 <div className="wo-progress">
                   <div
                     className="wo-progress-fill"
-                    style={{ width: `${pct}%`, background: pct >= 100 ? '#00b42a' : '#165dff' }}
+                    style={{ width: `${pct}%`, background: pct >= 100 ? '#00b42a' : '#ff6700' }}
                   />
                 </div>
               </div>
@@ -124,9 +124,9 @@ const KanbanOverview: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOp
           ) : (
             recent.map((c) => (
               <div key={c.id} className="wo-recent-item">
+                <span className={statusBadge(c.status)} title={STATUS_TEXT[c.status ?? 'todo']} />
                 <span className="wo-recent-title">📌 {c.title}</span>
-                <span className={statusBadge(c.status)}>{STATUS_TEXT[c.status ?? 'todo']}</span>
-                {c.priority === 'high' && <span className="wo-badge wo-badge-pri">高优先级</span>}
+                {c.priority === 'high' && <span className="wo-status wo-status-pri" title="高优先级" />}
               </div>
             ))
           )}

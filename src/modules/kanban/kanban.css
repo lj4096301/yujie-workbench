@@ -36,10 +36,11 @@
 }
 
 .kb-dot {
-  width: 8px;
-  height: 8px;
+  width: var(--dot-size, 5px);
+  height: var(--dot-size, 5px);
   border-radius: 50%;
   display: inline-block;
+  box-shadow: 0 0 0 4px var(--dot-ring, rgba(0, 0, 0, 0.12));
 }
 
 .kb-count {
@@ -183,7 +184,7 @@
 
 .kb-zone-done.drag-over {
   background: #e8f3ff;
-  border-color: #165dff;
+  border-color: #ff6700;
 }
 
 .kb-zone-del {

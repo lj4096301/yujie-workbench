@@ -77,7 +77,7 @@ const TopBar: React.FC = () => {
         </Dropdown>
         <Dropdown droplist={userMenu} position="br" trigger="click">
           <div className="topbar-user" title="用户">
-            <Avatar size={28} style={{ background: '#165dff' }}>
+            <Avatar size={28} style={{ background: '#ff6700' }}>
               宇
             </Avatar>
           </div>

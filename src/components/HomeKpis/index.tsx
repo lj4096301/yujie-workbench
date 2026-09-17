@@ -25,7 +25,7 @@ function fmtToday(): string {
  */
 const HomeKpis: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
   const [kpis, setKpis] = useState<KpiItem[]>([
-    { key: 'project', label: '项目', value: '--', icon: '🎯', color: '#165dff', moduleId: 'kanban' },
+    { key: 'project', label: '项目', value: '--', icon: '🎯', color: '#ff6700', moduleId: 'kanban' },
     { key: 'doing', label: '进行中', value: '--', icon: '⚡', color: '#ff7d00', moduleId: 'tasks' },
     { key: 'today', label: '今日日程', value: '--', icon: '📅', color: '#00b42a', moduleId: 'calendar' },
     { key: 'knowledge', label: '知识条目', value: '--', icon: '📚', color: '#722ed1', moduleId: 'knowledge' },
@@ -79,7 +79,7 @@ const HomeKpis: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) 
           value: projects.length,
           sub: `共 ${cards.length} 张卡片`,
           icon: '🎯',
-          color: '#165dff',
+          color: '#ff6700',
           moduleId: 'kanban',
         },
         {
