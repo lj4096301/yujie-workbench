@@ -61,7 +61,7 @@ const SpreadsheetModule: React.FC = () => {
     
     ;(async () => {
     const module = await import('tabulator-tables')
-    const Tabulator = module.default || module
+    const Tabulator = module.Tabulator || (module.default || module)
     const el = document.getElementById('spreadsheet-table')
     if (!el || tableRef.current) return
 
