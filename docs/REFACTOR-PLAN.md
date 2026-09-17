@@ -122,6 +122,23 @@
 
 ---
 
+## 存量 antd 清理（P0–P3 完成后逐模块收尾）
+
+> 目标：全站 UI 外壳收敛到 shadcn + Mi Console Token；**合理保留**——`message` 轻提示（16 模块）、`Rate` 评分内核（tv-tracker）、`Tree` 文件树内核（bookmarks/knowledge 导入）、`Dropdown` 右键菜单（knowledge）、`DatePicker.RangePicker`（calendar 日期选择，宽已修）。
+
+| 模块 | 清理内容 | 提交 |
+|---|---|---|
+| kanban | Segmented→Tabs；Tooltip→title；Popconfirm×3→ConfirmDialog；ConfigProvider 移除；根节点 Fragment 化 | `09a926f` |
+| logs | 清空/删单条 Popconfirm→ConfirmDialog（delRec state） | `aee7ffb` |
+| weather | 可搜索 Select（城市）→ Button+Dialog+Input 防抖搜索+结果列表；添加后自动关弹窗 | `2eae8d1` |
+| news/RssPanel | Select→shadcn；Spin→列表骨架；按钮 Token 化；错误/空态用规范色 | `7c3bc8f` |
+| news/legacy | Input/Select/Button→shadcn；Tag→文字小标；未读点→5px 圆点+光环；Star→lucide；Popconfirm→ConfirmDialog；Empty→.mod-empty | `7c3bc8f` |
+| knowledge/GraphView | Empty→.mod-empty；Spin→骨架屏；AimOutlined→Maximize2 | `e09e78f` |
+
+> 换行符经验：kanban/logs/legacy 为 CRLF 文件，patch 脚本须用 `NL()` 转换；RssPanel/GraphView/weather 为 LF，用原串。动手前先 diag（`s.includes('\r\n')`）。
+
+---
+
 ## 组件库补充（按需，`src/components/ui/`）
 
 | 组件 | 依赖 | 用于 |
