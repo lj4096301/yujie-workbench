@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Empty, Spin } from 'antd'
-import { AimOutlined } from '@ant-design/icons'
+import { Maximize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface GraphNode {
   id: string
@@ -226,9 +226,15 @@ const GraphView: React.FC<P> = ({ width, height, onOpen }) => {
 
   const resetView = () => setView({ x: 0, y: 0, k: 1 })
 
-  if (error) return <Empty description={`图谱加载失败：${error}`} />
-  if (!data) return <div style={{ textAlign: 'center', paddingTop: 60 }}><Spin tip="正在分析双链关系…" /></div>
-  if (data.nodes.length === 0) return <Empty description="还没有笔记之间建立 [[双链]]，先在笔记里写几个 [[链接]] 吧" />
+  if (error) return <div className="mod-empty">图谱加载失败：{error}</div>
+  if (!data) return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 24 }}>
+      <Skeleton className="h-40 w-full" />
+      <Skeleton className="h-4 w-1/2" />
+      <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted, #86909c)', marginTop: 8 }}>正在分析双链关系…</div>
+    </div>
+  )
+  if (data.nodes.length === 0) return <div className="mod-empty">还没有笔记之间建立 [[双链]]，先在笔记里写几个 [[链接]] 吧</div>
 
   const maxDeg = Math.max(...layout.map((n) => n.degree), 1)
   const neighbors = new Set<string>()
@@ -307,7 +313,7 @@ const GraphView: React.FC<P> = ({ width, height, onOpen }) => {
         className="absolute right-2 top-2 h-8 w-8 p-0"
         title="重置视图"
       >
-        <AimOutlined />
+        <Maximize2 className="h-3.5 w-3.5" />
       </Button>
       <div style={{ fontSize: 11, color: '#86909c', padding: '4px 8px' }}>
         {data.nodes.length} 个笔记 · {data.edges.length} 条链接 · 滚轮缩放 / 拖背景平移 / 拖节点重排 / 点节点打开
