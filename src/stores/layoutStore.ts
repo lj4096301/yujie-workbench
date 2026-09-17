@@ -287,14 +287,14 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
   },
 
   isLoggedIn: localStorage.getItem("yujie-auth-logged") === "1",
-    setLoggedIn: (value) => {
-      if (value) {
-        localStorage.setItem("yujie-auth-logged", "1")
-      } else {
-        localStorage.removeItem("yujie-auth-logged")
-      }
-    },
-    searchVisible: false,
+  setLoggedIn: (value) => {
+    if (value) {
+      localStorage.setItem("yujie-auth-logged", "1")
+    } else {
+      localStorage.removeItem("yujie-auth-logged")
+    }
+  },
+  searchVisible: false,
   setSearchVisible: (visible) => set({ searchVisible: visible }),
 
   saveLayout: () => {
