@@ -1,20 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { message } from 'antd'
+import { RefreshCw, Plus, Calculator } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Spin,
-  Empty,
-  Tag,
-  Button,
-  Table,
-  InputNumber,
-  Select,
-  Modal,
-  Form,
-  Input,
-  Tooltip,
-  Popconfirm,
-  message,
-} from 'antd'
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from '@/components/ui/table'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface PricingEntry {
   id: string
@@ -77,6 +79,7 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [sortKey, setSortKey] = useState<SortKey>('costCny')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [providerFilter, setProviderFilter] = useState<string[]>([])
+  const [platformOpen, setPlatformOpen] = useState(false)
 
   // 成本计算器（缓存命中率单列，否则会严重高估成本）
   const [showCalc, setShowCalc] = useState(true)
@@ -88,7 +91,15 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [editing, setEditing] = useState<PricingEntry | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form] = Form.useForm()
+  const [delTarget, setDelTarget] = useState<PricingEntry | null>(null)
+  const [formData, setFormData] = useState({
+    provider: '', model: '', currency: '¥' as '¥' | '$',
+    inputPrice: 0, cachePrice: 0, outputPrice: 0, note: '',
+  })
+  const resetForm = () => setFormData({
+    provider: '', model: '', currency: '¥' as '¥' | '$',
+    inputPrice: 0, cachePrice: 0, outputPrice: 0, note: '',
+  })
 
   const fetchPricings = async () => {
     setLoading(true)
@@ -161,19 +172,18 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   const openCreate = () => {
     setEditing(null)
-    form.resetFields()
-    form.setFieldsValue({ currency: '¥', provider: '', model: '', note: '' })
+    resetForm()
     setModalOpen(true)
   }
 
   const openAdjust = (record: PricingEntry) => {
     setEditing(record)
-    form.setFieldsValue({
+    setFormData({
       provider: record.provider,
       model: record.model,
       currency: record.currency,
       inputPrice: record.inputPrice,
-      cachePrice: record.cachePrice,
+      cachePrice: record.cachePrice || 0,
       outputPrice: record.outputPrice,
       note: record.note || '',
     })
@@ -181,7 +191,16 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   }
 
   const handleSubmit = async () => {
-    const values = await form.validateFields()
+    const values = {
+      provider: formData.provider.trim(),
+      model: formData.model.trim(),
+      currency: formData.currency,
+      inputPrice: formData.inputPrice,
+      cachePrice: formData.cachePrice || null,
+      outputPrice: formData.outputPrice,
+      note: formData.note.trim(),
+    }
+    if (!values.provider || !values.model) { message.warning('请填写平台与模型名称'); return }
     setSaving(true)
     try {
       const isEdit = !!editing?.custom
@@ -196,6 +215,7 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       message.success(isEdit ? '已更新价格' : '已新增价格条目')
       setModalOpen(false)
       setEditing(null)
+      resetForm()
       await fetchPricings()
     } catch (err) {
       message.error((err as Error).message)
@@ -223,7 +243,7 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   }
 
   const priceCell = (value: number | null, currency: string, extra?: React.ReactNode) => {
-    if (value === null || value === undefined) return <span style={{ color: '#bbb' }}>—</span>
+    if (value === null || value === undefined) return <span style={{ color: 'var(--text-disabled, #c9cdd4)' }}>—</span>
     return (
       <span>
         {currency} {value}
@@ -232,185 +252,33 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     )
   }
 
-  const columns = [
-    {
-      title: '平台',
-      dataIndex: 'provider',
-      key: 'provider',
-      width: 92,
-      fixed: 'left' as const,
-      render: (text: string, record: PricingEntry) => (
-        <span style={{ fontWeight: 600 }}>
-          {text}
-          {record.custom && (
-            <Tag color="orange" style={{ marginLeft: 4, transform: 'scale(0.85)' }}>
-              自定义
-            </Tag>
-          )}
-        </span>
-      ),
-    },
-    {
-      title: '模型',
-      dataIndex: 'model',
-      key: 'model',
-      width: 190,
-      render: (text: string, record: PricingEntry) => (
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span>{text}</span>
-            {best && best.id === record.id && <Tag color="gold">最优</Tag>}
-          </div>
-          {record.note && (
-            <div style={{ fontSize: 11, color: '#999', lineHeight: 1.5 }}>{record.note}</div>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: '输入价（未命中）',
-      dataIndex: 'inputPrice',
-      key: 'inputPrice',
-      width: 132,
-      render: (price: number, record: PricingEntry) =>
-        priceCell(price, record.currency, (
-          <span style={{ fontSize: 10, color: '#aaa' }}> /{record.unit}</span>
-        )),
-    },
-    {
-      title: '缓存命中价',
-      dataIndex: 'cachePrice',
-      key: 'cachePrice',
-      width: 118,
-      render: (price: number | null, record: PricingEntry) =>
-        price === null ? (
-          <Tooltip title="该平台未公布单一缓存命中价（或按比例折扣计费）">
-            <span style={{ color: '#bbb' }}>不支持</span>
-          </Tooltip>
-        ) : (
-          <span style={{ color: '#52c41a', fontWeight: 600 }}>
-            {record.currency} {price}
-            <span style={{ fontSize: 10, color: '#aaa', fontWeight: 400 }}> /{record.unit}</span>
-          </span>
-        ),
-    },
-    {
-      title: '输出价',
-      dataIndex: 'outputPrice',
-      key: 'outputPrice',
-      width: 118,
-      render: (price: number, record: PricingEntry) =>
-        priceCell(price, record.currency, (
-          <span style={{ fontSize: 10, color: '#aaa' }}> /{record.unit}</span>
-        )),
-    },
-    {
-      title: '综合成本（折算）',
-      key: 'cost',
-      width: 128,
-      render: (_: unknown, record: PricingEntry) => (
-        <span style={{ fontWeight: 600, color: '#1677ff' }}>¥{calcCostCny(record).toFixed(3)}</span>
-      ),
-    },
-    {
-      title: '变动',
-      dataIndex: 'changePercent',
-      key: 'changePercent',
-      width: 86,
-      render: (percent?: number) => {
-        if (percent === undefined || percent === 0) return <Tag>—</Tag>
-        // 国内惯例：涨红跌绿
-        if (percent > 0) return <Tag color="red">↑ +{percent}%</Tag>
-        return <Tag color="green">↓ {percent}%</Tag>
-      },
-    },
-    {
-      title: '来源',
-      dataIndex: 'source',
-      key: 'source',
-      width: 150,
-      render: (text: string | undefined, record: PricingEntry) =>
-        text ? (
-          <Tooltip title={text}>
-            <div style={{ fontSize: 11, color: '#666' }}>
-              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {text}
-              </div>
-              {record.verifiedAt && <div style={{ color: '#aaa' }}>核实 {record.verifiedAt}</div>}
-            </div>
-          </Tooltip>
-        ) : (
-          <span style={{ color: '#bbb' }}>—</span>
-        ),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 116,
-      fixed: 'right' as const,
-      render: (_: unknown, record: PricingEntry) => (
-        <div style={{ display: 'flex', gap: 4 }}>
-          <Button size="small" type="link" style={{ padding: 0 }} onClick={() => openAdjust(record)}>
-            {record.custom ? '编辑' : '校正'}
-          </Button>
-          <Popconfirm
-            title={`删除「${record.provider} · ${record.model}」？`}
-            description={record.custom ? undefined : '内置参考价删除后不再显示'}
-            okText="删除"
-            cancelText="取消"
-            onConfirm={() => handleDelete(record)}
-          >
-            <Button size="small" type="link" danger style={{ padding: 0 }}>
-              删除
-            </Button>
-          </Popconfirm>
-        </div>
-      ),
-    },
-  ]
-
   const headerActions = actionsHost
     ? createPortal(
         <div className="am-header-actions">
-          <Button size="small" icon="🔄" onClick={fetchPricings} title="刷新价格">
-            刷新
+          <Button size="sm" variant="outline" onClick={fetchPricings} title="刷新价格">
+            <RefreshCw className="h-3.5 w-3.5" /> 刷新
           </Button>
-          <Select
-            size="small"
-            value={sortKey}
-            onChange={(v) => setSortKey(v)}
-            options={SORT_OPTIONS}
-            style={{ width: 140 }}
-            suffixIcon={null}
-          />
-          <Button
-            size="small"
-            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            title="切换升序 / 降序"
-          >
+          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+            <SelectTrigger className="h-8 w-[140px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" variant="outline" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} title="切换升序 / 降序">
             {sortOrder === 'asc' ? '↑' : '↓'}
           </Button>
-          <Select
-            size="small"
-            mode="multiple"
-            allowClear
-            maxTagCount={1}
-            placeholder="平台"
-            value={providerFilter}
-            onChange={setProviderFilter}
-            options={providers.map((p) => ({ value: p, label: p }))}
-            style={{ width: 140 }}
-          />
-          <Button size="small" icon="＋" type="primary" onClick={openCreate}>
-            新增
+          <Button size="sm" variant={providerFilter.length ? 'default' : 'outline'} onClick={() => setPlatformOpen(true)}>
+            平台{providerFilter.length ? ' (' + providerFilter.length + ')' : ''}
           </Button>
-          <Button
-            size="small"
-            icon="🧮"
-            type={showCalc ? 'primary' : 'default'}
-            onClick={() => setShowCalc(!showCalc)}
-          >
-            计算器
+          <Button size="sm" onClick={openCreate}>
+            <Plus className="h-3.5 w-3.5" /> 新增
+          </Button>
+          <Button size="sm" variant={showCalc ? 'default' : 'outline'} onClick={() => setShowCalc(!showCalc)}>
+            <Calculator className="h-3.5 w-3.5" /> 计算器
           </Button>
         </div>,
         actionsHost
@@ -426,7 +294,7 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         <div
           style={{
             padding: 12,
-            background: '#f0f5ff',
+            background: 'var(--bg-subtle, #f7f8fa)',
             borderRadius: 8,
             marginBottom: 10,
             display: 'flex',
@@ -436,140 +304,287 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           }}
         >
           <div>
-            <span style={{ fontSize: 12, color: '#666' }}>输入 Token：</span>
-            <InputNumber
-              size="small"
-              value={inputTokens}
-              onChange={(v) => setInputTokens(v || 0)}
+            <span style={{ fontSize: 12, color: 'var(--text-secondary, #4e5969)' }}>输入 Token：</span>
+            <Input
+              type="number"
               min={0}
               step={100000}
-              style={{ width: 116 }}
+              value={String(inputTokens)}
+              onChange={(e) => setInputTokens(Number(e.target.value) || 0)}
+              className="h-8 w-[116px]"
             />
           </div>
           <div>
-            <span style={{ fontSize: 12, color: '#666' }}>缓存命中率：</span>
-            <InputNumber
-              size="small"
-              value={cacheRate}
-              onChange={(v) => setCacheRate(Math.min(100, Math.max(0, v || 0)))}
+            <span style={{ fontSize: 12, color: 'var(--text-secondary, #4e5969)' }}>缓存命中率：</span>
+            <Input
+              type="number"
               min={0}
               max={100}
               step={5}
-              style={{ width: 90 }}
-              addonAfter="%"
+              value={String(cacheRate)}
+              onChange={(e) => setCacheRate(Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
+              className="h-8 w-[90px]"
             />
+            <span style={{ fontSize: 12, color: 'var(--text-muted, #86909c)' }}>%</span>
           </div>
           <div>
-            <span style={{ fontSize: 12, color: '#666' }}>输出 Token：</span>
-            <InputNumber
-              size="small"
-              value={outputTokens}
-              onChange={(v) => setOutputTokens(v || 0)}
+            <span style={{ fontSize: 12, color: 'var(--text-secondary, #4e5969)' }}>输出 Token：</span>
+            <Input
+              type="number"
               min={0}
               step={100000}
-              style={{ width: 116 }}
+              value={String(outputTokens)}
+              onChange={(e) => setOutputTokens(Number(e.target.value) || 0)}
+              className="h-8 w-[116px]"
             />
           </div>
-          <div style={{ fontSize: 11, color: '#888' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted, #86909c)' }}>
             命中部分按「缓存命中价」计，未命中按输入价——命中率越高，实际成本越低
           </div>
         </div>
       )}
 
       {/* 概览 */}
-      <div style={{ fontSize: 12, color: '#666', marginBottom: 8, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ fontSize: 12, color: 'var(--text-secondary, #4e5969)', marginBottom: 8, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <span>
           共 <b>{filtered.length}</b> 个模型（<b>{filtered.filter((i) => i.custom).length}</b> 个自定义）
         </span>
         {best && (
           <span>
-            {SORT_KEY_LABEL[sortKey]}最优：<b style={{ color: '#1677ff' }}>{best.provider} · {best.model}</b>
+            {SORT_KEY_LABEL[sortKey]}最优：<b style={{ color: 'var(--primary-color, #ff6700)' }}>{best.provider} · {best.model}</b>
             {sortKey === 'costCny' && <> ≈ ¥{calcCostCny(best).toFixed(3)}</>}
           </span>
         )}
-        <span style={{ color: '#aaa' }}>美元按 1$ ≈ ¥{fxRate} 折算</span>
+        <span style={{ color: 'var(--text-disabled, #c9cdd4)' }}>美元按 1$ ≈ ¥{fxRate} 折算</span>
       </div>
 
       {/* 价格表格 */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40 }}>
-          <Spin />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: 4 }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-9 w-full" />
+          ))}
         </div>
       ) : sorted.length > 0 ? (
-        <Table
-          dataSource={sorted}
-          columns={columns}
-          rowKey={(r) => r.id}
-          size="small"
-          pagination={false}
-          scroll={{ x: 1160 }}
-          rowClassName={(r) => (best && best.id === r.id ? 'pricing-best-row' : '')}
-        />
+        <div style={{ overflowX: 'auto', border: '1px solid var(--border, #e5e6eb)', borderRadius: 8 }}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[92px]">平台</TableHead>
+                <TableHead>模型</TableHead>
+                <TableHead className="w-[132px]">输入价（未命中）</TableHead>
+                <TableHead className="w-[118px]">缓存命中价</TableHead>
+                <TableHead className="w-[118px]">输出价</TableHead>
+                <TableHead className="w-[128px]">综合成本（折算）</TableHead>
+                <TableHead className="w-[86px]">变动</TableHead>
+                <TableHead className="w-[150px]">来源</TableHead>
+                <TableHead className="w-[116px] text-right">操作</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sorted.map((record) => {
+                const isBest = !!(best && best.id === record.id)
+                const change = record.changePercent
+                return (
+                  <TableRow key={record.id} className={isBest ? 'pricing-best-row' : ''}>
+                    <TableCell>
+                      <span style={{ fontWeight: 600 }}>
+                        {record.provider}
+                        {record.custom && (
+                          <span style={{ marginLeft: 4, fontSize: 11, color: 'var(--warning, #ff7d00)' }}>自定义</span>
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>{record.model}</span>
+                          {isBest && (
+                            <span style={{ fontSize: 11, color: 'var(--primary-color, #ff6700)' }}>最优</span>
+                          )}
+                        </div>
+                        {record.note && (
+                          <div style={{ fontSize: 11, color: 'var(--text-muted, #86909c)', lineHeight: 1.5 }}>{record.note}</div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {priceCell(record.inputPrice, record.currency, (
+                        <span style={{ fontSize: 10, color: 'var(--text-disabled, #c9cdd4)' }}> /{record.unit}</span>
+                      ))}
+                    </TableCell>
+                    <TableCell>
+                      {record.cachePrice === null || record.cachePrice === undefined ? (
+                        <span title="该平台未公布单一缓存命中价（或按比例折扣计费）" style={{ color: 'var(--text-disabled, #c9cdd4)', cursor: 'help' }}>
+                          不支持
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--success, #00b42a)', fontWeight: 600 }}>
+                          {record.currency} {record.cachePrice}
+                          <span style={{ fontSize: 10, color: 'var(--text-disabled, #c9cdd4)', fontWeight: 400 }}> /{record.unit}</span>
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {priceCell(record.outputPrice, record.currency, (
+                        <span style={{ fontSize: 10, color: 'var(--text-disabled, #c9cdd4)' }}> /{record.unit}</span>
+                      ))}
+                    </TableCell>
+                    <TableCell>
+                      <span style={{ fontWeight: 600, color: 'var(--primary-color, #ff6700)' }}>¥{calcCostCny(record).toFixed(3)}</span>
+                    </TableCell>
+                    <TableCell>
+                      {change === undefined || change === 0 ? (
+                        <span style={{ color: 'var(--text-disabled, #c9cdd4)' }}>—</span>
+                      ) : change > 0 ? (
+                        <span style={{ color: 'var(--danger, #f53f3f)' }}>↑ +{change}%</span>
+                      ) : (
+                        <span style={{ color: 'var(--success, #00b42a)' }}>↓ {change}%</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {record.source ? (
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary, #4e5969)' }}>
+                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150 }} title={record.source}>
+                            {record.source}
+                          </div>
+                          {record.verifiedAt && (
+                            <div style={{ color: 'var(--text-disabled, #c9cdd4)' }}>核实 {record.verifiedAt}</div>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--text-disabled, #c9cdd4)' }}>—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                        <Button variant="link" className="h-6 px-0 text-xs text-[#ff6700]" onClick={() => openAdjust(record)}>
+                          {record.custom ? '编辑' : '校正'}
+                        </Button>
+                        <Button variant="link" className="h-6 px-0 text-xs text-[#F53F3F]" onClick={() => setDelTarget(record)}>
+                          删除
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
-        <Empty description="暂无价格数据" />
+        <div className="mod-empty">暂无价格数据</div>
       )}
 
-      <div style={{ marginTop: 8, fontSize: 11, color: '#aaa', lineHeight: 1.7 }}>
+      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-disabled, #c9cdd4)', lineHeight: 1.7 }}>
         内置价格为公开渠道核实的参考价（见「来源」列），厂商调价频繁，请以官网为准；
         点「校正」可用你的实际价格覆盖内置条目；过期 / 不再关注的 API 直接点「删除」，删除后重启应用也不会恢复。
       </div>
 
-      {/* 新增 / 编辑弹窗 */}
-      <Modal
-        title={editing ? (editing.custom ? `编辑价格 · ${editing.model}` : `校正内置价 · ${editing.model}`) : '新增 API 价格'}
-        open={modalOpen}
-        onCancel={() => {
-          setModalOpen(false)
-          setEditing(null)
-        }}
-        onOk={handleSubmit}
-        confirmLoading={saving}
-        okText={editing ? '保存' : '新增'}
-        cancelText="取消"
-      >
-        <Form form={form} layout="vertical" size="small" style={{ marginTop: 12 }}>
-          <Form.Item name="provider" label="平台名称" rules={[{ required: true, message: '请输入平台名称' }]}>
-            <Input placeholder="例如：DeepSeek / 阿里百炼 / 自建 vLLM" />
-          </Form.Item>
-          <Form.Item name="model" label="模型名称" rules={[{ required: true, message: '请输入模型名称' }]}>
-            <Input placeholder="例如：deepseek-v4-pro" />
-          </Form.Item>
-          <Form.Item name="currency" label="计价币种" initialValue="¥">
-            <Select
-              options={[
-                { value: '¥', label: '¥ 人民币' },
-                { value: '$', label: '$ 美元' },
-              ]}
-            />
-          </Form.Item>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <Form.Item
-              name="inputPrice"
-              label="输入价 / 百万token（缓存未命中）"
-              rules={[{ required: true, message: '请输入输入价' }]}
-              style={{ flex: 1 }}
-            >
-              <InputNumber min={0} step={0.01} style={{ width: '100%' }} placeholder="0.00" />
-            </Form.Item>
-            <Form.Item name="cachePrice" label="缓存命中价（可留空）" style={{ flex: 1 }}>
-              <InputNumber min={0} step={0.01} style={{ width: '100%' }} placeholder="留空表示不支持缓存计费" />
-            </Form.Item>
+      {/* 平台多选 */}
+      <Dialog open={platformOpen} onOpenChange={setPlatformOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>筛选平台</DialogTitle>
+          </DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4, maxHeight: 320, overflowY: 'auto' }}>
+            {providers.map((p) => {
+              const checked = providerFilter.includes(p)
+              return (
+                <label
+                  key={p}
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-[#F7F8FA]"
+                  style={{ color: 'var(--text-primary, #1d2129)' }}
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(v) => {
+                      setProviderFilter((prev) => (v ? [...prev, p] : prev.filter((x) => x !== p)))
+                    }}
+                  />
+                  <span>{p}</span>
+                </label>
+              )
+            })}
+            {providers.length === 0 && (
+              <div className="mod-empty" style={{ padding: 24 }}>暂无平台数据</div>
+            )}
           </div>
-          <Form.Item
-            name="outputPrice"
-            label="输出价 / 百万token"
-            rules={[{ required: true, message: '请输入输出价' }]}
-          >
-            <InputNumber min={0} step={0.01} style={{ width: '100%' }} placeholder="0.00" />
-          </Form.Item>
-          <Form.Item name="note" label="备注（可选）">
-            <Input placeholder="例如：高峰时段价格 / 上下文长度 / 渠道折扣" />
-          </Form.Item>
-        </Form>
-        <div style={{ fontSize: 11, color: '#999' }}>
-          保存后该条目会以「自定义」身份参与排序与最优比价；同名平台 + 模型会覆盖内置参考价。
-        </div>
-      </Modal>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setProviderFilter([])}>清空</Button>
+            <Button onClick={() => setPlatformOpen(false)}>确定</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 删除二次确认 */}
+      <ConfirmDialog
+        open={!!delTarget}
+        title="删除价格条目"
+        content={delTarget ? '删除「' + delTarget.provider + ' · ' + delTarget.model + '」？' + (delTarget.custom ? '' : '内置参考价删除后不再显示') : ''}
+        danger
+        okText="删除"
+        onOk={async () => { if (delTarget) await handleDelete(delTarget) }}
+        onOpenChange={(o) => { if (!o) setDelTarget(null) }}
+      />
+
+      {/* 新增 / 编辑弹窗 */}
+      <Dialog open={modalOpen} onOpenChange={(o) => { if (!o) { setModalOpen(false); setEditing(null) } }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editing ? (editing.custom ? '编辑价格 · ' + editing.model : '校正内置价 · ' + editing.model) : '新增 API 价格'}
+            </DialogTitle>
+          </DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">平台名称</Label>
+              <Input value={formData.provider} onChange={(e) => setFormData({ ...formData, provider: e.target.value })} placeholder="例如：DeepSeek / 阿里百炼 / 自建 vLLM" />
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">模型名称</Label>
+              <Input value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} placeholder="例如：deepseek-v4-pro" />
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">计价币种</Label>
+              <Select value={formData.currency} onValueChange={(v) => setFormData({ ...formData, currency: v as '¥' | '$' })}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="¥">¥ 人民币</SelectItem>
+                  <SelectItem value="$">$ 美元</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <Label className="mb-1 block text-xs font-medium text-[#4E5969]">输入价 / 百万token（未命中）</Label>
+                <Input type="number" min={0} step={0.01} value={String(formData.inputPrice)} onChange={(e) => setFormData({ ...formData, inputPrice: Number(e.target.value) || 0 })} placeholder="0.00" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Label className="mb-1 block text-xs font-medium text-[#4E5969]">缓存命中价（可留空）</Label>
+                <Input type="number" min={0} step={0.01} value={String(formData.cachePrice || '')} onChange={(e) => setFormData({ ...formData, cachePrice: Number(e.target.value) || 0 })} placeholder="留空表示不支持" />
+              </div>
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">输出价 / 百万token</Label>
+              <Input type="number" min={0} step={0.01} value={String(formData.outputPrice)} onChange={(e) => setFormData({ ...formData, outputPrice: Number(e.target.value) || 0 })} placeholder="0.00" />
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">备注（可选）</Label>
+              <Input value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} placeholder="例如：高峰时段价格 / 上下文长度 / 渠道折扣" />
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted, #86909c)' }}>
+              保存后该条目会以「自定义」身份参与排序与最优比价；同名平台 + 模型会覆盖内置参考价。
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => { setModalOpen(false); setEditing(null) }}>取消</Button>
+            <Button onClick={handleSubmit} disabled={saving}>{editing ? '保存' : '新增'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
