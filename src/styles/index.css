@@ -73,6 +73,8 @@ body {
   width: 100%;
   padding: 0;
   box-sizing: border-box;
+  /* 通用背景色：与卡片白底拉开对比（首页 + 模块页统一） */
+  background: var(--bg-page, #f2f3f5);
 }
 
 /* 首页模式：顶部留空收紧，内容更靠上；首页内容可能高于视口，允许纵向滚动 */

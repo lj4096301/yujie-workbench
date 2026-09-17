@@ -149,7 +149,7 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
           type="date"
           value={due}
           onChange={(e) => setDue(e.target.value)}
-          className="h-8 w-[126px] shrink-0"
+          className="h-8 w-[140px] shrink-0"
         />
         <Button size="sm" className="shrink-0" onClick={add}>
           <Plus className="h-4 w-4" />

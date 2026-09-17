@@ -155,6 +155,34 @@
   border-bottom: 1px solid var(--sidebar-border);
 }
 
+/* 侧栏配色：logo 主色圆点标记 */
+.sidebar-logo::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary-color, #ff6700);
+  box-shadow: 0 0 0 3px rgba(255, 103, 0, 0.12);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.sidebar-logo h1 {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 选中项：浅橙底 + 左侧主色竖条（inset 阴影不改变布局） */
+.sidebar-menu .arco-menu-selected {
+  box-shadow: inset 3px 0 0 0 var(--primary-color, #ff6700) !important;
+}
+
+/* 子菜单标题（更多功能）层次 */
+.sidebar-menu .arco-menu-inline-header .arco-menu-title {
+  font-weight: 500;
+  color: var(--text-secondary, #4e5969);
+}
+
 .sidebar-logo h1 {
   font-size: 15px;
   font-weight: 600;
