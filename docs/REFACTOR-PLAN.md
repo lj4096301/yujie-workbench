@@ -10,10 +10,10 @@
 
 | 优先级 | 层 | 范围 | 状态 |
 |---|---|---|---|
-| **P0** | 布局壳 | Panel 窗口容器、TopBar 细节、Sidebar 徽标、TabBar 手机端 | ☐ |
+| **P0** | 布局壳 | Panel 窗口容器、TopBar 细节、Sidebar 徽标、TabBar 手机端 | ✅ 完成（247dfb4） |
 | **P1** | 高频核心模块 | 看板 / 待办 / 日程 / 天气 / 日志 | ✅ 完成（54c4bf1 / 852fc93 / acf6926 / f343cdb / 822ce1b） |
 | **P2** | 内容知识模块 | 知识库 / 剪贴板 / 书签 / 新闻 / 小说 | ✅ 完成（4aae4b0 / 7e3cb46 / cdbe2f7 / 77f9e15） |
-| **P3** | 娱乐工具模块 | 免费游戏 / 追剧 / API 价格 / 流程图 / 思维导图 / 登录 | ☐ |
+| **P3** | 娱乐工具模块 | 免费游戏 / 追剧 / API 价格 / 流程图 / 思维导图 / 登录 | ✅ 完成（ddffdbf / 6d367f6 / c91f614 / d3c5ddc / a3c7280） |
 
 ---
 
@@ -105,20 +105,20 @@
 ## P3 娱乐工具模块
 
 ### 15. 免费游戏 `epic-games`（228 行）
-- [ ] 游戏卡片网格统一（白底、圆角、hover 抬起）；空态/加载骨架屏
+- [x] 卡片网格统一（白底、圆角 12、hover 抬起）；状态 Tag → 圆点+光环；骨架屏 ✅（`ddffdbf`）
 
 ### 16. 追剧管理 `tv-tracker`（387 行）
-- [ ] 剧集卡片 + 进度条统一；添加/更新 → Dialog 表单
+- [x] 剧集卡片 + 自绘进度条 + 圆点状态；Modal 表单 → Dialog；Popconfirm → ConfirmDialog ✅（`6d367f6`）
 
 ### 17. API 价格 `api-monitor`（578 行）
-- [ ] 价格表格 → **shadcn Table**；指标卡 → shadcn Card；图表配色收敛（≤4 色）
+- [x] 价格表格 → **shadcn Table**（保留排序/最优/变动逻辑）；平台多选 → Dialog+Checkbox；Modal → Dialog ✅（`c91f614`）
 
 ### 18. 流程图 `flowchart` / 思维导图 `mindmap`
-- [ ] 画布内核保留成熟库（已集成）；外壳（工具栏/属性面板）统一为 shadcn
-- [ ] 右键菜单、导入导出按钮样式统一
+- [x] 画布内核保留 ReactFlow / MindElixir 成熟库；外壳（导出菜单/导入/清空/撤销重做）统一为 shadcn ✅（`d3c5ddc`）
+- [x] 右键菜单（mindmap 定位修正已保留）、导出下拉 → shadcn Select ✅
 
 ### 19. 登录页 `login`（120 行）
-- [ ] 表单 → shadcn Input + Button + Label；卡片居中白底圆角
+- [x] 表单 → shadcn Input + Button + Label；卡片居中白底圆角；错误提示自绘 ✅（`a3c7280`）
 
 ---
 
@@ -126,7 +126,8 @@
 
 | 组件 | 依赖 | 用于 |
 |---|---|---|
-| Checkbox | Radix | 待办/清单勾选 |
+| Checkbox | Radix | 待办/清单勾选；api-monitor 平台多选（已用） |
+| ConfirmDialog | 纯 HTML + Dialog | 全局删除/清空二次确认（已用，420px，danger 红色） |
 | Switch | Radix | 设置开关 |
 | Tooltip | Radix | 图标按钮提示 |
 | Popover | Radix | 轻量浮层 |

@@ -35,6 +35,8 @@
   - `select.tsx`：下拉选择（Radix Select，浮层 z-[60]、选中主色勾选；需 @radix-ui/react-select）
   - `table.tsx`：表格（纯 HTML，表头浅灰 bg-muted、hover 行高亮、隔行无斑马纹、分页放右下角）
   - `tabs.tsx`：标签页（Radix Tabs，选中态主色下划线 + 白底、圆角 6px；需 @radix-ui/react-tabs）
+  - `checkbox.tsx`：勾选（Radix Checkbox；待办勾选、api-monitor 平台多选）
+  - `confirm-dialog.tsx`：删除/清空二次确认（420px Dialog 封装；okText/danger 红色、取消 outline；onOk 先关后执行；覆盖看板/日志/小说/知识库/追剧/API 监控/流程图/思维导图）
 - 工具：`cn()`（clsx + tailwind-merge）；图标：lucide-react 已装（按需引入）
 - 配置：`tailwind.config.js` 已映射 card/border/input/muted/rounded-xl/shadow-sm 到 DESIGN-SPEC Token（白底 / #E5E6EB 边框 / 12px 圆角 / 极轻阴影）；primary 收敛为 #ff6700
 - 试水（已实测通过）：首页 KPI 行 4 张 shadcn Card；banner「模块管理」与空态「恢复默认布局」按钮用 shadcn Button；看板「记录」计数用 shadcn Badge；首页 KPI 加载骨架屏（Skeleton）；看板「操作记录」弹窗用 shadcn Dialog
