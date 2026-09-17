@@ -1,12 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { Spin, Button, Modal, Form, Input, DatePicker, message } from 'antd'
+import { DatePicker, message } from 'antd'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import dayjs, { Dayjs } from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import localeData from 'dayjs/plugin/localeData'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { getDayLunarInfo, getUpcomingFestivals } from './lunarUtils'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import './calendar.css'
 
 dayjs.extend(isoWeek)
@@ -27,6 +40,8 @@ interface CalendarEvent {
 const HOURS = Array.from({ length: 16 }, (_, i) => i + 7) // 7:00 - 22:00
 const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日']
 
+const EVENT_COLORS = ['#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
+
 type ViewMode = 'month' | 'week' | 'day'
 
 const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
@@ -45,7 +60,12 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs().startOf('month'))
   const [activeDay, setActiveDay] = useState(dayjs())
   const [modalVisible, setModalVisible] = useState(false)
-  const [form] = Form.useForm()
+
+  // 添加日程表单（手写 state，替代 antd Form）
+  const [evTitle, setEvTitle] = useState('')
+  const [evRange, setEvRange] = useState<[Dayjs, Dayjs] | null>(null)
+  const [evColor, setEvColor] = useState('#1677ff')
+  const [evDesc, setEvDesc] = useState('')
 
   // 当前视图需要展示的日期范围（用于拉取日程）
   const range = useMemo(() => {
@@ -122,22 +142,38 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     setView('day')
   }
 
-  const handleAddEvent = async (values: any) => {
+  const openAdd = () => {
+    setEvTitle('')
+    setEvRange(null)
+    setEvColor('#1677ff')
+    setEvDesc('')
+    setModalVisible(true)
+  }
+
+  const submitAdd = () => {
+    const title = evTitle.trim()
+    if (!title) {
+      message.warning('请输入日程标题')
+      return
+    }
+    if (!evRange) {
+      message.warning('请选择时间')
+      return
+    }
     const event: CalendarEvent = {
       id: Date.now().toString(),
-      title: values.title,
-      start: values.timeRange[0].toISOString(),
-      end: values.timeRange[1].toISOString(),
-      color: values.color || '#1677ff',
-      description: values.description,
+      title,
+      start: evRange[0].toISOString(),
+      end: evRange[1].toISOString(),
+      color: evColor,
+      description: evDesc.trim() || undefined,
       source: 'local',
     }
     setEvents([...events, event])
     setModalVisible(false)
-    form.resetFields()
     message.success('日程已添加')
     try {
-      await fetch('/api/calendar/events', {
+      fetch('/api/calendar/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(event),
@@ -172,16 +208,26 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   const headerActions = actionsHost
     ? createPortal(
-        <div className="cal-header-actions">
-          <Button size="small" icon="←" onClick={handlePrev} />
-          <Button size="small" onClick={handleToday}>今天</Button>
-          <Button size="small" icon="→" onClick={handleNext} />
-          <span style={{ width: 10 }} />
-          <Button size="small" type={view === 'month' ? 'primary' : 'default'} onClick={() => setView('month')}>月</Button>
-          <Button size="small" type={view === 'week' ? 'primary' : 'default'} onClick={() => setView('week')}>周</Button>
+        <div className="cal-header-actions" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <Button variant="outline" size="sm" onClick={handlePrev}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleToday}>
+            今天
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleNext}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <span style={{ width: 6 }} />
+          <Button variant={view === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setView('month')}>
+            月
+          </Button>
+          <Button variant={view === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setView('week')}>
+            周
+          </Button>
           <Button
-            size="small"
-            type={view === 'day' ? 'primary' : 'default'}
+            variant={view === 'day' ? 'default' : 'outline'}
+            size="sm"
             onClick={() => {
               if (!activeDay.isSame(currentMonth, 'month')) setActiveDay(dayjs())
               setView('day')
@@ -189,14 +235,16 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           >
             日
           </Button>
-          <Button size="small" type="primary" icon="＋" onClick={() => setModalVisible(true)} />
+          <Button size="sm" onClick={openAdd}>
+            ＋
+          </Button>
         </div>,
         actionsHost
       )
     : null
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
       {headerActions}
       <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
         {viewTitle}
@@ -208,7 +256,11 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         )}
       </div>
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
+        <div className="cal-month-grid">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
       ) : view === 'month' ? (
         <>
           {/* ===== 月视图 ===== */}
@@ -336,46 +388,75 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       {/* 飞书同步状态 */}
       <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#999' }}>
         <span>📅 飞书日历：未连接</span>
-        <Button size="small" type="link" style={{ fontSize: 11, padding: 0 }}>
+        <Button variant="link" size="sm" style={{ fontSize: 11, padding: 0 }}>
           去连接
         </Button>
       </div>
 
       {/* 添加日程弹窗 */}
-      <Modal title="📅 添加日程" open={modalVisible} onCancel={() => setModalVisible(false)} footer={null} width={400}>
-        <Form form={form} onFinish={handleAddEvent} layout="vertical">
-          <Form.Item name="title" label="标题" rules={[{ required: true }]}>
-            <Input placeholder="日程标题" />
-          </Form.Item>
-          <Form.Item name="timeRange" label="时间" rules={[{ required: true }]}>
-            <DatePicker.RangePicker showTime format="YYYY-MM-DD HH:mm" style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item name="color" label="颜色" initialValue="#1677ff">
-            <div style={{ display: 'flex', gap: 8 }}>
-              {['#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2'].map((c) => (
-                <div
-                  key={c}
-                  onClick={() => form.setFieldsValue({ color: c })}
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    background: c,
-                    cursor: 'pointer',
-                    border: form.getFieldValue('color') === c ? '2px solid #333' : '2px solid transparent',
-                  }}
-                />
-              ))}
+      <Dialog open={modalVisible} onOpenChange={setModalVisible}>
+        <DialogContent className="max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>📅 添加日程</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="ev-title">标题</Label>
+              <Input
+                id="ev-title"
+                value={evTitle}
+                placeholder="日程标题"
+                onChange={(e) => setEvTitle(e.target.value)}
+              />
             </div>
-          </Form.Item>
-          <Form.Item name="description" label="描述">
-            <Input.TextArea placeholder="日程描述（可选）" autoSize={{ minRows: 2 }} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>添加日程</Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+            <div className="space-y-1.5">
+              <Label>时间</Label>
+              <DatePicker.RangePicker
+                showTime
+                format="YYYY-MM-DD HH:mm"
+                style={{ width: '100%' }}
+                value={evRange}
+                onChange={(v) => setEvRange(v as [Dayjs, Dayjs] | null)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>颜色</Label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {EVENT_COLORS.map((c) => (
+                  <div
+                    key={c}
+                    onClick={() => setEvColor(c)}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      background: c,
+                      cursor: 'pointer',
+                      border: evColor === c ? '2px solid #333' : '2px solid transparent',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ev-desc">描述</Label>
+              <Textarea
+                id="ev-desc"
+                rows={2}
+                value={evDesc}
+                placeholder="日程描述（可选）"
+                onChange={(e) => setEvDesc(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModalVisible(false)}>
+              取消
+            </Button>
+            <Button onClick={submitAdd}>添加日程</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
