@@ -14,7 +14,7 @@ const ZOOM_STORAGE_KEY = 'mimo-ui-zoom'
  * 缩放档位。用离散档位而不是连续滑块：
  * 一是每档都便于记忆，二是避免非整数倍缩放让 antd 边框出现半像素毛边。
  */
-export const ZOOM_STEPS: number[] = [0.8, 0.9, 1, 1.1, 1.25]
+export const ZOOM_STEPS: number[] = [1, 1.05, 1.1, 1.15, 1.2, 1.25]
 export const ZOOM_MIN = ZOOM_STEPS[0]
 export const ZOOM_MAX = ZOOM_STEPS[ZOOM_STEPS.length - 1]
 

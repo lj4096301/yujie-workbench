@@ -149,6 +149,18 @@ const App: React.FC = () => {
     toggleSearch,
   ])
 
+  // Ctrl + 鼠标滚轮缩放界面（上滚放大 / 下滚缩小，100%–125%）
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return
+      e.preventDefault()
+      if (e.deltaY < 0) zoomIn()
+      else zoomOut()
+    }
+    window.addEventListener('wheel', onWheel, { passive: false })
+    return () => window.removeEventListener('wheel', onWheel)
+  }, [zoomIn, zoomOut])
+
   // Electron 原生菜单命令 → 与快捷键走同一套动作
   useEffect(() => {
     const api = window.electronAPI

@@ -26,8 +26,9 @@ const EXTRA_ITEMS = MODULE_META.filter((m) => EXTRA_SET.has(m.id)).map((m) => ({
 }))
 
 /**
- * 侧边导航（Arco Layout.Sider + Menu）
- * 可收起：收起时仅保留图标，悬停显示 Tooltip（Arco 官方能力）
+ * 侧边导航（Arco Layout.Sider + Menu 通用组件）
+ * 可完全收入侧面：收起后侧栏整体隐藏（宽度 0），
+ * 由 TopBar 左侧的展开按钮恢复
  */
 const Sidebar: React.FC = () => {
   const activeModule = useLayoutStore((s) => s.activeModule)
@@ -63,7 +64,7 @@ const Sidebar: React.FC = () => {
     <Sider
       className="sidebar"
       width={240}
-      collapsedWidth={56}
+      collapsedWidth={0}
       collapsible
       collapsed={sidebarCollapsed}
       onCollapse={toggleSidebar}

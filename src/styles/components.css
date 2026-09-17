@@ -138,9 +138,12 @@
   flex-shrink: 0;
   background: var(--sidebar-bg);
   color: var(--sidebar-text);
-  border-right: 1px solid var(--sidebar-border);
-  transition: width 0.15s ease;
-  overflow: hidden;
+  transition: none;
+}
+
+/* 侧栏完全收起：Arco collapsedWidth=0 时 flex 占位可能残留，整体隐藏 */
+.arco-layout-sider-collapsed.sidebar {
+  display: none;
 }
 
 .sidebar-logo {

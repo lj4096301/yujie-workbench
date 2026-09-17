@@ -1,0 +1,21 @@
+
+> yujie-workbench@1.0.0 dev:electron
+> node scripts/electron-fix.cjs && npm run build:electron && concurrently -n vite,api,app -c blue,green,magenta "vite --port 5173" "tsx watch src/server/index.ts" "wait-on http://localhost:5173 http://localhost:3001 && electron . --remote-debugging-port=9222"
+
+[electron-fix] 已补全 dist/chrome_100_percent.pak
+[electron-fix] 已补全 dist/chrome_200_percent.pak
+[electron-fix] 已补全 checksums.json
+[electron-fix] 已补全 cli.js
+[electron-fix] 补全 4 个缺失文件
+
+> yujie-workbench@1.0.0 build:electron
+> tsc -p tsconfig.node.json
+
+(node:21904) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[vite] 
+[vite]   [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m1025[22m[2m[0m ms[22m
+[vite] 
+[vite]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[vite]   [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.0.102:[1m5173[22m/[39m
+[vite]   [32m➜[39m  [1mNetwork[22m: [36mhttp://172.27.240.1:[1m5173[22m/[39m

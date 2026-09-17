@@ -9,7 +9,7 @@ import {
   Menu,
   Tooltip,
 } from '@arco-design/web-react'
-import { IconNotification, IconSearch } from '@arco-design/web-react/icon'
+import { IconMenu, IconNotification, IconSearch } from '@arco-design/web-react/icon'
 import { useLayoutStore, HOME_ID } from '@/stores/layoutStore'
 import { MODULE_META } from '@/modules/registry'
 
@@ -23,6 +23,8 @@ const MenuItem = Menu.Item
 const TopBar: React.FC = () => {
   const activeModule = useLayoutStore((s) => s.activeModule)
   const setSearchVisible = useLayoutStore((s) => s.setSearchVisible)
+  const sidebarCollapsed = useLayoutStore((s) => s.sidebarCollapsed)
+  const toggleSidebar = useLayoutStore((s) => s.toggleSidebar)
 
   const currentTitle =
     activeModule === HOME_ID ? '首页' : MODULE_META.find((m) => m.id === activeModule)?.title
@@ -46,6 +48,16 @@ const TopBar: React.FC = () => {
   return (
     <Header className="topbar">
       <div className="topbar-left">
+        {sidebarCollapsed && (
+          <Button
+            shape="circle"
+            type="text"
+            icon={<IconMenu />}
+            onClick={toggleSidebar}
+            aria-label="展开侧栏"
+            style={{ marginRight: 8 }}
+          />
+        )}
         <Breadcrumb>
           <Breadcrumb.Item>首页</Breadcrumb.Item>
           {currentTitle && currentTitle !== '首页' && (
