@@ -4,15 +4,31 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#1677ff',
-        sidebar: '#001529',
+        // Mi Console 主色（功能色，仅用于链接/选中/CTA）
+        primary: '#ff6700',
+        'primary-hover': '#ff7a2e',
+        sidebar: '#ffffff',
         panel: '#ffffff',
         'panel-hover': '#f5f5f5',
+        // shadcn/ui 卡片 Token（对齐 DESIGN-SPEC）
+        card: 'var(--bg-card, #ffffff)',
+        'card-foreground': 'var(--text-primary, #1f2329)',
+        border: 'var(--border, #e5e6eb)',
+        input: 'var(--border, #e5e6eb)',
+        muted: 'var(--bg-subtle, #f7f8fa)',
+        'muted-foreground': 'var(--text-muted, #86909c)',
+      },
+      borderRadius: {
+        xl: 'var(--radius-lg, 12px)',
+      },
+      boxShadow: {
+        // shadcn Card 默认 shadow-sm → Mi Console 极轻卡片阴影
+        sm: 'var(--shadow-card, 0 1px 2px rgba(0, 0, 0, 0.04))',
       },
     },
   },
   plugins: [],
-  // 避免和 Ant Design 冲突
+  // 避免和 Ant Design / Arco 冲突
   corePlugins: {
     preflight: false,
   },

@@ -145,7 +145,9 @@
 - 现状：布局层用 Arco（Sidebar/TopBar/Menu/Modal），内容层混用 antd（Table/Form/Tag）
 - **视觉统一到本规范 Token**：Arco 原生选中态已被 CSS 覆盖为橙色（`components.css` 中 `.sidebar-menu .arco-menu-selected` 等）
 - 新代码：能用 Token 变量不用硬编码值；antd 主色经 `ConfigProvider`（`themes/index.ts` default 主题 = 小米橙）
-- 后续若统一组件库：以本规范 Token 为准，优先保留轻量组件
+- **UI 原语默认 shadcn/ui**（`src/components/ui/`，MIT，Tailwind v3 兼容）：已集成 Card 系列并用于首页 KPI 卡；Button/Badge 等按需从 shadcn 源码手动复制，交互组件按需引入 Radix 原语。候选池见 `UI-LIBRARIES.md`
+- **Tremor 已弃用**：v3 要求 Tailwind v4（官方文档确认），项目 v3.4 不兼容；不重装
+- **工程坑（重要）**：装/卸 npm 包后必须重启 vite dev server，否则依赖预构建失效 → Electron 白屏且无报错；better-sqlite3 已移除（无引用遗留 devDep，原生构建必失败阻塞 pnpm）
 
 ---
 
@@ -193,6 +195,8 @@
 | 首页卡片 | 独立设计卡片，**不是窗口缩小化**；点击详情才进大窗口 | 用户 |
 | 左侧栏 | 低频导航收进「更多功能」；删主题切换按钮、删搜索入口 | 用户 |
 | 日志来源色 | Tag 用显式 inline 配色（橙 `#FF6700`/`#FFF3E8`/`#FFC8A8`） | antd 色名不识别修复 |
+| Tremor | **弃用**：v3.18.7 要求 Tailwind v4，项目 v3.4 不兼容（官方文档确认） | 技术硬伤 |
+| shadcn/ui | **采纳**为 UI 原语库：Card 系列入 `src/components/ui/`，首页 KPI 卡试用通过 | 用户："先集成一个试一试" |
 
 ---
 
@@ -217,4 +221,5 @@
 - [ ] `Ctrl/Cmd+K` 命令面板 + `/` 快速搜索 + Esc + Tab 焦点循环
 - [ ] 列表/卡片**右键菜单**（桌面）
 - [ ] 首页各模块**固定尺寸卡片**设计（参考成熟工作台，非窗口缩小化）
-- [ ] 组件库统一（若推进：以本规范 Token 为准）
+- [x] 组件库试集成：shadcn/ui Card（首页 KPI 卡），候选池见 `UI-LIBRARIES.md`
+- [ ] 组件库扩展：Button/Badge/统计卡等按需复制 shadcn 组件（Token 对齐）

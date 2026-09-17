@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface KpiItem {
   key: string
@@ -112,21 +113,23 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
   return (
     <div className="hw-kpis">
       {kpis.map((k) => (
-        <div
+        <Card
           key={k.key}
-          className="hw-card hw-kpi"
+          className="hw-kpi-card"
           onClick={() => onOpen(k.moduleId)}
           title={`进入 ${k.label}`}
         >
-          <span className="hw-kpi-icon" style={{ background: `${k.color}1a`, color: k.color }}>
-            {k.icon}
-          </span>
-          <div className="hw-kpi-body">
-            <div className="hw-kpi-label">{k.label}</div>
-            <div className="hw-kpi-value">{k.value}</div>
-            {k.sub && <div className="hw-kpi-sub">{k.sub}</div>}
+          <div className="hw-kpi-card-head">
+            <span className="hw-kpi-card-label">{k.label}</span>
+            <span className="hw-kpi-card-icon" style={{ color: k.color }}>
+              {k.icon}
+            </span>
           </div>
-        </div>
+          <CardContent className="p-0">
+            <div className="hw-kpi-card-value">{k.value}</div>
+            {k.sub && <div className="hw-kpi-card-sub">{k.sub}</div>}
+          </CardContent>
+        </Card>
       ))}
     </div>
   )
