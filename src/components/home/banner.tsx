@@ -1,9 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { Checkbox, Dropdown } from '@arco-design/web-react'
-import { IconApps } from '@arco-design/web-react/icon'
-import { useLayoutStore, MODULE_ORDER } from '@/stores/layoutStore'
-import { Button } from '@/components/ui/button'
-import { MODULE_META } from '@/modules/registry'
 
 /** 与天气模块一致的 WMO 图标映射 */
 const WMO_ICONS: Record<string, string> = {
@@ -27,10 +22,8 @@ interface HomeWeather {
   uvIndex?: number
 }
 
-/** ① 欢迎横幅：问候 + 时间日期 | 天气 hero + AQI | 模块管理 */
+/** ① 欢迎横幅：问候 + 时间日期 | 简天气 */
 const HomeBanner: React.FC = () => {
-  const panels = useLayoutStore((s) => s.panels)
-  const togglePanelAt = useLayoutStore((s) => s.togglePanelAt)
 
   const [now, setNow] = useState(() => new Date())
   const [weather, setWeather] = useState<HomeWeather | null>(null)
@@ -68,30 +61,6 @@ const HomeBanner: React.FC = () => {
   const greet =
     hour < 6 ? '凌晨好' : hour < 9 ? '早上好' : hour < 12 ? '上午好' : hour < 14 ? '中午好' : hour < 18 ? '下午好' : '晚上好'
 
-  const metaById = new Map(MODULE_META.map((m) => [m.id, m]))
-
-  const moduleDropdown = (
-    <div className="hw-module-panel">
-      <div className="hw-module-head">首页显示模块</div>
-      {MODULE_ORDER.map((id) => {
-        const mod = metaById.get(id)
-        const panel = panels.find((p) => p.id === id)
-        const on = !!panel?.isVisible
-        return (
-          <div
-            key={id}
-            className={'hw-module-item' + (on ? ' hw-module-item-on' : '')}
-            onClick={() => togglePanelAt(id)}
-          >
-            <Checkbox checked={on} style={{ pointerEvents: 'none' }} />
-            <span className="hw-module-icon">{mod?.icon}</span>
-            <span>{mod?.title}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-
   return (
     <div className="hw-card hw-banner">
       <div className="hw-banner-left">
@@ -103,7 +72,7 @@ const HomeBanner: React.FC = () => {
           <span className="hw-banner-clock-hm">{hh}:{mm}</span>
           <span className="hw-banner-clock-sec">:{ss}</span>
         </div>
-        <div className="hw-banner-weather" title="进入天气预报" onClick={() => {}} style={{ cursor: 'default' }}>
+        <div className="hw-banner-weather" title="天气">
           {weatherErr ? (
             <span className="hw-banner-wdesc">天气加载失败</span>
           ) : weather ? (
@@ -118,10 +87,6 @@ const HomeBanner: React.FC = () => {
             <span className="hw-banner-wdesc">--</span>
           )}
         </div>
-        <Button type="button" variant="outline" size="sm" className="hw-module-btn">
-          <IconApps style={{ fontSize: 14 }} />
-          模块管理
-        </Button>
       </div>
     </div>
   )

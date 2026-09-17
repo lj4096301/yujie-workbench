@@ -55,11 +55,12 @@
 
 .kb-col-body {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow: hidden;
-  min-height: 60px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .kb-card {
@@ -133,9 +134,6 @@
   border-color: #3370ff;
 }
 
-.kb-done-body {
-  gap: 8px;
-}
 
 .kb-zone {
   border: 1.5px dashed #c9cdd4;

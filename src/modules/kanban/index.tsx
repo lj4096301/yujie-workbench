@@ -429,9 +429,9 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     <span>{STATUS_META[status].label}</span>
                     <span className="kb-count">{colCards.length}</span>
                   </div>
-                                    <div className={`kb-col-body${status === 'done' ? ' kb-done-body' : ''}`}>
                     {status === 'done' ? (
                       <>
+                        <div className="kb-col-body">
                         {/* 无操作区：已完成卡片列表，拖入不执行操作 */}
                         <div
                           className={`kb-zone kb-zone-noop${overZone === 'noop' ? ' drag-over' : ''}`}
@@ -486,6 +486,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     )}
 
                         </div>
+                        </div>
                         {/* 已完成投放区：拖入 → 二次确认标记完成 */}
                         <div
                           className={`kb-zone kb-zone-done${overZone === 'done' ? ' drag-over' : ''}`}
@@ -506,7 +507,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                         </div>
                       </>
                     ) : (
-                      <>
+                      <div className="kb-col-body">
 {colCards.map((card) => (
                       <div
                         key={card.id}
@@ -551,10 +552,8 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                         添加
                       </Button>
                     )}
-
-                      </>
+                      </div>
                     )}
-                  </div>
                 </div>
               )
             })}

@@ -70,6 +70,26 @@
   line-height: 1.5;
 }
 
+/* banner hover 动效（与可点卡片统一） */
+.hw-banner {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.hw-banner:hover {
+  box-shadow: var(--shadow-popup, 0 8px 24px rgba(0, 0, 0, 0.1));
+  transform: translateY(-1px);
+}
+
+/* banner hover 动效（与可点卡片统一） */
+.hw-banner {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.hw-banner:hover {
+  box-shadow: var(--shadow-popup, 0 8px 24px rgba(0, 0, 0, 0.1));
+  transform: translateY(-1px);
+}
+
 /* 大时钟：HH:mm 主 + 秒辅助 */
 .hw-banner-clock {
   display: flex;
