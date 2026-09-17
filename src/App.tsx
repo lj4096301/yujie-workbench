@@ -19,6 +19,7 @@ dayjs.extend(isoWeek)
 dayjs.extend(weekOfYear)
 
 const App: React.FC = () => {
+  const isLoggedIn = useLayoutStore((s) => s.isLoggedIn)
   const searchVisible = useLayoutStore((s) => s.searchVisible)
   const setSearchVisible = useLayoutStore((s) => s.setSearchVisible)
   const zoom = useUIStore((s) => s.zoom)
@@ -248,6 +249,9 @@ const App: React.FC = () => {
         </Modal>
       </div>
     </ConfigProvider>
+    ) : (
+      <LoginModule />
+    )
   )
 }
 

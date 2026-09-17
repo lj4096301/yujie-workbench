@@ -76,6 +76,8 @@ interface LayoutStore {
   togglePanelAt: (id: string, bounds?: { width: number; height: number }) => boolean
 
   // 搜索
+  isLoggedIn: boolean
+  setLoggedIn: (value: boolean) => void
   searchVisible: boolean
   setSearchVisible: (visible: boolean) => void
 
@@ -284,7 +286,15 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
     get().saveLayout()
   },
 
-  searchVisible: false,
+  isLoggedIn: localStorage.getItem("yujie-auth-logged") === "1",
+    setLoggedIn: (value) => {
+      if (value) {
+        localStorage.setItem("yujie-auth-logged", "1")
+      } else {
+        localStorage.removeItem("yujie-auth-logged")
+      }
+    },
+    searchVisible: false,
   setSearchVisible: (visible) => set({ searchVisible: visible }),
 
   saveLayout: () => {

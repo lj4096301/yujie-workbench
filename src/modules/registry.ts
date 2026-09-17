@@ -5,6 +5,7 @@ export interface ModuleMeta {
 }
 
 export const MODULE_META: ModuleMeta[] = [
+  { id: 'login', title: '登录', icon: '🔐' },
   { id: 'knowledge', title: '知识库', icon: '📚' },
   { id: 'novel', title: '小说创作', icon: '✍️' },
   { id: 'calendar', title: '日程管理', icon: '📅' },
