@@ -308,13 +308,16 @@ body.is-dragging iframe {
   gap: 16px;
   padding: 16px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #e6f4ff 0%, #f0f5ff 100%);
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border, #e5e6eb);
+  box-shadow: var(--shadow-card, 0 1px 2px rgba(0, 0, 0, 0.04));
 }
 
 .weather-temp {
   font-size: 44px;
   font-weight: 300;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
   color: var(--primary-color);
 }
 
@@ -558,14 +561,14 @@ body.is-dragging iframe {
 }
 
 .weather-city-tab:hover {
-  background: #e6f4ff;
-  color: var(--primary-color);
+  background: #fff3e8;
+  color: #ff6700;
 }
 
 .weather-city-tab.active {
-  background: #e6f4ff;
-  color: var(--primary-color);
-  border-color: #91caff;
+  background: #fff3e8;
+  color: #ff6700;
+  border-color: #ffc8a8;
   font-weight: 600;
 }
 

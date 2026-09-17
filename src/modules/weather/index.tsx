@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Spin, Empty, Select, Alert, Button, message } from 'antd'
+import { Select, message } from 'antd'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface ForecastDay {
   date: string
@@ -370,7 +372,7 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         setSearchValue(undefined)
         setOptions([])
       }}
-      notFoundContent={searching ? <Spin size="small" /> : searchValue ? '未找到匹配城市' : '输入城市名开始搜索'}
+      notFoundContent={searching ? '搜索中…' : searchValue ? '未找到匹配城市' : '输入城市名开始搜索'}
       options={options.map((o) => ({
         value: o.id,
         label: [o.name, o.admin1, o.country].filter(Boolean).join(' · '),
@@ -413,28 +415,43 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
       {/* 错误提示 */}
       {error && (
-        <Alert
-          type="error"
-          showIcon
-          style={{ marginBottom: 10 }}
-          message={error}
-          action={
-            <Button size="small" onClick={refresh}>
-              重试
-            </Button>
-          }
-        />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 10,
+            padding: '8px 12px',
+            borderRadius: 8,
+            border: '1px solid #ffcdd2',
+            background: '#fff7f7',
+            fontSize: 12,
+            color: '#f53f3f',
+          }}
+        >
+          <span style={{ flex: 1, minWidth: 0 }}>⚠️ {error}</span>
+          <Button variant="outline" size="sm" onClick={refresh}>
+            重试
+          </Button>
+        </div>
       )}
 
       {/* 无城市 */}
       {cities.length === 0 && !loading && !error && (
-        <Empty description="还没有城市，用上方搜索框添加一个" />
+        <div className="py-12 text-center text-sm text-[#86909C]">
+          还没有城市，用上方搜索框添加一个
+        </div>
       )}
 
       {/* 加载中 */}
       {loading && !weather && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 40 }}>
-          <Spin />
+        <div className="space-y-3">
+          <Skeleton className="h-24 w-full" />
+          <div className="flex gap-2">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-16 flex-1" />
+            ))}
+          </div>
         </div>
       )}
 
@@ -463,6 +480,17 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               </div>
               {weather.aqi > 0 && (
                 <div className="desc">
+                  <span
+                    className="inline-block"
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: '50%',
+                      background: getAqiLevel(weather.aqi).color,
+                      boxShadow: '0 0 0 4px rgba(0,0,0,0.05)',
+                      marginRight: 6,
+                    }}
+                  />
                   AQI{' '}
                   <span style={{ color: getAqiLevel(weather.aqi).color, fontWeight: 600 }}>{weather.aqi}</span>
                   <span style={{ opacity: 0.8 }}> ({getAqiLevel(weather.aqi).text})</span>
@@ -479,9 +507,17 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
           {/* 24 小时逐时预报 */}
           {(weather.hourly?.length ?? 0) > 0 && (
-            <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#666' }}>24小时预报</div>
-              <div style={{ display: 'flex', gap: 2, overflowX: 'auto', paddingBottom: 4 }}>
+            <div
+              style={{
+                marginTop: 12,
+                padding: 12,
+                background: '#fff',
+                border: '1px solid #e5e6eb',
+                borderRadius: 12,
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#4E5969' }}>24小时预报</div>
+              <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 4 }}>
                 {weather.hourly!.map((h, i) => (
                   <div
                     key={h.time}
@@ -489,17 +525,18 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                       flex: '0 0 48px',
                       textAlign: 'center',
                       padding: '6px 2px',
-                      background: i === 0 ? '#e6f4ff' : '#fafafa',
+                      background: '#fff',
+                      border: '1px solid ' + (i === 0 ? '#ffc8a8' : '#f2f3f5'),
                       borderRadius: 8,
                       fontSize: 11,
                     }}
                     title={`${h.time.slice(11, 16)} ${h.description}`}
                   >
-                    <div style={{ color: '#999', marginBottom: 3 }}>{i === 0 ? '现在' : h.time.slice(11, 13) + '时'}</div>
+                    <div style={{ color: '#86909C', marginBottom: 3 }}>{i === 0 ? '现在' : h.time.slice(11, 13) + '时'}</div>
                     <div style={{ fontSize: 15 }}>{getWeatherIcon(h.icon)}</div>
-                    <div style={{ fontWeight: 600, marginTop: 2 }}>{h.temp}°</div>
+                    <div style={{ fontWeight: 600, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{h.temp}°</div>
                     {h.precipProbability != null && h.precipProbability > 0 && (
-                      <div style={{ color: '#1677ff', fontSize: 10 }}>💧{h.precipProbability}%</div>
+                      <div style={{ color: '#165DFF', fontSize: 10 }}>💧{h.precipProbability}%</div>
                     )}
                   </div>
                 ))}
@@ -508,8 +545,16 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           )}
 
           {/* 7天预报 */}
-          <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#666' }}>7天预报</div>
+          <div
+            style={{
+              marginTop: 12,
+              padding: 12,
+              background: '#fff',
+              border: '1px solid #e5e6eb',
+              borderRadius: 12,
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#4E5969' }}>7天预报</div>
             <div style={{ display: 'flex', gap: 4, overflowX: 'auto' }}>
               {weather.forecast.map((day, i) => (
                 <div
@@ -518,20 +563,21 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     flex: '1 0 52px',
                     textAlign: 'center',
                     padding: '8px 4px',
-                    background: i === 0 ? '#e6f4ff' : '#fafafa',
+                    background: '#fff',
+                    border: '1px solid ' + (i === 0 ? '#ffc8a8' : '#f2f3f5'),
                     borderRadius: 8,
                     fontSize: 11,
                   }}
                   title={day.description}
                 >
-                  <div style={{ color: '#999', marginBottom: 4 }}>
+                  <div style={{ color: '#86909C', marginBottom: 4 }}>
                     {i === 0 ? '今天' : new Date(day.date).toLocaleDateString('zh-CN', { weekday: 'short' })}
                   </div>
                   <div style={{ fontSize: 18, marginBottom: 4 }}>{getWeatherIcon(day.icon)}</div>
-                  <div style={{ fontWeight: 600 }}>{day.tempMax}°</div>
-                  <div style={{ color: '#999' }}>{day.tempMin}°</div>
+                  <div style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{day.tempMax}°</div>
+                  <div style={{ color: '#86909C', fontVariantNumeric: 'tabular-nums' }}>{day.tempMin}°</div>
                   {day.precipProbability != null && day.precipProbability > 0 && (
-                    <div style={{ color: '#1677ff', marginTop: 2 }}>💧{day.precipProbability}%</div>
+                    <div style={{ color: '#165DFF', marginTop: 2 }}>💧{day.precipProbability}%</div>
                   )}
                 </div>
               ))}
@@ -539,9 +585,19 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           </div>
 
           {/* 出行建议 */}
-          <div style={{ marginTop: 12, padding: 10, background: '#f6ffed', borderRadius: 8, fontSize: 12 }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>💡 出行建议</div>
-            <div style={{ color: '#666', lineHeight: 1.6 }}>
+          <div
+            style={{
+              marginTop: 12,
+              padding: '10px 12px',
+              background: '#fff',
+              border: '1px solid #e5e6eb',
+              borderLeft: '3px solid #ff6700',
+              borderRadius: 8,
+              fontSize: 12,
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 4, color: '#1D2129' }}>💡 出行建议</div>
+            <div style={{ color: '#4E5969', lineHeight: 1.6 }}>
               {weather.temp > 30
                 ? '天气炎热，注意防晒补水'
                 : weather.temp < 5
@@ -557,15 +613,24 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
           {/* 生活指数（对标和风/彩云，本地派生） */}
           <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#666' }}>生活指数</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#4E5969' }}>生活指数</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
               {getLifeIndices(weather).map((idx) => (
-                <div key={idx.name} style={{ background: '#fafafa', borderRadius: 8, padding: '8px 10px' }} title={idx.desc}>
+                <div
+                  key={idx.name}
+                  style={{
+                    background: '#fff',
+                    border: '1px solid #f2f3f5',
+                    borderRadius: 8,
+                    padding: '8px 10px',
+                  }}
+                  title={idx.desc}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 12 }}>{idx.icon} {idx.name}</span>
+                    <span style={{ fontSize: 12, color: '#1D2129' }}>{idx.icon} {idx.name}</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: idx.color }}>{idx.level}</span>
                   </div>
-                  <div style={{ fontSize: 11, color: '#999', marginTop: 3, lineHeight: 1.4 }}>{idx.desc}</div>
+                  <div style={{ fontSize: 11, color: '#86909C', marginTop: 3, lineHeight: 1.4 }}>{idx.desc}</div>
                 </div>
               ))}
             </div>
