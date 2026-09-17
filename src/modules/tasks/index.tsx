@@ -139,7 +139,7 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   return (
-    <div>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <ConfigProvider getPopupContainer={popupContainer}>
         {headerActions}
 
