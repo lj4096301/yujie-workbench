@@ -1,9 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Button, Segmented, Table, Tag, Popconfirm, message, Tooltip } from 'antd'
-import { ReloadOutlined, DeleteOutlined } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+import { Popconfirm, message } from 'antd'
+import { RefreshCw, Trash2 } from 'lucide-react'
 import dayjs from 'dayjs'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface LogEntry {
   id: string
@@ -20,8 +30,11 @@ interface LogEntry {
 
 type LogFilter = 'all' | 'done'
 
+const PAGE_SIZE = 10
+
 /**
  * 日志管理：以表格展示各模块的重点操作记录，支持筛选、删除、清空。
+ * shadcn Table + Tabs：表头浅灰、hover 高亮、无斑马纹；分页右下角。
  */
 const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   // 标题栏操作挂载点（Panel 的 panel-actions）
@@ -34,6 +47,7 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [records, setRecords] = useState<LogEntry[]>([])
   const [filter, setFilter] = useState<LogFilter>('all')
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -81,91 +95,32 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const visible =
     filter === 'all' ? records : records.filter((r) => r.action === 'done')
 
-  const columns: ColumnsType<LogEntry> = [
-    {
-      title: '操作',
-      dataIndex: 'action',
-      width: 100,
-      render: (_, r) => (
-        <Tag color={r.action === 'done' ? 'success' : 'error'} style={{ marginInlineEnd: 0 }}>
-          {r.action === 'done' ? '✅ 完成' : '🗑️ 删除'}
-        </Tag>
-      ),
-    },
-    {
-      title: '来源',
-      dataIndex: 'moduleTitle',
-      width: 110,
-      render: (t: string) => (
-        <Tag
-          style={{
-            color: '#ff6700',
-            background: '#FFF3E8',
-            borderColor: '#FFC8A8',
-            marginInlineEnd: 0,
-          }}
-        >
-          {t}
-        </Tag>
-      ),
-    },
-    {
-      title: '标题',
-      dataIndex: 'title',
-      ellipsis: true,
-      render: (t: string, r) =>
-        r.content ? (
-          <Tooltip title={<div style={{ maxWidth: 480 }}>{r.content}</div>}>
-            <span style={{ color: '#1d2129' }}>{t}</span>
-          </Tooltip>
-        ) : (
-          <span style={{ color: '#1d2129' }}>{t}</span>
-        ),
-    },
-    {
-      title: '项目',
-      dataIndex: 'projectName',
-      width: 150,
-      ellipsis: true,
-      render: (v?: string) => v || '-',
-    },
-    {
-      title: '时间',
-      dataIndex: 'at',
-      width: 165,
-      render: (v: number) => dayjs(v).format('YYYY-MM-DD HH:mm'),
-    },
-    {
-      title: '操作',
-      key: 'ops',
-      width: 76,
-      render: (_, r) => (
-        <Popconfirm title="删除这条日志？" onConfirm={() => remove(r.id)} okText="删除" cancelText="取消">
-          <Button type="text" size="small" danger icon={<DeleteOutlined />}>
-            删除
-          </Button>
-        </Popconfirm>
-      ),
-    },
-  ]
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE))
+  const pageList = visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const changeFilter = (v: LogFilter) => {
+    setFilter(v)
+    setPage(1)
+  }
 
   const headerActions = actionsHost
     ? createPortal(
-        <div className="logs-header-actions">
-          <Segmented
-            value={filter}
-            onChange={(v) => setFilter(v as LogFilter)}
-            options={[
-              { label: `全部操作 (${records.length})`, value: 'all' },
-              { label: `项目完成 (${records.filter((r) => r.action === 'done').length})`, value: 'done' },
-            ]}
-          />
+        <div className="logs-header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <Tabs value={filter} onValueChange={(v) => changeFilter(v as LogFilter)}>
+            <TabsList>
+              <TabsTrigger value="all">全部操作 {records.length}</TabsTrigger>
+              <TabsTrigger value="done">
+                项目完成 {records.filter((r) => r.action === 'done').length}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
           <Popconfirm title="清空全部日志？" onConfirm={clearAll} okText="清空" cancelText="取消">
-            <Button size="small" danger>
+            <Button variant="ghost" size="sm" className="text-[#F53F3F]">
               清空
             </Button>
           </Popconfirm>
-          <Button size="small" icon={<ReloadOutlined />} onClick={load} title="刷新">
+          <Button variant="outline" size="sm" onClick={load} title="刷新">
+            <RefreshCw className="h-4 w-4" />
             刷新
           </Button>
         </div>,
@@ -176,20 +131,110 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {headerActions}
-      <Table<LogEntry>
-        rowKey="id"
-        size="small"
-        loading={loading}
-        columns={columns}
-        dataSource={visible}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: false,
-          showTotal: (t) => `共 ${t} 条`,
-        }}
-        locale={{ emptyText: filter === 'done' ? '暂无项目完成记录' : '暂无重点操作记录' }}
-        style={{ flex: 1 }}
-      />
+
+      {loading ? (
+        <div className="space-y-2" style={{ padding: '4px 0' }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
+        </div>
+      ) : (
+        <>
+          <div className="min-h-0 flex-1 overflow-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[80px]">操作</TableHead>
+                  <TableHead className="w-[100px]">来源</TableHead>
+                  <TableHead>标题</TableHead>
+                  <TableHead className="w-[140px]">项目</TableHead>
+                  <TableHead className="w-[130px]">时间</TableHead>
+                  <TableHead className="w-[70px]">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pageList.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center text-sm text-[#86909C]">
+                      {filter === 'done' ? '暂无项目完成记录' : '暂无重点操作记录'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  pageList.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell>
+                        <span
+                          className="inline-flex items-center gap-1.5 text-xs font-medium"
+                          style={{ color: r.action === 'done' ? '#00B42A' : '#F53F3F' }}
+                        >
+                          <span
+                            className="inline-block"
+                            style={{
+                              width: 5,
+                              height: 5,
+                              borderRadius: '50%',
+                              background: r.action === 'done' ? '#00B42A' : '#F53F3F',
+                              boxShadow: '0 0 0 4px rgba(0,0,0,0.06)',
+                            }}
+                          />
+                          {r.action === 'done' ? '完成' : '删除'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs font-medium text-primary">{r.moduleTitle}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-[#1D2129]">{r.title}</span>
+                        {r.content && (
+                          <span className="ml-2 text-xs text-[#86909C]">{r.content}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs text-[#4E5969]">{r.projectName || '-'}</TableCell>
+                      <TableCell className="text-xs tabular-nums text-[#86909C]">
+                        {dayjs(r.at).format('YYYY-MM-DD HH:mm')}
+                      </TableCell>
+                      <TableCell>
+                        <Popconfirm
+                          title="删除这条日志？"
+                          onConfirm={() => remove(r.id)}
+                          okText="删除"
+                          cancelText="取消"
+                        >
+                          <Button variant="ghost" size="sm" className="text-[#F53F3F]">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </Popconfirm>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-3 text-xs text-[#86909C]">
+            <span>共 {visible.length} 条</span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              上一页
+            </Button>
+            <span className="tabular-nums">
+              {page} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              下一页
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
