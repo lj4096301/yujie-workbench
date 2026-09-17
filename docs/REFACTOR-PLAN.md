@@ -12,7 +12,7 @@
 |---|---|---|---|
 | **P0** | 布局壳 | Panel 窗口容器、TopBar 细节、Sidebar 徽标、TabBar 手机端 | ☐ |
 | **P1** | 高频核心模块 | 看板 / 待办 / 日程 / 天气 / 日志 | ✅ 完成（54c4bf1 / 852fc93 / acf6926 / f343cdb / 822ce1b） |
-| **P2** | 内容知识模块 | 知识库 / 剪贴板 / 书签 / 新闻 / 小说 | ☐ |
+| **P2** | 内容知识模块 | 知识库 / 剪贴板 / 书签 / 新闻 / 小说 | ✅ 完成（4aae4b0 / 7e3cb46 / cdbe2f7 / 77f9e15） |
 | **P3** | 娱乐工具模块 | 免费游戏 / 追剧 / API 价格 / 流程图 / 思维导图 / 登录 | ☐ |
 
 ---
@@ -76,24 +76,29 @@
 ## P2 内容知识模块
 
 ### 10. 知识库 `knowledge`（861 行）
-- [ ] 列表/目录卡片化；标签（Tag/Badge）统一
-- [ ] 编辑器保留 CodeMirror；外壳（工具栏/保存）→ shadcn Button
-- [ ] 全局搜索入口样式统一
+- [x] 列表/目录卡片化；标签 Tag → Badge outline（主色文字）✅（`4aae4b0`）
+- [x] 编辑器保留 CodeMirror；外壳（工具栏/保存）→ shadcn Button ✅
+- [x] 新建/重命名/Quick Switcher Modal → shadcn Dialog；删除 Modal.confirm → 通用 ConfirmDialog ✅
+- [x] 全局搜索入口样式统一（左栏工具条 h-8）✅
 
 ### 11. 剪贴板 `clipboard`（119 行）
-- [ ] 列表项卡片化；复制反馈（Toast）；清空确认 → shadcn Dialog
+- [x] 列表项卡片化；来源 Tag → 5px 圆点+光环 ✅（`7e3cb46`）
+- [x] 复制反馈 message；清空确认 → 通用 ConfirmDialog ✅
+- [x] 工具条（搜索限宽 320 / 捕获 / 清空）入面板顶部 ✅
 
 ### 12. 书签启动 `bookmarks`（430 行）
-- [ ] 分类标签 → shadcn Tabs/Badge；新增/编辑表单 → Dialog + Input
-- [ ] 书签卡片统一（图标/标题/描述，hover 反馈）
+- [x] 新增/编辑表单 Modal → shadcn Dialog + Label + Input ✅（`cdbe2f7`）
+- [x] 书签卡片统一（mod-row，图标/标题/描述，hover 反馈）✅
+- [x] 删除 Popconfirm → 通用 ConfirmDialog；导入弹窗 Dialog + antd Tree 内核保留 ✅
 
 ### 13. 新闻聚合 `news`（157 行）
-- [ ] 列表卡片化；RSS 源切换 → shadcn Tabs
-- [ ] 内嵌 iframe 保留（成熟站点嵌入），外壳统一
+- [x] RSS 源切换 Dropdown → shadcn Tabs（横向滚动）✅（`7e3cb46`）
+- [x] 内嵌 iframe 保留（成熟站点嵌入），外壳统一（加载态/打开按钮）✅
 
 ### 14. 小说创作 `novel`（868 行）
-- [ ] 章节树 + 编辑器（CodeMirror 保留）；工具栏 → shadcn Button/Input
-- [ ] 新建/导入表单 → Dialog
+- [x] 章节树 + 编辑器（Textarea 化）；工具栏 → shadcn Button/Input ✅（`77f9e15`）
+- [x] 新建/导入表单 → Dialog（手写 state + 校验）✅
+- [x] 4 处 Popconfirm → 统一 ConfirmDialog；状态 Tag → 圆点；进度条自绘 ✅
 
 ---
 
