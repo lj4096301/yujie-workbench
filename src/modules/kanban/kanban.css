@@ -206,3 +206,24 @@
   margin-left: 4px;
 }
 
+.kb-pri {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #4e5969;
+}
+
+.kb-proj {
+  color: #4e5969;
+  background: #f2f3f5;
+  border-radius: 4px;
+  padding: 0 6px;
+  line-height: 18px;
+}
+
+.kb-time {
+  margin-left: auto;
+  color: #86909c;
+  font-variant-numeric: tabular-nums;
+}
+

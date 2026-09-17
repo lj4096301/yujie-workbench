@@ -1,30 +1,38 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  Button,
-  Modal,
-  Form,
-  Input,
-  Select,
-  Tag,
-  Popconfirm,
-  message,
-  Tooltip,
-  ConfigProvider,
-  Segmented,
-  Spin,
-  Empty,
-} from 'antd'
-import { PlusOutlined, DeleteOutlined, SettingOutlined, HistoryOutlined } from '@ant-design/icons'
+import { Segmented, Tooltip, Popconfirm, message, ConfigProvider } from 'antd'
+import { Plus, Settings, History, Trash2 } from 'lucide-react'
 import dayjs from 'dayjs'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogFooter,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import './kanban.css'
 
 type Status = 'todo' | 'doing' | 'done'
@@ -61,6 +69,14 @@ interface KanbanState {
   records: KanbanRecord[]
 }
 
+interface ConfirmReq {
+  title: string
+  content: string
+  okText: string
+  danger?: boolean
+  onOk: () => void
+}
+
 const STATUS_ORDER: Status[] = ['todo', 'doing', 'done']
 
 const STATUS_META: Record<Status, { label: string; color: string }> = {
@@ -79,6 +95,12 @@ const PRIORITY_META: Record<'low' | 'mid' | 'high', { label: string; color: stri
   high: { label: '高', color: 'red' },
   mid: { label: '中', color: 'gold' },
   low: { label: '低', color: 'default' },
+}
+
+const PRIORITY_DOT: Record<'low' | 'mid' | 'high', string> = {
+  low: '#c9cdd4',
+  mid: '#ff6700',
+  high: '#f53f3f',
 }
 
 const PRIORITY_ORDER: Array<'low' | 'mid' | 'high'> = ['low', 'mid', 'high']
@@ -101,13 +123,26 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [overCol, setOverCol] = useState<Status | null>(null)
   const [overZone, setOverZone] = useState<'noop' | 'done' | 'del' | null>(null)
+
+  // 新建 / 编辑卡片表单（手写 state，替代 antd Form）
   const [editVisible, setEditVisible] = useState(false)
   const [editCard, setEditCard] = useState<KanbanCard | null>(null)
   const [editStatus, setEditStatus] = useState<Status>('todo')
+  const [editTitle, setEditTitle] = useState('')
+  const [editContent, setEditContent] = useState('')
+  const [editProjectId, setEditProjectId] = useState('')
+  const [editPriority, setEditPriority] = useState<KanbanCard['priority']>('mid')
+
+  // 项目管理（手写数组，替代 antd Form.List）
   const [manageVisible, setManageVisible] = useState(false)
+  const [manageRows, setManageRows] = useState<Array<{ id: string; name: string }>>([])
+
+  // 统一二次确认弹窗（替代 antd Modal.confirm）
+  const [confirmReq, setConfirmReq] = useState<ConfirmReq | null>(null)
+
+  // 操作记录
   const [recordVisible, setRecordVisible] = useState(false)
-  const [form] = Form.useForm()
-  const [manageForm] = Form.useForm()
+  const [recTab, setRecTab] = useState<'all' | 'done' | 'deleted'>('all')
 
   const load = useCallback(async () => {
     try {
@@ -179,6 +214,8 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     at: Date.now(),
   })
 
+  const askConfirm = (req: ConfirmReq) => setConfirmReq(req)
+
   const onColDrop = (e: React.DragEvent<HTMLDivElement>, status: Status) => {
     e.preventDefault()
     const id = e.dataTransfer.getData('text/plain') || draggingId
@@ -189,11 +226,10 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     if (!card || card.status === status) return
     // 完成操作需要确认；完成 = 标记为已完成并从看板移除（归档）
     if (status === 'done') {
-      Modal.confirm({
+      askConfirm({
         title: '确认已完成？',
         content: `「${card.title}」将标记为已完成并从看板移除，归档到操作记录页。`,
         okText: '已完成',
-        cancelText: '取消',
         onOk: () => {
           const cards = state.cards.filter((c) => c.id !== id)
           const records = [makeRecord('done', card), ...state.records]
@@ -237,11 +273,10 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     if (!card) return
     if (zone === 'done') {
       // 完成 = 标记为已完成并从看板移除（归档）
-      Modal.confirm({
+      askConfirm({
         title: '确认已完成？',
         content: `「${card.title}」将标记为已完成并从看板移除，归档到操作记录页。`,
         okText: '已完成',
-        cancelText: '取消',
         onOk: () => {
           const cards = state.cards.filter((c) => c.id !== id)
           const records = [makeRecord('done', card), ...state.records]
@@ -249,12 +284,11 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         },
       })
     } else {
-      Modal.confirm({
+      askConfirm({
         title: '确认删除这张卡片？',
         content: `「${card.title}」将被删除，并归档到操作记录页。`,
         okText: '确认删除',
-        cancelText: '取消',
-        okButtonProps: { danger: true },
+        danger: true,
         onOk: () => {
           const cards = state.cards.filter((c) => c.id !== id)
           const records = [makeRecord('deleted', card), ...state.records]
@@ -268,30 +302,25 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const openCreate = (status: Status = 'todo') => {
     setEditCard(null)
     setEditStatus(status)
-    form.setFieldsValue({
-      title: '',
-      content: '',
-      projectId: filter !== 'all' ? filter : state.projects[0]?.id,
-      priority: 'mid',
-    })
+    setEditTitle('')
+    setEditContent('')
+    setEditProjectId(filter !== 'all' ? filter : state.projects[0]?.id ?? '')
+    setEditPriority('mid')
     setEditVisible(true)
   }
 
   const openEdit = (card: KanbanCard) => {
     setEditCard(card)
     setEditStatus(card.status)
-    form.setFieldsValue({
-      title: card.title,
-      content: card.content,
-      projectId: card.projectId,
-      priority: card.priority,
-    })
+    setEditTitle(card.title)
+    setEditContent(card.content)
+    setEditProjectId(card.projectId)
+    setEditPriority(card.priority)
     setEditVisible(true)
   }
 
   const submitCard = async () => {
-    const values = await form.validateFields()
-    const title = String(values.title ?? '').trim()
+    const title = editTitle.trim()
     if (!title) {
       message.warning('请输入标题')
       return
@@ -300,14 +329,23 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     const cards = editCard
       ? state.cards.map((c) =>
           c.id === editCard.id
-            ? { ...c, ...values, title, updatedAt: now }
+            ? {
+                ...c,
+                title,
+                content: editContent,
+                projectId: editProjectId,
+                priority: editPriority,
+                updatedAt: now,
+              }
             : c
         )
       : [
           {
             id: `kb-${now}-${Math.random().toString(36).slice(2, 6)}`,
-            ...values,
             title,
+            content: editContent,
+            projectId: editProjectId,
+            priority: editPriority,
             status: editStatus,
             createdAt: now,
             updatedAt: now,
@@ -327,13 +365,15 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   /* ---------------- 项目管理（增删改） ---------------- */
   const openManage = () => {
-    manageForm.setFieldsValue({ projects: state.projects })
+    setManageRows(state.projects.map((p) => ({ id: p.id, name: p.name })))
     setManageVisible(true)
   }
 
+  const removeManageRow = (idx: number) =>
+    setManageRows((rows) => rows.filter((_, i) => i !== idx))
+
   const submitManage = async () => {
-    const v = await manageForm.validateFields()
-    const rows: Array<{ id?: string; name?: string }> = Array.isArray(v.projects) ? v.projects : []
+    const rows = manageRows
     const names = rows.map((r) => String(r?.name ?? '').trim()).filter(Boolean)
     if (names.length === 0) {
       message.warning('至少保留一个项目')
@@ -370,6 +410,9 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const visibleCards =
     filter === 'all' ? state.cards : state.cards.filter((c) => c.projectId === filter)
 
+  const recList =
+    recTab === 'all' ? state.records : state.records.filter((r) => r.action === recTab)
+
   const headerActions = actionsHost
     ? createPortal(
         <div className="kb-header-actions">
@@ -382,7 +425,8 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             ]}
           />
           <Tooltip title="操作记录（完成 / 删除归档）">
-            <Button size="small" icon={<HistoryOutlined />} onClick={() => setRecordVisible(true)}>
+            <Button variant="outline" size="sm" onClick={() => setRecordVisible(true)}>
+              <History className="h-4 w-4" />
               记录
               {state.records.length > 0 && (
                 <Badge variant="secondary" className="kb-rec-badge">
@@ -392,9 +436,12 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             </Button>
           </Tooltip>
           <Tooltip title="管理项目（增删改）">
-            <Button size="small" icon={<SettingOutlined />} onClick={openManage} />
+            <Button variant="ghost" size="icon" onClick={openManage}>
+              <Settings className="h-4 w-4" />
+            </Button>
           </Tooltip>
-          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => openCreate('todo')}>
+          <Button size="sm" onClick={() => openCreate('todo')}>
+            <Plus className="h-4 w-4" />
             新建卡片
           </Button>
         </div>,
@@ -402,13 +449,83 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       )
     : null
 
+  const renderCard = (card: KanbanCard) => (
+    <div
+      key={card.id}
+      className={`kb-card${draggingId === card.id ? ' dragging' : ''}`}
+      draggable
+      onDragStart={(e) => onCardDragStart(e, card)}
+      onDragEnd={onCardDragEnd}
+      onClick={() => openEdit(card)}
+    >
+      <div className="kb-card-title">{card.title}</div>
+      {card.content && <div className="kb-card-content">{card.content}</div>}
+      <div className="kb-card-meta">
+        <span className="kb-pri">
+          <span className="kb-dot" style={{ background: PRIORITY_DOT[card.priority] }} />
+          {PRIORITY_META[card.priority].label}
+        </span>
+        {filter === 'all' && (
+          <span className="kb-proj">
+            {state.projects.find((p) => p.id === card.projectId)?.name ?? '?'}
+          </span>
+        )}
+        <span className="kb-time">{dayjs(card.updatedAt).format('MM-DD HH:mm')}</span>
+        <Popconfirm
+          title="删除这张卡片？"
+          onConfirm={() => removeCard(card.id)}
+          okText="删除"
+          cancelText="取消"
+        >
+          <span className="kb-del" onClick={(e) => e.stopPropagation()} role="button">
+            <Trash2 className="h-3.5 w-3.5" />
+          </span>
+        </Popconfirm>
+      </div>
+    </div>
+  )
+
+  const renderColBody = (status: Status) => {
+    const colCards = visibleCards
+      .filter((c) => c.status === status)
+      .sort((a, b) => b.createdAt - a.createdAt)
+    return (
+      <div className="kb-col-body">
+        {colCards.map(renderCard)}
+        {colCards.length === 0 ? (
+          <div className="kb-empty" onClick={() => openCreate(status)}>
+            + 添加卡片
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" className="w-full" onClick={() => openCreate(status)}>
+            <Plus className="h-4 w-4" />
+            添加
+          </Button>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <ConfigProvider getPopupContainer={popupContainer}>      <div style={{ height: '100%', minHeight: 340, display: 'flex', flexDirection: 'column' }}>
+    <ConfigProvider getPopupContainer={popupContainer}>
+      <div style={{ height: '100%', minHeight: 340, display: 'flex', flexDirection: 'column' }}>
         {headerActions}
 
         {loading ? (
-          <div style={{ padding: 32, textAlign: 'center' }}>
-            <Spin />
+          <div className="kb-board">
+            {STATUS_ORDER.map((status) => (
+              <div key={status} className="kb-col">
+                <div className="kb-col-head">
+                  <span className="kb-dot" style={{ background: DOT_COLOR[status] }} />
+                  {STATUS_META[status].label}
+                </div>
+                <div className="kb-col-body">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="kb-board">
@@ -429,131 +546,40 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     <span>{STATUS_META[status].label}</span>
                     <span className="kb-count">{colCards.length}</span>
                   </div>
-                    {status === 'done' ? (
-                      <>
-                        <div className="kb-col-body">
-                        {/* 无操作区：已完成卡片列表，拖入不执行操作 */}
-                        <div
-                          className={`kb-zone kb-zone-noop${overZone === 'noop' ? ' drag-over' : ''}`}
-                          onDragOver={(e) => onZoneDragOver(e, 'noop')}
-                          onDragLeave={(e) => onZoneDragLeave(e, 'noop')}
-                          onDrop={(e) => onZoneDrop(e, 'noop')}
-                        >
-                          <div className="kb-zone-head">待完成卡片</div>
-{colCards.map((card) => (
+                  {status === 'done' ? (
+                    <>
+                      {/* 无操作区：待完成卡片列表，拖入不执行操作 */}
                       <div
-                        key={card.id}
-                        className={`kb-card${draggingId === card.id ? ' dragging' : ''}`}
-                        draggable
-                        onDragStart={(e) => onCardDragStart(e, card)}
-                        onDragEnd={onCardDragEnd}
-                        onClick={() => openEdit(card)}
+                        className={`kb-zone kb-zone-noop${overZone === 'noop' ? ' drag-over' : ''}`}
+                        onDragOver={(e) => onZoneDragOver(e, 'noop')}
+                        onDragLeave={(e) => onZoneDragLeave(e, 'noop')}
+                        onDrop={(e) => onZoneDrop(e, 'noop')}
                       >
-                        <div className="kb-card-title">{card.title}</div>
-                        {card.content && <div className="kb-card-content">{card.content}</div>}
-                        <div className="kb-card-meta">
-                          <Tag color={PRIORITY_META[card.priority]?.color ?? 'default'} style={{ marginRight: 0 }}>
-                            {PRIORITY_META[card.priority]?.label ?? '中'}
-                          </Tag>
-                          {filter === 'all' && (
-                            <Tag style={{ marginRight: 0 }}>
-                              {state.projects.find((p) => p.id === card.projectId)?.name ?? '?'}
-                            </Tag>
-                          )}
-                          <span style={{ marginLeft: 'auto' }}>{dayjs(card.updatedAt).format('MM-DD HH:mm')}</span>
-                          <Popconfirm
-                            title="删除这张卡片？"
-                            onConfirm={() => removeCard(card.id)}
-                            okText="删除"
-                            cancelText="取消"
-                          >
-                            <span className="kb-del" onClick={(e) => e.stopPropagation()} role="button">
-                              <DeleteOutlined />
-                            </span>
-                          </Popconfirm>
-                        </div>
+                        <div className="kb-zone-head">待完成卡片</div>
+                        {renderColBody(status)}
                       </div>
-                    ))}
-
-                    {colCards.length === 0 ? (
-                      <div className="kb-empty" onClick={() => openCreate(status)}>
-                        + 添加卡片
-                      </div>
-                    ) : (
-                      <Button type="dashed" block size="small" icon={<PlusOutlined />} onClick={() => openCreate(status)}>
-                        添加
-                      </Button>
-                    )}
-
-                        </div>
-                        </div>
-                        {/* 已完成投放区：拖入 → 二次确认标记完成 */}
-                        <div
-                          className={`kb-zone kb-zone-done${overZone === 'done' ? ' drag-over' : ''}`}
-                          onDragOver={(e) => onZoneDragOver(e, 'done')}
-                          onDragLeave={(e) => onZoneDragLeave(e, 'done')}
-                          onDrop={(e) => onZoneDrop(e, 'done')}
-                        >
-                          <div className="kb-zone-head">拖入此处 → 已完成（移出看板）</div>
-                        </div>
-                        {/* 删除投放区：拖入 → 二次确认删除 */}
-                        <div
-                          className={`kb-zone kb-zone-del${overZone === 'del' ? ' drag-over' : ''}`}
-                          onDragOver={(e) => onZoneDragOver(e, 'del')}
-                          onDragLeave={(e) => onZoneDragLeave(e, 'del')}
-                          onDrop={(e) => onZoneDrop(e, 'del')}
-                        >
-                          <div className="kb-zone-head">拖入此处 → 删除卡片</div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="kb-col-body">
-{colCards.map((card) => (
+                      {/* 已完成投放区：拖入 → 二次确认标记完成 */}
                       <div
-                        key={card.id}
-                        className={`kb-card${draggingId === card.id ? ' dragging' : ''}`}
-                        draggable
-                        onDragStart={(e) => onCardDragStart(e, card)}
-                        onDragEnd={onCardDragEnd}
-                        onClick={() => openEdit(card)}
+                        className={`kb-zone kb-zone-done${overZone === 'done' ? ' drag-over' : ''}`}
+                        onDragOver={(e) => onZoneDragOver(e, 'done')}
+                        onDragLeave={(e) => onZoneDragLeave(e, 'done')}
+                        onDrop={(e) => onZoneDrop(e, 'done')}
                       >
-                        <div className="kb-card-title">{card.title}</div>
-                        {card.content && <div className="kb-card-content">{card.content}</div>}
-                        <div className="kb-card-meta">
-                          <Tag color={PRIORITY_META[card.priority]?.color ?? 'default'} style={{ marginRight: 0 }}>
-                            {PRIORITY_META[card.priority]?.label ?? '中'}
-                          </Tag>
-                          {filter === 'all' && (
-                            <Tag style={{ marginRight: 0 }}>
-                              {state.projects.find((p) => p.id === card.projectId)?.name ?? '?'}
-                            </Tag>
-                          )}
-                          <span style={{ marginLeft: 'auto' }}>{dayjs(card.updatedAt).format('MM-DD HH:mm')}</span>
-                          <Popconfirm
-                            title="删除这张卡片？"
-                            onConfirm={() => removeCard(card.id)}
-                            okText="删除"
-                            cancelText="取消"
-                          >
-                            <span className="kb-del" onClick={(e) => e.stopPropagation()} role="button">
-                              <DeleteOutlined />
-                            </span>
-                          </Popconfirm>
-                        </div>
+                        <div className="kb-zone-head">拖入此处 → 已完成（移出看板）</div>
                       </div>
-                    ))}
-
-                    {colCards.length === 0 ? (
-                      <div className="kb-empty" onClick={() => openCreate(status)}>
-                        + 添加卡片
+                      {/* 删除投放区：拖入 → 二次确认删除 */}
+                      <div
+                        className={`kb-zone kb-zone-del${overZone === 'del' ? ' drag-over' : ''}`}
+                        onDragOver={(e) => onZoneDragOver(e, 'del')}
+                        onDragLeave={(e) => onZoneDragLeave(e, 'del')}
+                        onDrop={(e) => onZoneDrop(e, 'del')}
+                      >
+                        <div className="kb-zone-head">拖入此处 → 删除卡片</div>
                       </div>
-                    ) : (
-                      <Button type="dashed" block size="small" icon={<PlusOutlined />} onClick={() => openCreate(status)}>
-                        添加
-                      </Button>
-                    )}
-                      </div>
-                    )}
+                    </>
+                  ) : (
+                    renderColBody(status)
+                  )}
                 </div>
               )
             })}
@@ -561,154 +587,245 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         )}
       </div>
 
-      <Modal
-        title={editCard ? '编辑卡片' : '新建卡片'}
-        open={editVisible}
-        onOk={submitCard}
-        onCancel={() => setEditVisible(false)}
-        okText="保存"
-        cancelText="取消"
-        width={480}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item name="title" label="标题" rules={[{ required: true, message: '请输入标题' }]}>
-            <Input placeholder="优化方向标题" maxLength={80} />
-          </Form.Item>
-          <Form.Item name="content" label="内容">
-            <Input.TextArea rows={4} placeholder="记录优化内容、思路、验收标准…" maxLength={2000} />
-          </Form.Item>
-          <Form.Item name="projectId" label="所属项目" rules={[{ required: true, message: '请选择项目' }]}>
-            <Select options={state.projects.map((p) => ({ value: p.id, label: p.name }))} />
-          </Form.Item>
-          <Form.Item name="priority" label="优先级">
-            <Select
-              options={PRIORITY_ORDER.map((p) => ({ value: p, label: PRIORITY_META[p].label }))}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+      {/* 新建 / 编辑卡片 */}
+      <Dialog open={editVisible} onOpenChange={setEditVisible}>
+        <DialogContent className="max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>{editCard ? '编辑卡片' : '新建卡片'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="kb-title">标题</Label>
+              <Input
+                id="kb-title"
+                value={editTitle}
+                maxLength={80}
+                placeholder="优化方向标题"
+                onChange={(e) => setEditTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="kb-content">内容</Label>
+              <Textarea
+                id="kb-content"
+                rows={4}
+                value={editContent}
+                maxLength={2000}
+                placeholder="记录优化内容、思路、验收标准…"
+                onChange={(e) => setEditContent(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>所属项目</Label>
+              <Select value={editProjectId} onValueChange={setEditProjectId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="选择项目" />
+                </SelectTrigger>
+                <SelectContent>
+                  {state.projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>优先级</Label>
+              <Select
+                value={editPriority}
+                onValueChange={(v) => setEditPriority(v as KanbanCard['priority'])}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRIORITY_ORDER.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {PRIORITY_META[p].label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditVisible(false)}>
+              取消
+            </Button>
+            <Button onClick={submitCard}>保存</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <Modal
-        title="项目管理"
-        open={manageVisible}
-        onOk={submitManage}
-        onCancel={() => setManageVisible(false)}
-        okText="保存"
-        cancelText="取消"
-        width={420}
-      >
-        <Form form={manageForm} layout="vertical">
-          <Form.List name="projects">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map((field, idx) => {
-                  const pid = manageForm.getFieldValue(['projects', field.name, 'id'])
-                  const cnt = pid ? state.cards.filter((c) => c.projectId === pid).length : 0
-                  return (
-                    <div
-                      key={field.key}
-                      style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 8 }}
-                    >
-                      <Form.Item name={[field.name, 'id']} hidden noStyle>
-                        <Input />
-                      </Form.Item>
-                      <Form.Item
-                        name={[field.name, 'name']}
-                        rules={[{ required: true, message: '请输入项目名' }]}
-                        style={{ flex: 1, marginBottom: 0 }}
-                      >
-                        <Input maxLength={12} placeholder="项目名称" />
-                      </Form.Item>
-                      <Button
-                        danger
-                        type="text"
-                        icon={<DeleteOutlined />}
-                        disabled={fields.length <= 1}
-                        onClick={() => {
-                          const pname =
-                            manageForm.getFieldValue(['projects', field.name, 'name']) || '该项目'
-                          if (cnt > 0) {
-                            Modal.confirm({
-                              title: `删除「${pname}」？`,
-                              content: `该项目下有 ${cnt} 张卡片，将一并删除。`,
-                              okText: '删除',
-                              okButtonProps: { danger: true },
-                              cancelText: '取消',
-                              onOk: () => remove(field.name),
-                            })
-                          } else {
-                            remove(field.name)
-                          }
-                        }}
-                      />
-                    </div>
-                  )
-                })}
-                <Button
-                  type="dashed"
-                  block
-                  icon={<PlusOutlined />}
-                  onClick={() => add({ id: '', name: '' })}
-                  style={{ marginTop: 4 }}
-                >
-                  添加项目
-                </Button>
-              </>
-            )}
-          </Form.List>
-        </Form>
-      </Modal>
+      {/* 项目管理 */}
+      <Dialog open={manageVisible} onOpenChange={setManageVisible}>
+        <DialogContent className="max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>项目管理</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {manageRows.map((row, idx) => {
+              const cnt = row.id ? state.cards.filter((c) => c.projectId === row.id).length : 0
+              return (
+                <div key={idx} className="flex items-center gap-2">
+                  <Input
+                    value={row.name}
+                    maxLength={12}
+                    placeholder="项目名称"
+                    onChange={(e) =>
+                      setManageRows((rows) =>
+                        rows.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r))
+                      )
+                    }
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-[#F53F3F]"
+                    disabled={manageRows.length <= 1}
+                    onClick={() => {
+                      const pname = row.name || '该项目'
+                      if (cnt > 0) {
+                        askConfirm({
+                          title: `删除「${pname}」？`,
+                          content: `该项目下有 ${cnt} 张卡片，将一并删除。`,
+                          okText: '删除',
+                          danger: true,
+                          onOk: () => removeManageRow(idx),
+                        })
+                      } else {
+                        removeManageRow(idx)
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )
+            })}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => setManageRows((rows) => [...rows, { id: '', name: '' }])}
+            >
+              <Plus className="h-4 w-4" />
+              添加项目
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManageVisible(false)}>
+              取消
+            </Button>
+            <Button onClick={submitManage}>保存</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-            <Dialog open={recordVisible} onOpenChange={setRecordVisible}>
-        <DialogContent className="max-w-[560px]">
+      {/* 二次确认弹窗（完成 / 删除 / 删项目） */}
+      <Dialog open={!!confirmReq} onOpenChange={(o) => !o && setConfirmReq(null)}>
+        <DialogContent className="max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>{confirmReq?.title}</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>{confirmReq?.content}</DialogDescription>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmReq(null)}>
+              取消
+            </Button>
+            <Button
+              variant={confirmReq?.danger ? 'destructive' : 'default'}
+              onClick={() => {
+                const fn = confirmReq?.onOk
+                setConfirmReq(null)
+                fn?.()
+              }}
+            >
+              {confirmReq?.okText}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 操作记录 */}
+      <Dialog open={recordVisible} onOpenChange={setRecordVisible}>
+        <DialogContent className="max-w-[640px]">
           <DialogHeader>
             <DialogTitle>📋 操作记录（完成 / 删除）</DialogTitle>
           </DialogHeader>
-          {state.records.length === 0 ? (
-            <Empty description="暂无操作记录，完成或删除的卡片会归档到这里" />
+          <Tabs value={recTab} onValueChange={(v) => setRecTab(v as 'all' | 'done' | 'deleted')}>
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="all">全部 {state.records.length}</TabsTrigger>
+              <TabsTrigger value="done">
+                完成 {state.records.filter((r) => r.action === 'done').length}
+              </TabsTrigger>
+              <TabsTrigger value="deleted">
+                删除 {state.records.filter((r) => r.action === 'deleted').length}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          {recList.length === 0 ? (
+            <div className="py-10 text-center text-sm text-[#86909C]">
+              暂无记录，完成或删除的卡片会归档到这里
+            </div>
           ) : (
-            <div style={{ maxHeight: 420, overflow: 'auto' }}>
-              {state.records.map((r) => (
-                <div
-                  key={r.id}
-                  style={{
-                    display: 'flex',
-                    gap: 10,
-                    alignItems: 'flex-start',
-                    padding: '10px 0',
-                    borderBottom: '1px solid #f2f3f5',
-                  }}
-                >
-                  <Tag
-                    color={r.action === 'done' ? 'success' : 'error'}
-                    style={{ marginTop: 1, flexShrink: 0 }}
-                  >
-                    {r.action === 'done' ? '✅ 完成' : '🗑️ 删除'}
-                  </Tag>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500, fontSize: 13 }}>{r.title}</div>
-                    {r.content && (
-                      <div style={{ fontSize: 12, color: '#86909c', marginTop: 2 }}>
-                        {r.content}
-                      </div>
-                    )}
-                    <div style={{ fontSize: 12, color: '#4e5969', marginTop: 2 }}>
-                      {r.projectName} · {dayjs(r.at).format('YYYY-MM-DD HH:mm')}
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="max-h-[380px] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[70px]">操作</TableHead>
+                    <TableHead>标题 / 内容</TableHead>
+                    <TableHead className="w-[110px]">项目</TableHead>
+                    <TableHead className="w-[120px]">时间</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recList.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell>
+                        <span
+                          className="inline-flex items-center gap-1.5 text-xs font-medium"
+                          style={{ color: r.action === 'done' ? '#00B42A' : '#F53F3F' }}
+                        >
+                          <span
+                            className="kb-dot"
+                            style={{ background: r.action === 'done' ? '#00B42A' : '#F53F3F' }}
+                          />
+                          {r.action === 'done' ? '完成' : '删除'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium text-[#1D2129]">{r.title}</div>
+                        {r.content && (
+                          <div className="mt-0.5 line-clamp-1 text-xs text-[#86909C]">
+                            {r.content}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-[#4E5969]">{r.projectName}</TableCell>
+                      <TableCell className="text-xs tabular-nums text-[#86909C]">
+                        {dayjs(r.at).format('YYYY-MM-DD HH:mm')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
           <DialogFooter>
-            <Popconfirm key="clear" title="清空全部操作记录？" onConfirm={clearRecords} okText="清空" cancelText="取消">
-              <Button danger type="text">
+            <Popconfirm
+              key="clear"
+              title="清空全部操作记录？"
+              onConfirm={clearRecords}
+              okText="清空"
+              cancelText="取消"
+            >
+              <Button variant="ghost" className="text-[#F53F3F]">
                 清空记录
               </Button>
             </Popconfirm>
-            <Button key="ok" type="primary" onClick={() => setRecordVisible(false)}>
-              关闭
-            </Button>
+            <Button onClick={() => setRecordVisible(false)}>关闭</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
