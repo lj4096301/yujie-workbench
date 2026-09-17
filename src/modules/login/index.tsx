@@ -22,13 +22,6 @@ const LoginModule: React.FC = () => {
   const setLoggedIn = useLayoutStore((s) => s.setLoggedIn)
   const isLoggedIn = useLayoutStore((s) => s.isLoggedIn)
 
-  // 已登录则跳转首页
-  useEffect(() => {
-    if (isLoggedIn) {
-      window.location.reload()
-    }
-  }, [isLoggedIn])
-
   const handleLogin = async (values: LoginFormValues) => {
     setError('')
     setLoading(true)
@@ -39,7 +32,11 @@ const LoginModule: React.FC = () => {
     if (values.username === USER_1_USERNAME && values.password === USER_1_PASSWORD) {
       localStorage.setItem(LOGIN_STORAGE_KEY, '1')
       setLoggedIn(true)
-      message.success('登录成功')
+      message.success('登录成功，正在跳转...')
+      // 延迟一下让用户看到成功提示，然后跳转
+      setTimeout(() => {
+        window.location.reload()
+      }, 800)
     } else {
       setError('用户名或密码错误')
       message.error('登录失败')
