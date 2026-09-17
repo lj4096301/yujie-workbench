@@ -14,6 +14,7 @@ import { useUIStore } from '@/stores/uiStore'
 import { getTheme } from '@/themes'
 import { useClipboardStore } from '@/stores/clipboardStore'
 import { getMainAreaBounds } from '@/utils/layoutBounds'
+import LoginModule from '@/modules/login'
 
 dayjs.extend(isoWeek)
 dayjs.extend(weekOfYear)
@@ -214,6 +215,7 @@ const App: React.FC = () => {
   }, [])
 
   return (
+    isLoggedIn ? (
     <ConfigProvider locale={zhCN} theme={{ token: getTheme(theme).antToken }}>
       {/*
         界面缩放的落点：zoom 是布局级缩放（元素重新排版 + 文字重新光栅化），
