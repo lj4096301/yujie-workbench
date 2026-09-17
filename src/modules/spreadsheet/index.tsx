@@ -59,7 +59,9 @@ const SpreadsheetModule: React.FC = () => {
   useEffect(() => {
     if (!initialized || !data.columns.length) return
     
-    const Tabulator = require('tabulator-tables').default
+    ;(async () => {
+    const module = await import('tabulator-tables')
+    const Tabulator = module.default || module
     const el = document.getElementById('spreadsheet-table')
     if (!el || tableRef.current) return
 
@@ -71,7 +73,7 @@ const SpreadsheetModule: React.FC = () => {
       headerSort: true,
     }))
 
-    tableRef.current = new Tabulator(el, {
+      tableRef.current = new Tabulator(el, {
       data: data.rows,
       columns: columns,
       layout: 'fitDataFill',
@@ -83,6 +85,7 @@ const SpreadsheetModule: React.FC = () => {
       headerVisible: true,
       placeholder: '<span style="color:#999;padding:20px 0">暂无数据</span>',
     })
+    })()
   }, [initialized, data])
 
   const saveData = async (cols: ColumnDef[], rows: any[]) => {
