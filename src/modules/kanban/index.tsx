@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Segmented, Tooltip, Popconfirm, message, ConfigProvider } from 'antd'
+import { message } from 'antd'
 import { Plus, Settings, History, Trash2 } from 'lucide-react'
 import dayjs from 'dayjs'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +33,7 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import './kanban.css'
 
 type Status = 'todo' | 'doing' | 'done'
@@ -104,10 +105,6 @@ const PRIORITY_DOT: Record<'low' | 'mid' | 'high', string> = {
 }
 
 const PRIORITY_ORDER: Array<'low' | 'mid' | 'high'> = ['low', 'mid', 'high']
-
-/** 下拉弹出层渲染到 .panel-body 之外，避免被 overflow 裁剪 */
-const popupContainer = (trigger?: HTMLElement) =>
-  (trigger?.closest('.panel-body') as HTMLElement | null) ?? document.body
 
 const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   // 标题栏操作挂载点（Panel 的 panel-actions）
@@ -405,6 +402,9 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     setManageVisible(false)
   }
 
+  const [delCard, setDelCard] = useState<KanbanCard | null>(null)
+  const [clearRecOpen, setClearRecOpen] = useState(false)
+
   const clearRecords = () => persist({ ...state, records: [] })
 
   const visibleCards =
@@ -416,30 +416,26 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const headerActions = actionsHost
     ? createPortal(
         <div className="kb-header-actions">
-          <Segmented
-            value={filter}
-            onChange={(v) => setFilter(v as string)}
-            options={[
-              { label: '全部', value: 'all' },
-              ...state.projects.map((p) => ({ label: p.name, value: p.id })),
-            ]}
-          />
-          <Tooltip title="操作记录（完成 / 删除归档）">
-            <Button variant="outline" size="sm" onClick={() => setRecordVisible(true)}>
-              <History className="h-4 w-4" />
-              记录
-              {state.records.length > 0 && (
-                <Badge variant="secondary" className="kb-rec-badge">
-                  {state.records.length}
-                </Badge>
-              )}
-            </Button>
-          </Tooltip>
-          <Tooltip title="管理项目（增删改）">
-            <Button variant="ghost" size="icon" onClick={openManage}>
-              <Settings className="h-4 w-4" />
-            </Button>
-          </Tooltip>
+          <Tabs value={filter} onValueChange={setFilter}>
+            <TabsList>
+              <TabsTrigger value="all">全部</TabsTrigger>
+              {state.projects.map((p) => (
+                <TabsTrigger key={p.id} value={p.id}>{p.name}</TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          <Button variant="outline" size="sm" onClick={() => setRecordVisible(true)} title="操作记录（完成 / 删除归档）">
+            <History className="h-4 w-4" />
+            记录
+            {state.records.length > 0 && (
+              <Badge variant="secondary" className="kb-rec-badge">
+                {state.records.length}
+              </Badge>
+            )}
+          </Button>
+          <Button variant="ghost" size="icon" onClick={openManage} title="管理项目（增删改）">
+            <Settings className="h-4 w-4" />
+          </Button>
           <Button size="sm" onClick={() => openCreate('todo')}>
             <Plus className="h-4 w-4" />
             新建卡片
@@ -471,16 +467,14 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           </span>
         )}
         <span className="kb-time">{dayjs(card.updatedAt).format('MM-DD HH:mm')}</span>
-        <Popconfirm
-          title="删除这张卡片？"
-          onConfirm={() => removeCard(card.id)}
-          okText="删除"
-          cancelText="取消"
+        <span
+          className="kb-del"
+          onClick={(e) => { e.stopPropagation(); setDelCard(card) }}
+          role="button"
+          title="删除卡片"
         >
-          <span className="kb-del" onClick={(e) => e.stopPropagation()} role="button">
-            <Trash2 className="h-3.5 w-3.5" />
-          </span>
-        </Popconfirm>
+          <Trash2 className="h-3.5 w-3.5" />
+        </span>
       </div>
     </div>
   )
@@ -507,8 +501,8 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   }
 
   return (
-    <ConfigProvider getPopupContainer={popupContainer}>
-      <div style={{ height: '100%', minHeight: 340, display: 'flex', flexDirection: 'column' }}>
+    <>
+    <div style={{ height: '100%', minHeight: 340, display: 'flex', flexDirection: 'column' }}>
         {headerActions}
 
         {loading ? (
@@ -814,22 +808,36 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             </div>
           )}
           <DialogFooter>
-            <Popconfirm
-              key="clear"
-              title="清空全部操作记录？"
-              onConfirm={clearRecords}
-              okText="清空"
-              cancelText="取消"
-            >
-              <Button variant="ghost" className="text-[#F53F3F]">
-                清空记录
-              </Button>
-            </Popconfirm>
+            <Button variant="ghost" className="text-[#F53F3F]" onClick={() => setClearRecOpen(true)}>
+              清空记录
+            </Button>
             <Button onClick={() => setRecordVisible(false)}>关闭</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </ConfigProvider>
+
+      {/* 删除卡片二次确认 */}
+      <ConfirmDialog
+        open={!!delCard}
+        title="删除卡片"
+        content={delCard ? '确定删除「' + delCard.title + '」？删除后将进入操作记录。' : ''}
+        danger
+        okText="删除"
+        onOk={async () => { if (delCard) await removeCard(delCard.id) }}
+        onOpenChange={(o) => { if (!o) setDelCard(null) }}
+      />
+
+      {/* 清空操作记录二次确认 */}
+      <ConfirmDialog
+        open={clearRecOpen}
+        title="清空操作记录"
+        content="将删除全部操作记录，且不可恢复。确定清空吗？"
+        danger
+        okText="清空"
+        onOk={clearRecords}
+        onOpenChange={(o) => { if (!o) setClearRecOpen(false) }}
+      />
+    </>
   )
 }
 
