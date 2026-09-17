@@ -6,7 +6,6 @@ import dayjs from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import Sidebar from '@/components/Sidebar'
-import TabBar from '@/components/TabBar'
 import TopBar from '@/components/TopBar'
 import MainLayout from '@/components/Layout'
 import GlobalSearch from '@/components/GlobalSearch'
@@ -208,22 +207,6 @@ const App: React.FC = () => {
     }
   }, [])
 
-  // 平板/窄屏适配：≤1024px 自动收起侧栏（横屏图标栏）；>1280px 恢复展开
-  useEffect(() => {
-    const onResize = () => {
-      const w = window.innerWidth
-      const st = useLayoutStore.getState()
-      if (w <= 1024 && !st.sidebarCollapsed) {
-        st.toggleSidebar()
-      } else if (w > 1280 && st.sidebarCollapsed) {
-        st.toggleSidebar()
-      }
-    }
-    window.addEventListener('resize', onResize)
-    onResize()
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-
   // 顶部栏「关于」→ 打开关于弹窗
   useEffect(() => {
     const open = () => setAboutVisible(true)
@@ -248,7 +231,6 @@ const App: React.FC = () => {
           <TopBar />
           <MainLayout />
         </div>
-        <TabBar />
         {searchVisible && <GlobalSearch />}
 
         <Modal
