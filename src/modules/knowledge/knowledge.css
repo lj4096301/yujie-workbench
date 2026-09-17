@@ -86,9 +86,9 @@
 
 /* wikilink（双链） */
 .kb-md .wikilink {
-  color: #1677ff;
-  background: #f0f5ff;
-  border-bottom: 1px dashed #91caff;
+  color: #ff6700;
+  background: rgba(255, 103, 0, 0.08);
+  border-bottom: 1px dashed rgba(255, 103, 0, 0.35);
   text-decoration: none;
   padding: 0 3px;
   border-radius: 3px;
@@ -116,7 +116,7 @@
 .kb-outline summary { cursor: pointer; color: #666; font-weight: 600; }
 .kb-outline ul { list-style: none; padding-left: 4px; margin: 8px 0 2px; }
 .kb-outline li { line-height: 2; }
-.kb-outline a { color: #1677ff; text-decoration: none; }
+.kb-outline a { color: #ff6700; text-decoration: none; }
 .kb-outline a:hover { text-decoration: underline; }
 
 /* ---- 编辑 / 分屏 ---- */
@@ -229,8 +229,8 @@
   border-radius: 4px;
   cursor: pointer;
 }
-.kb-linkpanel-item:hover { background: #e6f0ff; }
-.kb-linkpanel-name { color: #1677ff; }
+.kb-linkpanel-item:hover { background: rgba(255, 103, 0, 0.1); }
+.kb-linkpanel-name { color: #ff6700; }
 .kb-linkpanel-item .kb-snippet { margin: 1px 0 0; -webkit-line-clamp: 2; }
 
 /* ---- Quick Switcher (Ctrl+P) ---- */

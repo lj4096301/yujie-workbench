@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Empty, Spin, Button } from 'antd'
+import { Empty, Spin } from 'antd'
 import { AimOutlined } from '@ant-design/icons'
+import { Button } from '@/components/ui/button'
 
 interface GraphNode {
   id: string
@@ -260,7 +261,7 @@ const GraphView: React.FC<P> = ({ width, height, onOpen }) => {
                 y1={pa.y}
                 x2={pb.x}
                 y2={pb.y}
-                stroke={active ? '#1677ff' : '#d9d9d9'}
+                stroke={active ? '#ff6700' : '#e5e6eb'}
                 strokeWidth={(active ? 1.6 : 0.7) / view.k}
                 opacity={hover && !active ? 0.25 : 0.9}
               />
@@ -284,12 +285,12 @@ const GraphView: React.FC<P> = ({ width, height, onOpen }) => {
                 onMouseEnter={() => setHover(n.id)}
                 onMouseLeave={() => setHover(null)}
               >
-                <circle r={r} fill={hover === n.id ? '#1677ff' : n.degree >= maxDeg * 0.6 ? '#fa8c16' : '#69b1ff'} />
+                <circle r={r} fill={hover === n.id ? '#ff6700' : n.degree >= maxDeg * 0.6 ? '#ffb37e' : '#d0d3d8'} />
                 <text
                   x={r + 3}
                   y={4}
                   fontSize={11 / view.k}
-                  fill={hover === n.id ? '#1677ff' : '#555'}
+                  fill={hover === n.id ? '#ff6700' : '#4e5969'}
                   style={{ userSelect: 'none' }}
                 >
                   {n.name}
@@ -300,13 +301,15 @@ const GraphView: React.FC<P> = ({ width, height, onOpen }) => {
         </g>
       </svg>
       <Button
-        size="small"
-        icon={<AimOutlined />}
+        size="sm"
+        variant="outline"
         onClick={resetView}
-        style={{ position: 'absolute', right: 10, top: 10 }}
+        className="absolute right-2 top-2 h-8 w-8 p-0"
         title="重置视图"
-      />
-      <div style={{ fontSize: 11, color: '#999', padding: '4px 8px' }}>
+      >
+        <AimOutlined />
+      </Button>
+      <div style={{ fontSize: 11, color: '#86909c', padding: '4px 8px' }}>
         {data.nodes.length} 个笔记 · {data.edges.length} 条链接 · 滚轮缩放 / 拖背景平移 / 拖节点重排 / 点节点打开
       </div>
     </div>
