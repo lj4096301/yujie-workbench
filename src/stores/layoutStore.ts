@@ -33,7 +33,7 @@ export const SECTION_HEADS: Array<{ id: string; title: string; y: number }> = [
   { id: 'sec-more', title: '📦 更多模块', y: 52 },
 ]
 /** 低频模块：默认不上首页，点「更多模块」展开 */
-export const EXTRA_MODULE_IDS = ['novel', 'epic', 'news', 'tv', 'api-monitor', 'clipboard', 'flowchart', 'mindmap']
+export const EXTRA_MODULE_IDS = ['novel', 'epic', 'news', 'tv', 'api-monitor', 'clipboard', 'flowchart', 'mindmap', 'logs']
 
 interface LayoutStore {
   // 侧栏

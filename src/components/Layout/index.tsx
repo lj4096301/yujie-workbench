@@ -19,6 +19,7 @@ import ClipboardModule from '@/modules/clipboard'
 import KanbanModule from '@/modules/kanban'
 import FlowchartModule from '@/modules/flowchart'
 import MindmapModule from '@/modules/mindmap'
+import LogsModule from '@/modules/logs'
 
 /** 模块组件映射：title/icon 由 registry 统一供给，这里只负责 component */
 const MODULE_COMPONENTS: Record<string, React.FC> = {
@@ -36,6 +37,7 @@ const MODULE_COMPONENTS: Record<string, React.FC> = {
   kanban: KanbanModule,
   flowchart: FlowchartModule,
   mindmap: MindmapModule,
+  logs: LogsModule,
 }
 
 /** 完整模块映射 = registry 元数据 + 组件 */
