@@ -491,20 +491,21 @@
   color: var(--text-muted, #86909c);
 }
 
-/* ---------- ⑤ 更多功能卡：低频图标顺序排列（带文字，无灰底块） ---------- */
+/* ---------- ⑤ 更多功能卡：低频图标等宽格子 + 文本对齐 ---------- */
 .mg-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 6px 8px;
 }
 
 .mg-item {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 28px;
-  padding: 4px 10px;
+  min-width: 0;
+  min-height: 30px;
+  padding: 5px 10px;
   border-radius: var(--radius-sm, 6px);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
@@ -530,7 +531,7 @@
 .mg-name {
   font-size: 12px;
   color: inherit;
-  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

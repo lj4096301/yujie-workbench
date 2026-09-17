@@ -75,9 +75,11 @@ body {
   box-sizing: border-box;
 }
 
-/* 首页模式：顶部留空收紧，内容更靠上 */
+/* 首页模式：顶部留空收紧，内容更靠上；首页内容可能高于视口，允许纵向滚动 */
 .main-area-home {
   padding-top: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* 主容器（视口） */
