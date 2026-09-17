@@ -1,18 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { message, Tree } from 'antd'
+import { Plus, Trash2, Pencil, Upload, CheckCircle2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
-  Input,
-  Button,
-  Modal,
-  Empty,
-  Popconfirm,
-  message,
-  Checkbox,
-  Spin,
-  Alert,
-  Tree,
-} from 'antd'
-import { PlusOutlined, DeleteOutlined, EditOutlined, UploadOutlined, CheckCircleOutlined } from '@ant-design/icons'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import type { DataNode } from 'antd/es/tree'
 
 interface Bookmark {
@@ -95,19 +94,15 @@ function bookmarksToTreeData(bookmarks: ImportedBookmark[]): DataNode[] {
 }
 
 // ── 主组件 ───────────────────────────────────────────────────────────────
-const BookmarksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
+const BookmarksModule: React.FC = () => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadBookmarks())
   const [query, setQuery] = useState('')
-  // 标题栏操作挂载点（Panel 的 panel-actions）
-  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
-  useEffect(() => {
-    if (!panelId) return
-    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
-  }, [panelId])
 
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Bookmark | null>(null)
   const [form, setForm] = useState({ title: '', url: '', icon: '🔗', group: '' })
+  // 删除二次确认（通用 ConfirmDialog）
+  const [delTarget, setDelTarget] = useState<Bookmark | null>(null)
 
   // ── 导入相关状态 ──────────────────────────────────────────────────────
   const [importModalOpen, setImportModalOpen] = useState(false)
@@ -250,38 +245,36 @@ const BookmarksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   const importedTreeData = useMemo(() => bookmarksToTreeData(imported), [imported])
 
-  const headerActions = actionsHost
-    ? createPortal(
-        <div className="bm-header-actions">
-          <Input
-            placeholder="搜索书签..."
-            allowClear
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            style={{ width: 200 }}
-          />
-          <Button size="small" icon={<UploadOutlined />} onClick={openImport} title="从 Edge / Chrome / Brave 导入书签">
-            导入
-          </Button>
-          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={openAdd}>
-            新增
-          </Button>
-        </div>,
-        actionsHost
-      )
-    : null
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
-      {headerActions}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
+      {/* 工具条：搜索（限宽）+ 导入 + 新增 */}
+      <div
+        className="bm-toolbar"
+        style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}
+      >
+        <Input
+          placeholder="搜索书签..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="h-8 min-w-0 max-w-[320px] flex-1"
+        />
+        <Button size="sm" variant="outline" className="shrink-0" onClick={openImport} title="从 Edge / Chrome / Brave 导入书签">
+          <Upload className="h-4 w-4" />
+          导入
+        </Button>
+        <Button size="sm" className="shrink-0" onClick={openAdd}>
+          <Plus className="h-4 w-4" />
+          新增
+        </Button>
+      </div>
 
       {/* ── 书签列表 ──────────────────────────────────────────────────── */}
       {bookmarks.length === 0 ? (
-        <Empty description="还没有书签，点右上角新增或导入浏览器书签" />
+        <div className="mod-empty">还没有书签，点上方新增或导入浏览器书签</div>
       ) : (
         groups.map(([group, items]) => (
           <div key={group} style={{ marginBottom: 12 }}>
-            <div className="mod-muted" style={{ margin: '4px 2px' }}>
+            <div className="mod-muted" style={{ margin: '4px 2px', color: '#86909C' }}>
               {group} · {items.length}
             </div>
             {items.map((b) => (
@@ -301,28 +294,26 @@ const BookmarksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                   </div>
                 </div>
                 <Button
-                  type="text"
-                  size="small"
-                  icon={<EditOutlined />}
+                  variant="ghost"
+                  size="sm"
                   onClick={(e) => {
                     e.stopPropagation()
                     openEdit(b)
                   }}
-                />
-                <Popconfirm
-                  title="删除该书签？"
-                  onConfirm={() => remove(b.id)}
-                  okText="删除"
-                  cancelText="取消"
                 >
-                  <Button
-                    type="text"
-                    size="small"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </Popconfirm>
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[#F53F3F]"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setDelTarget(b)
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
             ))}
           </div>
@@ -330,98 +321,131 @@ const BookmarksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       )}
 
       {/* ── 新增 / 编辑弹窗 ────────────────────────────────────────────── */}
-      <Modal
-        title={editing ? '编辑书签' : '新增书签'}
-        open={open}
-        onOk={handleSave}
-        onCancel={() => setOpen(false)}
-        okText="保存"
-        cancelText="取消"
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
-          <div>
-            <div className="mod-muted" style={{ marginBottom: 4 }}>标题</div>
-            <Input
-              placeholder="例如：GitHub"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-            />
-          </div>
-          <div>
-            <div className="mod-muted" style={{ marginBottom: 4 }}>网址</div>
-            <Input
-              placeholder="github.com 或 https://..."
-              value={form.url}
-              onChange={(e) => setForm({ ...form, url: e.target.value })}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: '0 0 90px' }}>
-              <div className="mod-muted" style={{ marginBottom: 4 }}>图标</div>
+      <Dialog open={open} onOpenChange={(o) => !o && setOpen(false)}>
+        <DialogContent className="max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>{editing ? '编辑书签' : '新增书签'}</DialogTitle>
+          </DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '4px 0' }}>
+            <div>
+              <Label>标题</Label>
               <Input
-                placeholder="🔗"
-                value={form.icon}
-                onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                placeholder="例如：GitHub"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                className="h-8"
               />
             </div>
-            <div style={{ flex: 1 }}>
-              <div className="mod-muted" style={{ marginBottom: 4 }}>分组（可选）</div>
+            <div>
+              <Label>网址</Label>
               <Input
-                placeholder="如：开发 / 资讯"
-                value={form.group}
-                onChange={(e) => setForm({ ...form, group: e.target.value })}
+                placeholder="github.com 或 https://..."
+                value={form.url}
+                onChange={(e) => setForm({ ...form, url: e.target.value })}
+                className="h-8"
               />
             </div>
-          </div>
-        </div>
-      </Modal>
-
-      {/* ── 导入弹窗 ──────────────────────────────────────────────────── */}
-      <Modal
-        title="导入浏览器书签"
-        open={importModalOpen}
-        onOk={handleImportConfirm}
-        onCancel={() => setImportModalOpen(false)}
-        okText={`导入 ${selectedKeys.length} 条`}
-        cancelText="取消"
-        width={560}
-        bodyStyle={{ maxHeight: 480, overflowY: 'auto' }}
-        destroyOnClose
-      >
-        {importLoading && (
-          <div style={{ textAlign: 'center', padding: '24px 0' }}>
-            <Spin tip="正在读取浏览器书签..." />
-          </div>
-        )}
-
-        {!importLoading && importError && (
-          <Alert
-            message="读取失败"
-            description={importError}
-            type="warning"
-            showIcon
-            style={{ marginBottom: 8 }}
-          />
-        )}
-
-        {!importLoading && imported.length > 0 && (
-          <>
-            <div style={{ marginBottom: 8, fontSize: 12, color: '#888' }}>
-              <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 4 }} />
-              检测到 {imported.length} 条书签，按浏览器分组显示。勾选要导入的条目。
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ flex: '0 0 90px' }}>
+                <Label>图标</Label>
+                <Input
+                  placeholder="🔗"
+                  value={form.icon}
+                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                  className="h-8"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Label>分组（可选）</Label>
+                <Input
+                  placeholder="如：开发 / 资讯"
+                  value={form.group}
+                  onChange={(e) => setForm({ ...form, group: e.target.value })}
+                  className="h-8"
+                />
+              </div>
             </div>
-            <Tree
-              checkable
-              selectable={false}
-              defaultExpandAll
-              treeData={importedTreeData}
-              checkedKeys={selectedKeys}
-              onCheck={handleTreeCheck}
-              style={{ background: 'transparent' }}
-            />
-          </>
-        )}
-      </Modal>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleSave}>保存</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 导入弹窗（Tree 内核保留） ──────────────────────────────────── */}
+      <Dialog open={importModalOpen} onOpenChange={(o) => !o && setImportModalOpen(false)}>
+        <DialogContent className="max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>导入浏览器书签</DialogTitle>
+          </DialogHeader>
+          <div style={{ maxHeight: 420, overflowY: 'auto' }}>
+            {importLoading && (
+              <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#86909C' }}>
+                正在读取浏览器书签...
+              </div>
+            )}
+
+            {!importLoading && importError && (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  alignItems: 'flex-start',
+                  padding: '8px 12px',
+                  marginBottom: 8,
+                  borderRadius: 8,
+                  background: '#fff7e8',
+                  border: '1px solid #ffd666',
+                  fontSize: 12,
+                  color: '#ad6800',
+                }}
+              >
+                <span style={{ marginTop: 1 }}>⚠</span>
+                <span>{importError}</span>
+              </div>
+            )}
+
+            {!importLoading && imported.length > 0 && (
+              <>
+                <div style={{ marginBottom: 8, fontSize: 12, color: '#86909C' }}>
+                  <CheckCircle2 style={{ width: 13, height: 13, color: '#00b42a', marginRight: 4, verticalAlign: -2 }} />
+                  检测到 {imported.length} 条书签，按浏览器分组显示。勾选要导入的条目。
+                </div>
+                <Tree
+                  checkable
+                  selectable={false}
+                  defaultExpandAll
+                  treeData={importedTreeData}
+                  checkedKeys={selectedKeys}
+                  onCheck={handleTreeCheck}
+                  style={{ background: 'transparent' }}
+                />
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImportModalOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleImportConfirm} disabled={imported.length === 0}>
+              导入 {selectedKeys.length} 条
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 删除二次确认（通用 ConfirmDialog） ─────────────────────────── */}
+      <ConfirmDialog
+        open={!!delTarget}
+        content={`删除书签「${delTarget?.title}」？`}
+        okText="删除"
+        danger
+        onOk={() => delTarget && remove(delTarget.id)}
+        onOpenChange={(o) => !o && setDelTarget(null)}
+      />
     </div>
   )
 }
