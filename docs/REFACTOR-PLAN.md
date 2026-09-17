@@ -11,7 +11,7 @@
 | 优先级 | 层 | 范围 | 状态 |
 |---|---|---|---|
 | **P0** | 布局壳 | Panel 窗口容器、TopBar 细节、Sidebar 徽标、TabBar 手机端 | ☐ |
-| **P1** | 高频核心模块 | 看板 / 待办 / 日程 / 天气 / 日志 | ☐ |
+| **P1** | 高频核心模块 | 看板 / 待办 / 日程 / 天气 / 日志 | ✅ 完成（54c4bf1 / 852fc93 / acf6926 / f343cdb / 822ce1b） |
 | **P2** | 内容知识模块 | 知识库 / 剪贴板 / 书签 / 新闻 / 小说 | ☐ |
 | **P3** | 娱乐工具模块 | 免费游戏 / 追剧 / API 价格 / 流程图 / 思维导图 / 登录 | ☐ |
 
@@ -41,32 +41,35 @@
 ## P1 高频核心模块（优先）
 
 ### 5. 项目看板 `kanban`（720 行，已部分 shadcn）
-- [ ] 已完成：shadcn Dialog（操作记录）、Badge（计数）✅
-- [ ] 三列（待推进 / 进行中 / 待完成）卡片样式统一：白底、圆角、状态圆点
-- [ ] 列底固定投放区（完成 / 删除）→ 与卡片同视觉体系
-- [ ] 操作记录页 → **shadcn Table** + Tabs（切换项目完成记录）+ Select（来源筛选）+ 分页
-- [ ] 卡片创建/编辑表单 → shadcn Input / Textarea / Button / Dialog
-- [ ] 剩余 antd 组件替换（Modal → Dialog 等）
+- [x] 已完成：shadcn Dialog（操作记录）、Badge（计数）✅（`54c4bf1`）
+- [x] 三列（待推进 / 进行中 / 待完成）卡片样式统一：白底、圆角、状态圆点 ✅（`54c4bf1`）
+- [x] 列底固定投放区（完成 / 删除）→ 与卡片同视觉体系 ✅
+- [x] 操作记录页 → **shadcn Table** + Tabs（切换全部/完成/删除）+ 圆点状态 + 等宽时间 ✅（`54c4bf1`）
+- [x] 卡片创建/编辑表单 → shadcn Input / Textarea / Select / Button / Dialog（手写 state）✅
+- [x] 剩余 antd 组件替换（Modal.confirm → 自制 ConfirmDialog；Tag → 圆点+文字）✅
 
 ### 6. 待办任务 `tasks`（197 行）
-- [ ] 新增/编辑表单 → shadcn Input + Button + Dialog
-- [ ] 列表项：复选框（shadcn Checkbox）+ 完成划线 + 状态圆点
-- [ ] 筛选（全部/未完成/已完成）→ shadcn Tabs 或 Select
+- [x] 新增/编辑表单 → shadcn Input + Select（优先级）+ 日期输入 + Button ✅（`852fc93`）
+- [x] 列表项：shadcn Checkbox（新增组件）+ 完成划线 + 优先级圆点 ✅
+- [x] 筛选（全部/进行中/已完成）→ shadcn Tabs ✅
+- [x] 新增 `src/components/ui/checkbox.tsx`（Radix Checkbox）✅
 
 ### 7. 日程管理 `calendar`（384 行）
-- [ ] 事件列表/周视图卡片化（白底、12px 圆角、浅灰分割线）
-- [ ] 新增/编辑日程 → shadcn Dialog + Input + Select（时间/分类）
-- [ ] 月历/周历控件保留成熟实现，只统一外壳
+- [x] 事件列表/周视图卡片化（白底、12px 圆角、浅灰分割线）✅（`acf6926`）
+- [x] 新增/编辑日程 → shadcn Dialog + Input/Textarea/Label + 颜色选择（RangePicker 内核保留）✅
+- [x] 月历/周历控件保留成熟实现，只统一外壳 ✅
+- [x] 工具栏按钮 → shadcn Button（outline 导航 / default 当前视图）✅
 
 ### 8. 天气预报 `weather`（591 行）
-- [ ] 大卡（温度/指标/逐时）统一：白底卡片、等宽数字、状态圆点（AQI 用圆点+光环）
-- [ ] 多城市切换 → shadcn Tabs 或 Select
-- [ ] 简天气卡（首页已用）与详情卡视觉一致
+- [x] 大卡（温度/指标/逐时）统一：白底卡片、等宽数字、AQI 圆点 ✅（`f343cdb`）
+- [x] 城市标签 → 主色橙（active #fff3e8 底 + 主色字）；搜索 Select 保留成熟内核 ✅
+- [x] 24小时/7天/生活指数 → 白底卡片 + 首项主色描边；出行建议主色左条 ✅
+- [x] 加载 → Skeleton 骨架屏；错误条自绘 ✅
 
 ### 9. 日志管理 `logs`（198 行，新模块）
-- [ ] 操作记录表格 → **shadcn Table**（表头浅灰、hover 高亮、无斑马纹）
-- [ ] 来源/类型筛选 → shadcn Select；切换项目完成记录 → shadcn Tabs
-- [ ] 分页放表格右下角；空态统一
+- [x] 操作记录表格 → **shadcn Table**（表头浅灰、hover 高亮、无斑马纹）✅（`822ce1b`）
+- [x] 来源筛选 → shadcn Tabs（全部操作 / 项目完成）✅
+- [x] 分页手写（右下角、共 N 条、切换筛选重置页码）✅
 
 ---
 
