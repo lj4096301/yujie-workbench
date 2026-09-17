@@ -21,9 +21,14 @@ import {
   type NodeTypes,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { Modal, message } from 'antd'
-import { Button, Dropdown, Menu } from '@arco-design/web-react'
+import { message } from 'antd'
 import { toPng, toSvg } from 'html-to-image'
+import { Upload, Download, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import './flowchart.css'
 
 const STORAGE_KEY = 'yujie-flowchart'
@@ -313,50 +318,38 @@ function FlowEditor({ panelId }: { panelId?: string }) {
     input.click()
   }, [setNodes, setEdges])
 
+  const [clearOpen, setClearOpen] = useState(false)
   const clearAll = useCallback(() => {
-    if (nodes.length === 0) return
-    Modal.confirm({
-      title: '清空画布',
-      content: '将删除当前所有节点和连线，且不可恢复。确定清空吗？',
-      okText: '清空',
-      okButtonProps: { danger: true },
-      cancelText: '取消',
-      onOk: () => {
-        setNodes([])
-        setEdges([])
-        message.success('画布已清空')
-      },
-    })
-  }, [nodes.length, setNodes, setEdges])
+    setNodes([])
+    setEdges([])
+    message.success('画布已清空')
+  }, [setNodes, setEdges])
 
   const headerActions = actionsHost
     ? createPortal(
         <div className="flow-header-actions">
-          <Dropdown
-            position="br"
-            droplist={
-              <Menu
-                onClickMenuItem={(key) => {
-                  if (key === 'png') void exportImage('png')
-                  else if (key === 'svg') void exportImage('svg')
-                  else exportJson()
-                }}
-              >
-                <Menu.Item key="png">导出 PNG</Menu.Item>
-                <Menu.Item key="svg">导出 SVG</Menu.Item>
-                <Menu.Item key="json">导出 JSON</Menu.Item>
-              </Menu>
-            }
+          <Select
+            value=""
+            onValueChange={(key) => {
+              if (key === 'png') void exportImage('png')
+              else if (key === 'svg') void exportImage('svg')
+              else if (key === 'json') exportJson()
+            }}
           >
-            <Button size="mini" type="secondary">
-              导出 ▾
-            </Button>
-          </Dropdown>
-          <Button size="mini" type="secondary" onClick={importJson}>
-            导入
+            <SelectTrigger className="h-8 w-[92px] text-xs">
+              <Download className="h-3.5 w-3.5" /> 导出
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="png" className="text-xs">导出 PNG</SelectItem>
+              <SelectItem value="svg" className="text-xs">导出 SVG</SelectItem>
+              <SelectItem value="json" className="text-xs">导出 JSON</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button size="sm" variant="outline" onClick={importJson}>
+            <Upload className="h-3.5 w-3.5" /> 导入
           </Button>
-          <Button size="mini" type="text" style={{ color: '#f53f3f' }} onClick={clearAll}>
-            清空
+          <Button size="sm" variant="ghost" className="text-[#F53F3F]" onClick={() => setClearOpen(true)} disabled={nodes.length === 0}>
+            <Trash2 className="h-3.5 w-3.5" /> 清空
           </Button>
         </div>,
         actionsHost
@@ -424,6 +417,16 @@ function FlowEditor({ panelId }: { panelId?: string }) {
         </div>
       </div>
       {headerActions}
+
+      <ConfirmDialog
+        open={clearOpen}
+        title="清空画布"
+        content="将删除当前所有节点和连线，且不可恢复。确定清空吗？"
+        danger
+        okText="清空"
+        onOk={clearAll}
+        onOpenChange={(o) => { if (!o) setClearOpen(false) }}
+      />
     </div>
   )
 }

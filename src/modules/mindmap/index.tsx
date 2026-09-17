@@ -3,8 +3,13 @@ import { createPortal } from 'react-dom'
 import MindElixir, { type MindElixirData } from 'mind-elixir'
 import 'mind-elixir/style.css'
 import { zh_CN } from 'mind-elixir/i18n'
-import { Modal, message } from 'antd'
-import { Button, Dropdown, Menu } from '@arco-design/web-react'
+import { message } from 'antd'
+import { Undo2, Redo2, Maximize2, Download, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import './mindmap.css'
 
 const STORAGE_KEY = 'yujie-mindmap'
@@ -216,74 +221,48 @@ function MindmapEditor({ panelId }: { panelId?: string }) {
     setDark(next)
   }
 
+  const [clearOpen, setClearOpen] = useState(false)
   const clearAll = () => {
     const mind = mindRef.current
     if (!mind) return
-    Modal.confirm({
-      title: '清空思维导图',
-      content: '将重置为空白导图，当前内容会丢失。确定继续吗？',
-      okText: '清空',
-      okButtonProps: { danger: true },
-      cancelText: '取消',
-      onOk: () => {
-        mind.refresh(MindElixir.new('中心主题'))
-        message.success('已重置')
-      },
-    })
+    mind.refresh(MindElixir.new('中心主题'))
+    message.success('已重置')
   }
 
   const headerActions = actionsHost
     ? createPortal(
         <div className="mind-header-actions">
-          <Button
-            size="mini"
-            type="secondary"
-            onClick={() => mindRef.current?.undo()}
-            title="撤销"
-          >
-            ↩
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => mindRef.current?.undo()} title="撤销">
+            <Undo2 className="h-4 w-4" />
           </Button>
-          <Button
-            size="mini"
-            type="secondary"
-            onClick={() => mindRef.current?.redo()}
-            title="重做"
-          >
-            ↪
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => mindRef.current?.redo()} title="重做">
+            <Redo2 className="h-4 w-4" />
           </Button>
-          <Button
-            size="mini"
-            type="secondary"
-            onClick={() => mindRef.current?.scaleFit()}
-            title="适应画布"
-          >
-            ⤢
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => mindRef.current?.scaleFit()} title="适应画布">
+            <Maximize2 className="h-4 w-4" />
           </Button>
-          <Button size="mini" type="secondary" onClick={toggleTheme} title="切换明暗主题">
+          <Button size="sm" variant="outline" className="text-xs" onClick={toggleTheme} title="切换明暗主题">
             {dark ? '☀ 亮色' : '🌙 暗色'}
           </Button>
-          <Dropdown
-            position="br"
-            droplist={
-              <Menu
-                onClickMenuItem={(key) => {
-                  if (key === 'png') void exportPng()
-                  else if (key === 'svg') void exportSvg()
-                  else void exportJson()
-                }}
-              >
-                <Menu.Item key="png">导出 PNG</Menu.Item>
-                <Menu.Item key="svg">导出 SVG</Menu.Item>
-                <Menu.Item key="json">导出 JSON</Menu.Item>
-              </Menu>
-            }
+          <Select
+            value=""
+            onValueChange={(key) => {
+              if (key === 'png') void exportPng()
+              else if (key === 'svg') void exportSvg()
+              else void exportJson()
+            }}
           >
-            <Button size="mini" type="secondary">
-              导出 ▾
-            </Button>
-          </Dropdown>
-          <Button size="mini" type="text" style={{ color: '#f53f3f' }} onClick={clearAll}>
-            清空
+            <SelectTrigger className="h-8 w-[92px] text-xs">
+              <Download className="h-3.5 w-3.5" /> 导出
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="png" className="text-xs">导出 PNG</SelectItem>
+              <SelectItem value="svg" className="text-xs">导出 SVG</SelectItem>
+              <SelectItem value="json" className="text-xs">导出 JSON</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button size="sm" variant="ghost" className="text-[#F53F3F]" onClick={() => setClearOpen(true)}>
+            <Trash2 className="h-3.5 w-3.5" /> 清空
           </Button>
         </div>,
         actionsHost
@@ -296,6 +275,16 @@ function MindmapEditor({ panelId }: { panelId?: string }) {
         {savedAt && <span className="mind-saved-float">已自动保存 {savedAt}</span>}
       </div>
       {headerActions}
+
+      <ConfirmDialog
+        open={clearOpen}
+        title="清空思维导图"
+        content="将重置为空白导图，当前内容会丢失。确定继续吗？"
+        danger
+        okText="清空"
+        onOk={clearAll}
+        onOpenChange={(o) => { if (!o) setClearOpen(false) }}
+      />
     </div>
   )
 }
