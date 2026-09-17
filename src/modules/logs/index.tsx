@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Popconfirm, message } from 'antd'
+import { message } from 'antd'
 import { RefreshCw, Trash2 } from 'lucide-react'
 import dayjs from 'dayjs'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface LogEntry {
   id: string
@@ -45,6 +46,8 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   }, [panelId])
 
   const [records, setRecords] = useState<LogEntry[]>([])
+  const [clearOpen, setClearOpen] = useState(false)
+  const [delRec, setDelRec] = useState<LogEntry | null>(null)
   const [filter, setFilter] = useState<LogFilter>('all')
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -114,11 +117,9 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <Popconfirm title="清空全部日志？" onConfirm={clearAll} okText="清空" cancelText="取消">
-            <Button variant="ghost" size="sm" className="text-[#F53F3F]">
-              清空
-            </Button>
-          </Popconfirm>
+          <Button variant="ghost" size="sm" className="text-[#F53F3F]" onClick={() => setClearOpen(true)}>
+            清空
+          </Button>
           <Button variant="outline" size="sm" onClick={load} title="刷新">
             <RefreshCw className="h-4 w-4" />
             刷新
@@ -194,16 +195,9 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                         {dayjs(r.at).format('YYYY-MM-DD HH:mm')}
                       </TableCell>
                       <TableCell>
-                        <Popconfirm
-                          title="删除这条日志？"
-                          onConfirm={() => remove(r.id)}
-                          okText="删除"
-                          cancelText="取消"
-                        >
-                          <Button variant="ghost" size="sm" className="text-[#F53F3F]">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </Popconfirm>
+                        <Button variant="ghost" size="sm" className="text-[#F53F3F]" onClick={() => setDelRec(r)} title="删除日志">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -235,6 +229,26 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={clearOpen}
+        title="清空全部日志"
+        content="将删除全部日志记录，且不可恢复。确定清空吗？"
+        danger
+        okText="清空"
+        onOk={clearAll}
+        onOpenChange={(o) => { if (!o) setClearOpen(false) }}
+      />
+
+      <ConfirmDialog
+        open={!!delRec}
+        title="删除日志"
+        content={delRec ? '确定删除「' + delRec.title + '」这条日志？' : ''}
+        danger
+        okText="删除"
+        onOk={async () => { if (delRec) await remove(delRec.id) }}
+        onOpenChange={(o) => { if (!o) setDelRec(null) }}
+      />
     </div>
   )
 }
