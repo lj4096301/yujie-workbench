@@ -145,7 +145,7 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   return (
-    <div>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {headerActions}
 
       {/* 游戏列表 */}
