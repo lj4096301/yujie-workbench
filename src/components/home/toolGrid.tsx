@@ -31,19 +31,6 @@ interface CalEvent {
   end?: string
 }
 
-interface TreeNode {
-  name?: string
-  path?: string
-  type?: 'folder' | 'file'
-  children?: TreeNode[]
-}
-
-interface Bookmark {
-  id?: string
-  title?: string
-  url?: string
-}
-
 function fmtToday(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
@@ -186,108 +173,12 @@ const CalendarTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen
   )
 }
 
-/** 知识卡：最近文件 */
-const KnowledgeTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
-  const [files, setFiles] = useState<string[]>([])
-
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/knowledge/tree')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((roots) => {
-        if (cancelled) return
-        const out: string[] = []
-        const walk = (nodes: TreeNode[]) => {
-          for (const n of nodes ?? []) {
-            if (n.type === 'file') out.push(n.name ?? '')
-            if (n.children) walk(n.children)
-          }
-        }
-        walk(Array.isArray(roots) ? (roots as TreeNode[]) : [])
-        setFiles(out.slice(0, 3))
-      })
-      .catch(() => undefined)
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return (
-    <div
-      className="hw-card hw-card-link"
-      onClick={() => onOpen('knowledge')}
-      title="进入知识库"
-      style={{ cursor: 'pointer' }}
-    >
-      <div className="hw-card-head">
-        <span className="hw-card-title">📚 知识</span>
-      </div>
-      <div className="hw-card-body">
-        {files.length === 0 ? (
-          <div className="tg-empty">知识库为空</div>
-        ) : (
-          <div className="tg-list">
-            {files.map((f, i) => (
-              <div key={i} className="tg-list-item" onClick={() => onOpen('knowledge')}>
-                <span className="tg-list-title">📄 {f}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/** 书签卡 */
-const BookmarksTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
-  const [items, setItems] = useState<Bookmark[]>([])
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('mimo-bookmarks')
-      const parsed = raw ? JSON.parse(raw) : []
-      setItems(Array.isArray(parsed) ? (parsed as Bookmark[]) : [])
-    } catch {
-      setItems([])
-    }
-  }, [])
-
-  return (
-    <div
-      className="hw-card hw-card-link"
-      onClick={() => onOpen('bookmarks')}
-      title="进入书签启动"
-      style={{ cursor: 'pointer' }}
-    >
-      <div className="hw-card-head">
-        <span className="hw-card-title">🔖 书签</span>
-      </div>
-      <div className="hw-card-body">
-        {items.length === 0 ? (
-          <div className="tg-empty">暂无收藏</div>
-        ) : (
-          <div className="tg-list">
-            {items.slice(0, 3).map((b, i) => (
-              <div key={b.id ?? i} className="tg-list-item" onClick={() => onOpen('bookmarks')}>
-                <span className="tg-list-title">🔖 {b.title ?? b.url ?? ''}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/** ④ 效率工具：天气(2) 日程(2) 知识(1) 书签(1) */
+/** ④ 效率工具：天气 + 日程（知识/书签已收进「更多功能」卡） */
 const HomeToolGrid: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
   return (
     <div className="hw-tools">
       <WeatherTool onOpen={onOpen} />
       <CalendarTool onOpen={onOpen} />
-      <KnowledgeTool onOpen={onOpen} />
-      <BookmarksTool onOpen={onOpen} />
     </div>
   )
 }

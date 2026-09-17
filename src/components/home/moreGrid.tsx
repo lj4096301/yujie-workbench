@@ -5,8 +5,9 @@ import { MODULE_META } from '@/modules/registry'
 const metaById = new Map(MODULE_META.map((m) => [m.id, m]))
 
 /**
- * ⑤ 更多模块宫格：固定展示全部低频模块入口（一行 6 个）
- * - 不依赖 isVisible（低频模块默认隐藏，宫格作为常驻入口始终可见）
+ * ⑤ 更多功能卡：低频模块统一收进一张卡片（知识/书签/流程图/思维导图等）
+ * - 不依赖 isVisible（低频模块默认隐藏，卡片作为常驻入口始终可见）
+ * - 点击单个图标直接跳转对应模块
  * - hover 浮出 × 移除（session 记忆；模块管理重新勾选后恢复）
  */
 const HomeMoreGrid: React.FC<{
@@ -21,8 +22,8 @@ const HomeMoreGrid: React.FC<{
     setHidden((h) => h.filter((id) => panels.find((p) => p.id === id)?.isVisible))
   }, [panels])
 
-  // 保持首页「更多模块」6 宫格一行，其余低频模块从侧栏「更多功能」进入
-  const list = EXTRA_MODULE_IDS.filter((id) => !hidden.includes(id)).slice(0, 6)
+  // 低频入口：知识库/书签（原工具四卡）+ 扩展低频模块，统一收进一张卡片
+  const list = ['knowledge', 'bookmarks', ...EXTRA_MODULE_IDS].filter((id) => !hidden.includes(id))
   if (list.length === 0) return null
 
   const remove = (id: string) => {
@@ -33,7 +34,7 @@ const HomeMoreGrid: React.FC<{
   return (
     <div className="hw-card">
       <div className="hw-card-head">
-        <span className="hw-card-title">📦 更多模块</span>
+        <span className="hw-card-title">🧰 更多功能</span>
       </div>
       <div className="hw-card-body">
         <div className="mg-grid">

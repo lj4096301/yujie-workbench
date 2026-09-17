@@ -35,8 +35,7 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
     Promise.all([
       fetchJson('/api/kanban'),
       fetchJson(`/api/calendar/events?start=${today}&end=${today}`),
-      fetchJson('/api/knowledge/tree'),
-    ]).then(([kanban, calEvents, knowledge]) => {
+    ]).then(([kanban, calEvents]) => {
       if (cancelled) return
 
       let tasksOpen = 0
@@ -51,16 +50,6 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
       const projects = (kanban as { projects?: unknown[] } | null)?.projects ?? []
       const cards = (kanban as { cards?: unknown[] } | null)?.cards ?? []
       const doingCards = (cards as Array<{ status?: string }>).filter((c) => c.status === 'doing').length
-
-      const roots = Array.isArray(knowledge) ? (knowledge as Array<{ children?: unknown[] }>) : []
-      let kCount = 0
-      const walk = (nodes: Array<{ children?: unknown[] }>) => {
-        for (const n of nodes ?? []) {
-          kCount++
-          if (n.children) walk(n.children as Array<{ children?: unknown[] }>)
-        }
-      }
-      walk(roots)
 
       const calArr = Array.isArray(calEvents) ? (calEvents as unknown[]) : []
 
@@ -77,10 +66,19 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
         {
           key: 'doing',
           label: '进行中',
-          value: doingCards + tasksOpen,
-          sub: `看板 ${doingCards} · 待办 ${tasksOpen}`,
+          value: doingCards,
+          sub: '看板进行中',
           icon: '⚡',
           color: '#ff7d00',
+          moduleId: 'kanban',
+        },
+        {
+          key: 'todo',
+          label: '待办',
+          value: tasksOpen,
+          sub: '未完成任务',
+          icon: '✅',
+          color: '#00b42a',
           moduleId: 'tasks',
         },
         {
@@ -89,17 +87,8 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
           value: calArr.length,
           sub: today,
           icon: '📅',
-          color: '#00b42a',
+          color: '#165dff',
           moduleId: 'calendar',
-        },
-        {
-          key: 'knowledge',
-          label: '知识条目',
-          value: kCount,
-          sub: `${roots.length} 个分类`,
-          icon: '📚',
-          color: '#722ed1',
-          moduleId: 'knowledge',
         },
       ])
     })
