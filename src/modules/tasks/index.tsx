@@ -1,8 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Input, Button, Checkbox, Tag, Popconfirm, Empty, message, DatePicker, Select, ConfigProvider } from 'antd'
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
+import { Popconfirm, message } from 'antd'
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface Task {
   id: string
@@ -47,6 +57,12 @@ const PRIORITY_META: Record<string, { label: string; color: string }> = {
   low: { label: '低', color: 'default' },
 }
 
+const PRIORITY_DOT: Record<string, string> = {
+  low: '#c9cdd4',
+  mid: '#ff6700',
+  high: '#f53f3f',
+}
+
 type FilterKey = 'all' | 'active' | 'done'
 
 const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
@@ -54,9 +70,9 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [filter, setFilter] = useState<FilterKey>('all')
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState<'low' | 'mid' | 'high'>('mid')
-  const [due, setDue] = useState<dayjs.Dayjs | null>(null)
+  const [due, setDue] = useState('') // yyyy-mm-dd
 
-    // 标题栏操作挂载点（Panel 的 panel-actions）
+  // 标题栏操作挂载点（Panel 的 panel-actions）
   const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
   useEffect(() => {
     if (!panelId) return
@@ -79,11 +95,11 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       done: false,
       createdAt: Date.now(),
       priority,
-      due: due ? due.format('YYYY-MM-DD') : undefined,
+      due: due || undefined,
     }
     setTasks((list) => [item, ...list])
     setTitle('')
-    setDue(null)
+    setDue('')
     setPriority('mid')
   }
 
@@ -105,32 +121,39 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   const activeCount = tasks.filter((t) => !t.done).length
 
-  // 下拉弹出层渲染到 .panel-body 之外，避免被 overflow:auto 裁剪
-  const popupContainer = (trigger?: HTMLElement) =>
-    (trigger?.closest('.panel-body') as HTMLElement | null) ?? document.body
-
   const headerActions = actionsHost
     ? createPortal(
-        <div className="tk-header-actions">
+        <div className="tk-header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <Input
             placeholder="添加任务，回车确认"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            onPressEnter={add}
+            onKeyDown={(e) => e.key === 'Enter' && add()}
             style={{ width: 200 }}
           />
           <Select
             value={priority}
-            onChange={setPriority}
-            style={{ width: 70 }}
-            options={[
-              { value: 'low', label: '低' },
-              { value: 'mid', label: '中' },
-              { value: 'high', label: '高' },
-            ]}
+            onValueChange={(v) => setPriority(v as 'low' | 'mid' | 'high')}
+          >
+            <SelectTrigger className="w-[72px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(['low', 'mid', 'high'] as const).map((p) => (
+                <SelectItem key={p} value={p}>
+                  {PRIORITY_META[p].label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="date"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+            style={{ width: 130 }}
           />
-          <DatePicker value={due} onChange={setDue} placeholder="截止" style={{ width: 120 }} />
-          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={add}>
+          <Button size="sm" onClick={add}>
+            <Plus className="h-4 w-4" />
             添加
           </Button>
         </div>,
@@ -139,54 +162,91 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
-      <ConfigProvider getPopupContainer={popupContainer}>
-        {headerActions}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
+      {headerActions}
 
-        <div className="mod-bar" style={{ marginBottom: 8 }}>
-        <Button size="small" type={filter === 'all' ? 'primary' : 'default'} onClick={() => setFilter('all')}>
-          全部
-        </Button>
-        <Button size="small" type={filter === 'active' ? 'primary' : 'default'} onClick={() => setFilter('active')}>
-          进行中
-        </Button>
-        <Button size="small" type={filter === 'done' ? 'primary' : 'default'} onClick={() => setFilter('done')}>
-          已完成
-        </Button>
-          <span className="mod-muted" style={{ marginLeft: 'auto' }}>
-            剩余 {activeCount}
-          </span>
-        </div>
-      </ConfigProvider>
+      <div className="mod-bar" style={{ marginBottom: 8, display: 'flex', alignItems: 'center' }}>
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterKey)}>
+          <TabsList>
+            <TabsTrigger value="all">全部</TabsTrigger>
+            <TabsTrigger value="active">进行中</TabsTrigger>
+            <TabsTrigger value="done">已完成</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <span className="mod-muted" style={{ marginLeft: 'auto', fontSize: 12, color: '#86909C' }}>
+          剩余 {activeCount}
+        </span>
+      </div>
 
       <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
         {visible.length === 0 ? (
-          <Empty description={filter === 'done' ? '还没有完成的任务' : '暂无任务'} />
+          <div className="py-12 text-center text-sm text-[#86909C]">
+            {filter === 'done' ? '还没有完成的任务' : '暂无任务'}
+          </div>
         ) : (
           visible.map((t) => (
-          <div key={t.id} className="mod-row">
-            <Checkbox checked={t.done} onChange={() => toggle(t.id)} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                className="mod-row-title"
-                style={{ textDecoration: t.done ? 'line-through' : 'none', color: t.done ? '#999' : '#333' }}
+            <div
+              key={t.id}
+              className="mod-row"
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 10,
+                padding: '10px 0',
+                borderBottom: '1px solid #f2f3f5',
+              }}
+            >
+              <Checkbox
+                checked={t.done}
+                onCheckedChange={() => toggle(t.id)}
+                style={{ marginTop: 3 }}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  className="mod-row-title"
+                  style={{
+                    textDecoration: t.done ? 'line-through' : 'none',
+                    color: t.done ? '#86909C' : '#1D2129',
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
+                  {t.title}
+                </div>
+                <div
+                  className="mod-row-sub"
+                  style={{ marginTop: 3, display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#86909C' }}
+                >
+                  {t.due && <span>📅 {t.due}</span>}
+                  {t.priority && (
+                    <span className="inline-flex items-center gap-1.5" style={{ color: '#4E5969' }}>
+                      <span
+                        className="inline-block"
+                        style={{
+                          width: 5,
+                          height: 5,
+                          borderRadius: '50%',
+                          background: PRIORITY_DOT[t.priority],
+                          boxShadow: '0 0 0 4px rgba(0,0,0,0.05)',
+                        }}
+                      />
+                      {PRIORITY_META[t.priority].label}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Popconfirm
+                title="删除该任务？"
+                onConfirm={() => remove(t.id)}
+                okText="删除"
+                cancelText="取消"
               >
-                {t.title}
-              </div>
-              <div className="mod-row-sub">
-                {t.due && <span style={{ marginRight: 8 }}>📅 {t.due}</span>}
-                {t.priority && (
-                  <Tag color={PRIORITY_META[t.priority].color} style={{ marginRight: 0 }}>
-                    {PRIORITY_META[t.priority].label}
-                  </Tag>
-                )}
-              </div>
+                <Button variant="ghost" size="sm" className="text-[#F53F3F]">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </Popconfirm>
             </div>
-            <Popconfirm title="删除该任务？" onConfirm={() => remove(t.id)} okText="删除" cancelText="取消">
-              <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
-          </div>
-        ))
+          ))
         )}
       </div>
     </div>
