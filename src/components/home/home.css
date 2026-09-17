@@ -203,10 +203,10 @@
   white-space: nowrap;
 }
 
-/* ---------- ③ 主工作区：看板 / 待办 / 日程 一行三列 ---------- */
+/* ---------- ③ 主工作区：看板 / 待办 / 日程 一行三等宽 ---------- */
 .hw-main {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 16px;
   align-items: stretch;
 }
@@ -503,7 +503,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 10px;
+  min-height: 28px;
+  padding: 4px 10px;
   border-radius: var(--radius-sm, 6px);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
@@ -515,6 +516,12 @@
 }
 
 .mg-icon {
+  /* 固定图标框：emoji 渲染宽度不一，用统一容器保证视觉等大 */
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 15px;
   line-height: 1;
   flex-shrink: 0;
