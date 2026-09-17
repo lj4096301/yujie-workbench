@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { Popconfirm, message } from 'antd'
+import { message } from 'antd'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Select,
   SelectTrigger,
@@ -65,19 +65,14 @@ const PRIORITY_DOT: Record<string, string> = {
 
 type FilterKey = 'all' | 'active' | 'done'
 
-const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
+const TasksModule: React.FC<{ panelId?: string }> = () => {
   const [tasks, setTasks] = useState<Task[]>(() => loadTasks())
   const [filter, setFilter] = useState<FilterKey>('all')
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState<'low' | 'mid' | 'high'>('mid')
   const [due, setDue] = useState('') // yyyy-mm-dd
-
-  // 标题栏操作挂载点（Panel 的 panel-actions）
-  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
-  useEffect(() => {
-    if (!panelId) return
-    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
-  }, [panelId])
+  // 删除二次确认（通用 ConfirmDialog）
+  const [delTarget, setDelTarget] = useState<Task | null>(null)
 
   useEffect(() => {
     saveTasks(tasks)
@@ -121,49 +116,46 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   const activeCount = tasks.filter((t) => !t.done).length
 
-  const headerActions = actionsHost
-    ? createPortal(
-        <div className="tk-header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <Input
-            placeholder="添加任务，回车确认"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && add()}
-            style={{ width: 200 }}
-          />
-          <Select
-            value={priority}
-            onValueChange={(v) => setPriority(v as 'low' | 'mid' | 'high')}
-          >
-            <SelectTrigger className="w-[72px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {(['low', 'mid', 'high'] as const).map((p) => (
-                <SelectItem key={p} value={p}>
-                  {PRIORITY_META[p].label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            type="date"
-            value={due}
-            onChange={(e) => setDue(e.target.value)}
-            style={{ width: 130 }}
-          />
-          <Button size="sm" onClick={add}>
-            <Plus className="h-4 w-4" />
-            添加
-          </Button>
-        </div>,
-        actionsHost
-      )
-    : null
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
-      {headerActions}
+      {/* 新增表单：常驻面板顶部（避免标题栏操作区溢出遮挡） */}
+      <div
+        className="tk-add-bar"
+        style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}
+      >
+        <Input
+          placeholder="添加任务，回车确认"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && add()}
+          className="h-8 min-w-0 flex-1"
+        />
+        <Select
+          value={priority}
+          onValueChange={(v) => setPriority(v as 'low' | 'mid' | 'high')}
+        >
+          <SelectTrigger className="h-8 w-[68px] shrink-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {(['low', 'mid', 'high'] as const).map((p) => (
+              <SelectItem key={p} value={p}>
+                {PRIORITY_META[p].label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          type="date"
+          value={due}
+          onChange={(e) => setDue(e.target.value)}
+          className="h-8 w-[126px] shrink-0"
+        />
+        <Button size="sm" className="shrink-0" onClick={add}>
+          <Plus className="h-4 w-4" />
+          添加
+        </Button>
+      </div>
 
       <div className="mod-bar" style={{ marginBottom: 8, display: 'flex', alignItems: 'center' }}>
         <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterKey)}>
@@ -235,20 +227,29 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                   )}
                 </div>
               </div>
-              <Popconfirm
-                title="删除该任务？"
-                onConfirm={() => remove(t.id)}
-                okText="删除"
-                cancelText="取消"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-[#F53F3F]"
+                onClick={() => setDelTarget(t)}
               >
-                <Button variant="ghost" size="sm" className="text-[#F53F3F]">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </Popconfirm>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
           ))
         )}
       </div>
+
+      {/* 删除二次确认（通用 ConfirmDialog） */}
+      <ConfirmDialog
+        open={!!delTarget}
+        title="删除该任务？"
+        content={`「${delTarget?.title}」删除后不可恢复。`}
+        okText="删除"
+        danger
+        onOk={() => delTarget && remove(delTarget.id)}
+        onOpenChange={(o) => !o && setDelTarget(null)}
+      />
     </div>
   )
 }
