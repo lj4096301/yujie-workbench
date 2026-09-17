@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Select, message } from 'antd'
+import { message } from 'antd'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface ForecastDay {
@@ -194,6 +199,7 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [options, setOptions] = useState<CityHit[]>([])
   const [searching, setSearching] = useState(false)
   const [searchValue, setSearchValue] = useState<string | undefined>(undefined)
+  const [searchOpen, setSearchOpen] = useState(false)
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 标题栏操作挂载点（Panel 的 panel-actions）
@@ -320,6 +326,7 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     setActiveId(id)
     setSearchValue(undefined)
     setOptions([])
+    setSearchOpen(false)
     await fetchByCoords(city)
   }
 
@@ -357,35 +364,64 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     return raw
   })()
 
-  const citySearch = (
-    <Select
-      size="small"
-      showSearch
-      allowClear
-      value={searchValue}
-      placeholder="🔍 搜索添加城市"
-      style={{ width: 220 }}
-      filterOption={false}
-      onSearch={handleSearch}
-      onSelect={handleAddCity}
-      onClear={() => {
-        setSearchValue(undefined)
-        setOptions([])
-      }}
-      notFoundContent={searching ? '搜索中…' : searchValue ? '未找到匹配城市' : '输入城市名开始搜索'}
-      options={options.map((o) => ({
-        value: o.id,
-        label: [o.name, o.admin1, o.country].filter(Boolean).join(' · '),
-      }))}
-    />
-  )
   const headerActions = actionsHost
-    ? createPortal(<div className="weather-header-actions">{citySearch}</div>, actionsHost)
+    ? createPortal(
+        <div className="weather-header-actions">
+          <Button size="sm" variant="outline" onClick={() => setSearchOpen(true)}>
+            <Plus className="h-3.5 w-3.5" /> 添加城市
+          </Button>
+        </div>,
+        actionsHost
+      )
     : null
 
   return (
     <div>
       {headerActions}
+
+      {/* 添加城市搜索 */}
+      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>添加城市</DialogTitle>
+          </DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 4 }}>
+            <Input
+              autoFocus
+              value={searchValue || ''}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="输入城市名搜索，如：上海、Tokyo"
+            />
+            <div style={{ minHeight: 120, maxHeight: 260, overflowY: 'auto' }}>
+              {searching ? (
+                <div className="mod-empty" style={{ padding: 24 }}>搜索中…</div>
+              ) : options.length > 0 ? (
+                options.map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => handleAddCity(o.id)}
+                    className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-[#F7F8FA]"
+                    style={{ color: 'var(--text-primary, #1d2129)' }}
+                  >
+                    <span className="font-medium">{o.name}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted, #86909c)' }}>
+                      {[o.admin1, o.country].filter(Boolean).join(' · ')}
+                    </span>
+                  </button>
+                ))
+              ) : searchValue ? (
+                <div className="mod-empty" style={{ padding: 24 }}>未找到匹配城市</div>
+              ) : (
+                <div className="mod-empty" style={{ padding: 24 }}>输入城市名开始搜索</div>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setSearchOpen(false)}>关闭</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 城市标签 */}
       {cities.length > 0 && (
