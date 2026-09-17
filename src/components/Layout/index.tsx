@@ -17,6 +17,7 @@ import BookmarksModule from '@/modules/bookmarks'
 import TasksModule from '@/modules/tasks'
 import ClipboardModule from '@/modules/clipboard'
 import KanbanModule from '@/modules/kanban'
+import SpreadsheetModule from '@/modules/spreadsheet'
 import FlowchartModule from '@/modules/flowchart'
 import MindmapModule from '@/modules/mindmap'
 
@@ -34,6 +35,7 @@ const MODULE_COMPONENTS: Record<string, React.FC> = {
   tasks: TasksModule,
   clipboard: ClipboardModule,
   kanban: KanbanModule,
+  spreadsheet: SpreadsheetModule,
   flowchart: FlowchartModule,
   mindmap: MindmapModule,
 }

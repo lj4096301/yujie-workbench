@@ -14,6 +14,7 @@ import { createTVRouter } from './routes/tv'
 import { createPricingRouter } from './routes/pricing'
 import { createCalendarRouter } from './routes/calendar'
 import { createKanbanRouter } from './routes/kanban'
+import spreadsheetRouter from './routes/spreadsheet'
 import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -43,6 +44,7 @@ app.use('/api/tv', createTVRouter())
 app.use('/api/pricing', createPricingRouter())
 app.use('/api/calendar', createCalendarRouter())
 app.use('/api/kanban', createKanbanRouter())
+app.use('/api/spreadsheet', spreadsheetRouter)
 
 // SPA fallback
 app.get('*', (req, res) => {
