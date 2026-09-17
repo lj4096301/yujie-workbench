@@ -96,7 +96,18 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       title: '来源',
       dataIndex: 'moduleTitle',
       width: 110,
-      render: (t: string) => <Tag color="arcoblue">{t}</Tag>,
+      render: (t: string) => (
+        <Tag
+          style={{
+            color: '#165DFF',
+            background: '#E8F3FF',
+            borderColor: '#A9C7FF',
+            marginInlineEnd: 0,
+          }}
+        >
+          {t}
+        </Tag>
+      ),
     },
     {
       title: '标题',
