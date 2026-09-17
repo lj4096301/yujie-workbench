@@ -18,9 +18,20 @@ interface KanbanCard {
   updatedAt: number
 }
 
+export interface KanbanRecord {
+  id: string
+  action: 'done' | 'deleted'
+  title: string
+  content?: string
+  projectName: string
+  priority?: string
+  at: number
+}
+
 export interface KanbanState {
   projects: KanbanProject[]
   cards: KanbanCard[]
+  records: KanbanRecord[]
 }
 
 const DEFAULT_STATE: KanbanState = {
@@ -29,6 +40,7 @@ const DEFAULT_STATE: KanbanState = {
     { id: 'p2', name: '项目B' },
   ],
   cards: [],
+  records: [],
 }
 
 function loadState(): KanbanState {
@@ -40,6 +52,7 @@ function loadState(): KanbanState {
     }
     const parsed = JSON.parse(fs.readFileSync(file, 'utf-8'))
     if (!parsed || !Array.isArray(parsed.projects) || !Array.isArray(parsed.cards)) return DEFAULT_STATE
+    if (!Array.isArray(parsed.records)) parsed.records = []
     return parsed as KanbanState
   } catch {
     return DEFAULT_STATE

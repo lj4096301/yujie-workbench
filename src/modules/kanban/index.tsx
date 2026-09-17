@@ -13,8 +13,9 @@ import {
   ConfigProvider,
   Segmented,
   Spin,
+  Empty,
 } from 'antd'
-import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, SettingOutlined, HistoryOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import './kanban.css'
 
@@ -36,9 +37,20 @@ interface KanbanCard {
   updatedAt: number
 }
 
+interface KanbanRecord {
+  id: string
+  action: 'done' | 'deleted'
+  title: string
+  content?: string
+  projectName: string
+  priority?: 'low' | 'mid' | 'high'
+  at: number
+}
+
 interface KanbanState {
   projects: KanbanProject[]
   cards: KanbanCard[]
+  records: KanbanRecord[]
 }
 
 const STATUS_ORDER: Status[] = ['todo', 'doing', 'done']
@@ -75,7 +87,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     setActionsHost(document.getElementById(`panel-actions-${panelId}`))
   }, [panelId])
 
-  const [state, setState] = useState<KanbanState>({ projects: [], cards: [] })
+  const [state, setState] = useState<KanbanState>({ projects: [], cards: [], records: [] })
   const [filter, setFilter] = useState<string>('all')
   const [loading, setLoading] = useState(true)
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -84,6 +96,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [editCard, setEditCard] = useState<KanbanCard | null>(null)
   const [editStatus, setEditStatus] = useState<Status>('todo')
   const [manageVisible, setManageVisible] = useState(false)
+  const [recordVisible, setRecordVisible] = useState(false)
   const [form] = Form.useForm()
   const [manageForm] = Form.useForm()
 
@@ -93,7 +106,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       if (res.ok) {
         const data = (await res.json()) as KanbanState
         if (data && Array.isArray(data.projects) && Array.isArray(data.cards)) {
-          setState(data)
+          setState({ ...data, records: Array.isArray(data.records) ? data.records : [] })
         }
       }
     } catch {
@@ -146,6 +159,16 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     }
   }
 
+  const makeRecord = (action: 'done' | 'deleted', card: KanbanCard): KanbanRecord => ({
+    id: `rec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    action,
+    title: card.title,
+    content: card.content || undefined,
+    projectName: state.projects.find((p) => p.id === card.projectId)?.name ?? '未知项目',
+    priority: card.priority,
+    at: Date.now(),
+  })
+
   const onColDrop = (e: React.DragEvent<HTMLDivElement>, status: Status) => {
     e.preventDefault()
     const id = e.dataTransfer.getData('text/plain') || draggingId
@@ -154,10 +177,26 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     if (!id) return
     const card = state.cards.find((c) => c.id === id)
     if (!card || card.status === status) return
-    const cards = state.cards.map((c) =>
-      c.id === id ? { ...c, status, updatedAt: Date.now() } : c
-    )
-    persist({ ...state, cards })
+    const apply = () => {
+      const cards = state.cards.map((c) =>
+        c.id === id ? { ...c, status, updatedAt: Date.now() } : c
+      )
+      const records =
+        status === 'done' ? [makeRecord('done', card), ...state.records] : state.records
+      persist({ ...state, cards, records })
+    }
+    // 完成操作需要确认，确认后归档到记录页
+    if (status === 'done') {
+      Modal.confirm({
+        title: '确认完成这张卡片？',
+        content: `「${card.title}」将标记为已完成，并归档到操作记录页。`,
+        okText: '确认完成',
+        cancelText: '取消',
+        onOk: apply,
+      })
+    } else {
+      apply()
+    }
   }
 
   /* ---------------- 新建 / 编辑 ---------------- */
@@ -210,12 +249,16 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           },
           ...state.cards,
         ]
-    await persist({ ...state, cards })
+    await persist({ ...state, cards, records: state.records })
     setEditVisible(false)
   }
 
-  const removeCard = (id: string) =>
-    persist({ ...state, cards: state.cards.filter((c) => c.id !== id) })
+  const removeCard = (id: string) => {
+    const card = state.cards.find((c) => c.id === id)
+    if (!card) return
+    const records = [makeRecord('deleted', card), ...state.records]
+    persist({ ...state, cards: state.cards.filter((c) => c.id !== id), records })
+  }
 
   /* ---------------- 项目管理（增删改） ---------------- */
   const openManage = () => {
@@ -252,10 +295,12 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       existing.filter((e) => !projects.some((n) => n.id === e.id)).map((e) => e.id)
     )
     const cards = state.cards.filter((c) => !removedIds.has(c.projectId))
-    await persist({ projects, cards })
+    await persist({ projects, cards, records: state.records })
     if (filter !== 'all' && !projects.some((p) => p.id === filter)) setFilter('all')
     setManageVisible(false)
   }
+
+  const clearRecords = () => persist({ ...state, records: [] })
 
   const visibleCards =
     filter === 'all' ? state.cards : state.cards.filter((c) => c.projectId === filter)
@@ -271,6 +316,11 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               ...state.projects.map((p) => ({ label: p.name, value: p.id })),
             ]}
           />
+          <Tooltip title="操作记录（完成 / 删除归档）">
+            <Button size="small" icon={<HistoryOutlined />} onClick={() => setRecordVisible(true)}>
+              记录{state.records.length > 0 ? ` (${state.records.length})` : ''}
+            </Button>
+          </Tooltip>
           <Tooltip title="管理项目（增删改）">
             <Button size="small" icon={<SettingOutlined />} onClick={openManage} />
           </Tooltip>
@@ -457,6 +507,60 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             )}
           </Form.List>
         </Form>
+      </Modal>
+
+      <Modal
+        title={`📋 操作记录（完成 / 删除）`}
+        open={recordVisible}
+        onCancel={() => setRecordVisible(false)}
+        footer={[
+          <Popconfirm key="clear" title="清空全部操作记录？" onConfirm={clearRecords} okText="清空" cancelText="取消">
+            <Button danger type="text">
+              清空记录
+            </Button>
+          </Popconfirm>,
+          <Button key="ok" type="primary" onClick={() => setRecordVisible(false)}>
+            关闭
+          </Button>,
+        ]}
+        width={560}
+      >
+        {state.records.length === 0 ? (
+          <Empty description="暂无操作记录，完成或删除的卡片会归档到这里" />
+        ) : (
+          <div style={{ maxHeight: 420, overflow: 'auto' }}>
+            {state.records.map((r) => (
+              <div
+                key={r.id}
+                style={{
+                  display: 'flex',
+                  gap: 10,
+                  alignItems: 'flex-start',
+                  padding: '10px 0',
+                  borderBottom: '1px solid #f2f3f5',
+                }}
+              >
+                <Tag
+                  color={r.action === 'done' ? 'success' : 'error'}
+                  style={{ marginTop: 1, flexShrink: 0 }}
+                >
+                  {r.action === 'done' ? '✅ 完成' : '🗑️ 删除'}
+                </Tag>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 500, fontSize: 13 }}>{r.title}</div>
+                  {r.content && (
+                    <div style={{ fontSize: 12, color: '#86909c', marginTop: 2 }}>
+                      {r.content}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 12, color: '#4e5969', marginTop: 2 }}>
+                    {r.projectName} · {dayjs(r.at).format('YYYY-MM-DD HH:mm')}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Modal>
     </ConfigProvider>
   )
