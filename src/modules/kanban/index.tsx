@@ -17,6 +17,7 @@ import {
 } from 'antd'
 import { PlusOutlined, DeleteOutlined, SettingOutlined, HistoryOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
+import { Badge } from '@/components/ui/badge'
 import './kanban.css'
 
 type Status = 'todo' | 'doing' | 'done'
@@ -375,7 +376,12 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           />
           <Tooltip title="操作记录（完成 / 删除归档）">
             <Button size="small" icon={<HistoryOutlined />} onClick={() => setRecordVisible(true)}>
-              记录{state.records.length > 0 ? ` (${state.records.length})` : ''}
+              记录
+              {state.records.length > 0 && (
+                <Badge variant="secondary" className="kb-rec-badge">
+                  {state.records.length}
+                </Badge>
+              )}
             </Button>
           </Tooltip>
           <Tooltip title="管理项目（增删改）">

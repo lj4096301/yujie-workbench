@@ -88,7 +88,7 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
 
   return (
     <div
-      className="hw-card wx-card"
+      className="hw-card hw-card-link wx-card"
       onClick={() => onOpen('weather')}
       title="进入天气预报"
       style={{ cursor: 'pointer' }}
@@ -160,7 +160,7 @@ const CalendarTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen
 
   return (
     <div
-      className="hw-card"
+      className="hw-card hw-card-link"
       onClick={() => onOpen('calendar')}
       title="进入日程管理"
       style={{ cursor: 'pointer' }}
@@ -214,7 +214,7 @@ const KnowledgeTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpe
 
   return (
     <div
-      className="hw-card"
+      className="hw-card hw-card-link"
       onClick={() => onOpen('knowledge')}
       title="进入知识库"
       style={{ cursor: 'pointer' }}
@@ -255,7 +255,7 @@ const BookmarksTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpe
 
   return (
     <div
-      className="hw-card"
+      className="hw-card hw-card-link"
       onClick={() => onOpen('bookmarks')}
       title="进入书签启动"
       style={{ cursor: 'pointer' }}

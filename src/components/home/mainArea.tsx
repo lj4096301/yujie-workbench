@@ -72,7 +72,7 @@ const KanbanOverview: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOp
 
   return (
     <div
-      className="hw-card"
+      className="hw-card hw-card-link"
       onClick={() => onOpen('kanban')}
       title="进入项目看板"
       style={{ cursor: 'pointer' }}
@@ -163,7 +163,7 @@ const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen })
 
   return (
     <div
-      className="hw-card"
+      className="hw-card hw-card-link"
       onClick={() => onOpen('tasks')}
       title="进入待办任务"
       style={{ cursor: 'pointer' }}

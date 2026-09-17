@@ -9,7 +9,7 @@
 
 .kb-col {
   flex: 1;
-  min-width: 200px;
+  min-width: 170px;
   max-width: 360px;
   background: #f5f6f7;
   border: 1px solid transparent;
@@ -58,7 +58,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow-y: auto;
+  overflow: hidden;
   min-height: 60px;
 }
 
@@ -155,7 +155,7 @@
 
 .kb-zone-noop {
   flex: 1;
-  min-height: 80px;
+  min-height: 60px;
   overflow-y: auto;
   border-style: solid;
   border-color: transparent;
@@ -203,3 +203,8 @@
   color: inherit;
   font-weight: 500;
 }
+
+.kb-rec-badge {
+  margin-left: 4px;
+}
+

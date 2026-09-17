@@ -1,5 +1,6 @@
 import React from 'react'
 import { useLayoutStore } from '@/stores/layoutStore'
+import { Button } from '@/components/ui/button'
 import HomeBanner from './banner'
 import HomeKpiRow from './kpiRow'
 import HomeMainArea from './mainArea'
@@ -31,9 +32,9 @@ const HomeWorkbench: React.FC<{
         <div className="hw-empty-icon">🗂️</div>
         <div className="hw-empty-title">所有模块都已关闭</div>
         <div className="hw-empty-desc">用右上角「模块管理」打开，或一键恢复默认布局</div>
-        <button type="button" className="hw-empty-btn" onClick={resetHomeLayout}>
+        <Button type="button" className="hw-empty-btn" onClick={resetHomeLayout}>
           恢复默认布局
-        </button>
+        </Button>
       </div>
     )
   }

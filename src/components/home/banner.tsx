@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Checkbox, Dropdown } from '@arco-design/web-react'
 import { IconApps } from '@arco-design/web-react/icon'
 import { useLayoutStore, MODULE_ORDER } from '@/stores/layoutStore'
+import { Button } from '@/components/ui/button'
 import { MODULE_META } from '@/modules/registry'
 
 /** 与天气模块一致的 WMO 图标映射 */
@@ -143,10 +144,10 @@ const HomeBanner: React.FC = () => {
           )}
         </div>
         <Dropdown droplist={moduleDropdown} position="bl" trigger="click">
-          <button type="button" className="hw-module-btn">
-            <IconApps />
+          <Button type="button" variant="outline" size="sm" className="hw-module-btn">
+            <IconApps style={{ fontSize: 14 }} />
             模块管理
-          </button>
+          </Button>
         </Dropdown>
       </div>
     </div>
