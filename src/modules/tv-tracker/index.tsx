@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { Spin, Empty, Tag, Button, Modal, Form, Input, InputNumber, Rate, Select, Popconfirm, Progress, message } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Rate, message } from 'antd'
+import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface TVShow {
   id: string
@@ -25,15 +33,22 @@ interface HistoryItem {
 }
 
 const STATUS_MAP = {
-  watching: { label: '追剧中', color: 'blue', icon: '▶️' },
-  completed: { label: '已看完', color: 'green', icon: '✅' },
-  dropped: { label: '已弃剧', color: 'default', icon: '⏸️' },
-  plan: { label: '想看', color: 'orange', icon: '🔖' },
+  watching: { label: '追剧中', color: '#ff6700', icon: '▶️' },
+  completed: { label: '已看完', color: '#00b42a', icon: '✅' },
+  dropped: { label: '已弃剧', color: '#c9cdd4', icon: '⏸️' },
+  plan: { label: '想看', color: '#ff7d00', icon: '🔖' },
 } as const
 
 type StatusKey = keyof typeof STATUS_MAP
 
 const QUICK_STATUS: StatusKey[] = ['plan', 'watching', 'completed', 'dropped']
+
+const StatusDot = ({ color, text }: { color: string; text: string }) => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary, #4e5969)' }}>
+    <i style={{ width: 5, height: 5, borderRadius: '50%', background: color, boxShadow: `0 0 0 4px ${color}1f` }} />
+    {text}
+  </span>
+)
 
 const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   // 标题栏操作挂载点（Panel 的 panel-actions）
@@ -50,7 +65,15 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [sortBy, setSortBy] = useState<'added' | 'title' | 'progress' | 'nextAir'>('added')
   const [modalVisible, setModalVisible] = useState(false)
   const [editing, setEditing] = useState<TVShow | null>(null)
-  const [form] = Form.useForm()
+  const [delTarget, setDelTarget] = useState<TVShow | null>(null)
+  const [formData, setFormData] = useState({
+    title: '', platform: '', totalEpisodes: 0, watchedEpisodes: 0,
+    status: 'plan' as StatusKey, nextAirDate: '', rating: 0, notes: '',
+  })
+  const resetForm = () => setFormData({
+    title: '', platform: '', totalEpisodes: 0, watchedEpisodes: 0,
+    status: 'plan' as StatusKey, nextAirDate: '', rating: 0, notes: '',
+  })
 
   useEffect(() => {
     ;(async () => {
@@ -118,7 +141,9 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   }, [])
 
   /** 新建 / 编辑共用提交 */
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async () => {
+    const values = formData
+    if (!values.title.trim()) return
     if (editing) {
       await patchShow(editing.id, {
         title: values.title,
@@ -155,21 +180,27 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     }
     setModalVisible(false)
     setEditing(null)
-    form.resetFields()
+    resetForm()
   }
 
   const openEdit = (show: TVShow) => {
     setEditing(show)
-    form.setFieldsValue({
-      ...show,
-      nextAirDate: show.nextAirDate ? show.nextAirDate.slice(0, 10) : undefined,
+    setFormData({
+      title: show.title,
+      platform: show.platform || '',
+      totalEpisodes: show.totalEpisodes || 0,
+      watchedEpisodes: show.watchedEpisodes || 0,
+      status: show.status,
+      nextAirDate: show.nextAirDate ? show.nextAirDate.slice(0, 10) : '',
+      rating: show.rating || 0,
+      notes: show.notes || '',
     })
     setModalVisible(true)
   }
 
   const openAdd = () => {
     setEditing(null)
-    form.resetFields()
+    resetForm()
     setModalVisible(true)
   }
 
@@ -192,7 +223,21 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   }, [shows])
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 4 }}>
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="show-card">
+            <Skeleton className="h-[120px] w-[84px] shrink-0 rounded-md" />
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 6 }}>
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-3 w-1/3" />
+              <Skeleton className="h-2 w-full" />
+              <Skeleton className="h-8 w-28" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
   }
 
   const headerActions = actionsHost
@@ -201,27 +246,26 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           {['all', 'watching', 'plan', 'completed', 'dropped'].map((f) => (
             <Button
               key={f}
-              size="small"
-              type={filter === f ? 'primary' : 'default'}
+              size="sm"
+              variant={filter === f ? 'default' : 'outline'}
               onClick={() => setFilter(f)}
             >
               {f === 'all' ? '全部' : STATUS_MAP[f as StatusKey]?.label}
             </Button>
           ))}
-          <Select
-            size="small"
-            value={sortBy}
-            onChange={setSortBy}
-            style={{ width: 110 }}
-            options={[
-              { value: 'added', label: '按添加时间' },
-              { value: 'title', label: '按剧名' },
-              { value: 'progress', label: '按进度' },
-              { value: 'nextAir', label: '按更新日' },
-            ]}
-          />
-          <Button size="small" type="primary" icon={<PlusOutlined />} onClick={openAdd}>
-            追剧
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'added' | 'title' | 'progress' | 'nextAir')}>
+            <SelectTrigger className="h-8 w-[110px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="added" className="text-xs">按添加时间</SelectItem>
+              <SelectItem value="title" className="text-xs">按剧名</SelectItem>
+              <SelectItem value="progress" className="text-xs">按进度</SelectItem>
+              <SelectItem value="nextAir" className="text-xs">按更新日</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button size="sm" onClick={openAdd}>
+            <Plus className="h-4 w-4" /> 追剧
           </Button>
         </div>,
         actionsHost
@@ -232,12 +276,12 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
       {headerActions}
       {/* 统计栏 */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap', fontSize: 12, color: '#666', background: '#fafafa', borderRadius: 8, padding: '8px 12px' }}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap', fontSize: 12, color: 'var(--text-secondary, #4e5969)', background: 'var(--bg-subtle, #f7f8fa)', borderRadius: 8, padding: '8px 12px' }}>
         <span>📺 共 {shows.length} 部</span>
         <span>▶️ 追剧中 {stats.watching}</span>
         <span>🔖 想看 {stats.plan}</span>
         <span>✅ 已看完 {stats.completed}</span>
-        {stats.upcoming > 0 && <span style={{ color: '#1677ff' }}>🔔 7 天内更新 {stats.upcoming} 部</span>}
+        {stats.upcoming > 0 && <span style={{ color: 'var(--primary-color, #ff6700)' }}>🔔 7 天内更新 {stats.upcoming} 部</span>}
       </div>
       {/* 剧集列表 */}
       {filteredShows.length > 0 ? (
@@ -252,48 +296,52 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                 {show.poster ? (
                   <img src={show.poster} alt={show.title} className="show-poster" />
                 ) : (
-                  <div className="show-poster" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, background: '#f0f5ff' }}>
+                  <div className="show-poster" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, background: 'var(--bg-subtle, #f7f8fa)' }}>
                     📺
                   </div>
                 )}
                 <div className="show-info">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
                     <span className="show-title">{show.title}</span>
-                    <Tag color={status.color} style={{ fontSize: 10 }}>
-                      {status.icon} {status.label}
-                    </Tag>
+                    <StatusDot color={status.color} text={status.icon + ' ' + status.label} />
                     {/* 状态快捷切换（不进编辑弹窗也能改） */}
-                    <Select
-                      size="small"
-                      variant="borderless"
-                      value={show.status}
-                      onChange={(v) => patchShow(show.id, { status: v })}
-                      style={{ fontSize: 11, minWidth: 76 }}
-                      options={QUICK_STATUS.map((k) => ({ value: k, label: STATUS_MAP[k].label }))}
-                    />
-                    <span style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
-                      <Button size="small" type="text" icon={<EditOutlined />} onClick={() => openEdit(show)} title="编辑" />
-                      <Popconfirm title="确定删除这部剧？" onConfirm={() => handleDelete(show.id)} okText="删除" cancelText="取消">
-                        <Button size="small" type="text" danger icon={<DeleteOutlined />} title="删除" />
-                      </Popconfirm>
+                    <Select value={show.status} onValueChange={(v) => patchShow(show.id, { status: v as StatusKey })}>
+                      <SelectTrigger className="h-7 w-[76px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {QUICK_STATUS.map((k) => (
+                          <SelectItem key={k} value={k} className="text-xs">{STATUS_MAP[k].label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <span style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(show)} title="编辑">
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-[#F53F3F]" onClick={() => setDelTarget(show)} title="删除">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </span>
                   </div>
                   {show.platform && (
-                    <div style={{ fontSize: 11, color: '#999', marginBottom: 4 }}>{show.platform}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted, #86909c)', marginBottom: 4 }}>{show.platform}</div>
                   )}
                   <div className="show-progress">
                     进度：{show.watchedEpisodes} / {show.totalEpisodes || '?'} 集
                     {show.totalEpisodes > 0 && (
-                      <span style={{ marginLeft: 8, color: '#999' }}>({progress}%)</span>
+                      <span style={{ marginLeft: 8, color: 'var(--text-muted, #86909c)' }}>({progress}%)</span>
                     )}
                   </div>
-                  {show.totalEpisodes > 0 ? (
-                    <Progress percent={progress} size="small" showInfo={false} strokeColor={show.status === 'completed' ? '#52c41a' : '#1677ff'} style={{ marginTop: 4, marginBottom: 0 }} />
-                  ) : null}
+                  {show.totalEpisodes > 0 && (
+                    <div style={{ height: 4, borderRadius: 2, background: 'var(--bg-subtle, #f7f8fa)', overflow: 'hidden', marginTop: 4 }}>
+                      <div style={{ height: '100%', width: Math.min(100, progress) + '%', background: show.status === 'completed' ? 'var(--success, #00b42a)' : 'var(--primary-color, #ff6700)', transition: 'width 0.2s ease' }} />
+                    </div>
+                  )}
                   {/* 操作按钮 */}
                   <div style={{ marginTop: 8, display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <Button size="small" type={show.status === 'dropped' ? 'default' : 'primary'} ghost={show.status === 'watching'} onClick={() => updateProgress(show, 1)}>+1 集</Button>
-                    <Button size="small" onClick={() => updateProgress(show, -1)}>-1 集</Button>
+                    <Button size="sm" variant={show.status === 'watching' ? 'default' : 'outline'} onClick={() => updateProgress(show, 1)}>+1 集</Button>
+                    <Button size="sm" variant="outline" onClick={() => updateProgress(show, -1)}>-1 集</Button>
                     <Rate
                       value={show.rating || 0}
                       onChange={(v) => patchShow(show.id, { rating: v })}
@@ -302,10 +350,10 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     />
                   </div>
                   {show.notes && (
-                    <div style={{ fontSize: 11, color: '#666', marginTop: 6 }}>{show.notes}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary, #4e5969)', marginTop: 6 }}>{show.notes}</div>
                   )}
                   {show.nextAirDate && (
-                    <div style={{ fontSize: 11, color: '#1677ff', marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: 'var(--primary-color, #ff6700)', marginTop: 4 }}>
                       下次更新：{new Date(show.nextAirDate).toLocaleDateString('zh-CN')}
                       {+new Date(show.nextAirDate) <= Date.now() + 7 * 86400000 && ' 🔔'}
                     </div>
@@ -316,14 +364,14 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           })}
         </div>
       ) : (
-        <Empty description="还没有追剧记录" />
+        <div className="mod-empty">还没有追剧记录</div>
       )}
 
       {/* 观看历史 */}
       {history.length > 0 && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 12, color: '#999', marginBottom: 6, fontWeight: 600 }}>🕐 最近观看</div>
-          <div style={{ fontSize: 11, color: '#666', background: '#fafafa', borderRadius: 8, padding: '8px 12px' }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted, #86909c)', marginBottom: 6, fontWeight: 600 }}>🕐 最近观看</div>
+          <div style={{ fontSize: 11, color: 'var(--text-secondary, #4e5969)', background: 'var(--bg-subtle, #f7f8fa)', borderRadius: 8, padding: '8px 12px' }}>
             {history.slice(0, 8).map((h, i) => (
               <div key={i} style={{ padding: '2px 0' }}>
                 {new Date(h.at).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -338,47 +386,73 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       )}
 
       {/* 添加 / 编辑弹窗 */}
-      <Modal
-        title={editing ? '✏️ 编辑剧集' : '📺 添加追剧'}
-        open={modalVisible}
-        onCancel={() => { setModalVisible(false); setEditing(null); form.resetFields() }}
-        footer={null}
-        width={400}
-      >
-        <Form form={form} onFinish={handleSubmit} layout="vertical">
-          <Form.Item name="title" label="剧名" rules={[{ required: true }]}>
-            <Input placeholder="剧集名称" />
-          </Form.Item>
-          <Form.Item name="platform" label="平台">
-            <Input placeholder="观看平台（爱奇艺、Netflix 等）" />
-          </Form.Item>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <Form.Item name="totalEpisodes" label="总集数" style={{ flex: 1 }}>
-              <InputNumber placeholder="0 = 未定" min={0} style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="watchedEpisodes" label="已看" style={{ flex: 1 }}>
-              <InputNumber placeholder="0" min={0} style={{ width: '100%' }} />
-            </Form.Item>
+      <Dialog open={modalVisible} onOpenChange={(o) => { if (!o) { setModalVisible(false); setEditing(null); resetForm() } }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>{editing ? '✏️ 编辑剧集' : '📺 添加追剧'}</DialogTitle>
+          </DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">剧名</Label>
+              <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="剧集名称" />
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">平台</Label>
+              <Input value={formData.platform} onChange={(e) => setFormData({ ...formData, platform: e.target.value })} placeholder="观看平台（爱奇艺、Netflix 等）" />
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <Label className="mb-1 block text-xs font-medium text-[#4E5969]">总集数（0=未定）</Label>
+                <Input type="number" min={0} value={String(formData.totalEpisodes)} onChange={(e) => setFormData({ ...formData, totalEpisodes: Number(e.target.value) || 0 })} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Label className="mb-1 block text-xs font-medium text-[#4E5969]">已看</Label>
+                <Input type="number" min={0} value={String(formData.watchedEpisodes)} onChange={(e) => setFormData({ ...formData, watchedEpisodes: Number(e.target.value) || 0 })} />
+              </div>
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">状态</Label>
+              <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v as StatusKey })}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {QUICK_STATUS.map((k) => (
+                    <SelectItem key={k} value={k}>{STATUS_MAP[k].label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">下次更新日期</Label>
+              <Input type="date" value={formData.nextAirDate} onChange={(e) => setFormData({ ...formData, nextAirDate: e.target.value })} />
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">评分</Label>
+              <Rate allowHalf value={formData.rating} onChange={(v) => setFormData({ ...formData, rating: v || 0 })} />
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-medium text-[#4E5969]">备注</Label>
+              <Textarea rows={2} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="观剧感想..." />
+            </div>
           </div>
-          <Form.Item name="status" label="状态" initialValue="plan">
-            <Select
-              options={QUICK_STATUS.map((k) => ({ value: k, label: STATUS_MAP[k].label }))}
-            />
-          </Form.Item>
-          <Form.Item name="nextAirDate" label="下次更新日期">
-            <Input type="date" placeholder="选填" />
-          </Form.Item>
-          <Form.Item name="rating" label="评分">
-            <Rate allowHalf />
-          </Form.Item>
-          <Form.Item name="notes" label="备注">
-            <Input.TextArea placeholder="观剧感想..." autoSize={{ minRows: 2 }} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>{editing ? '保存' : '添加'}</Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => { setModalVisible(false); setEditing(null); resetForm() }}>取消</Button>
+            <Button onClick={handleSubmit}>{editing ? '保存' : '添加'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 删除二次确认 */}
+      <ConfirmDialog
+        open={!!delTarget}
+        title="删除剧集"
+        content={delTarget ? '确定删除「' + delTarget.title + '」吗？删除后无法恢复。' : ''}
+        danger
+        okText="删除"
+        onOk={async () => { if (delTarget) await handleDelete(delTarget.id) }}
+        onOpenChange={(o) => { if (!o) setDelTarget(null) }}
+      />
     </div>
   )
 }
