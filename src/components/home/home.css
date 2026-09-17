@@ -12,7 +12,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 
 /* ---------- 通用白卡 ---------- */
@@ -147,7 +147,7 @@
 .hw-kpis {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 16px;
 }
 
 .hw-kpi {
@@ -203,11 +203,11 @@
   white-space: nowrap;
 }
 
-/* ---------- ③ 主工作区 2:1 ---------- */
+/* ---------- ③ 主工作区：看板 / 待办 / 日程 一行三列 ---------- */
 .hw-main {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 12px;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
   align-items: stretch;
 }
 
@@ -386,11 +386,11 @@
   color: var(--text-muted, #86909c);
 }
 
-/* ---------- ④ 效率工具：天气 + 日程（1:1） ---------- */
+/* ---------- ④ 天气 + 更多功能（1:1） ---------- */
 .hw-tools {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
   align-items: stretch;
 }
 
@@ -491,42 +491,38 @@
   color: var(--text-muted, #86909c);
 }
 
-/* ---------- ⑤ 更多功能卡（低频图标网格） ---------- */
+/* ---------- ⑤ 更多功能卡：低频图标顺序排列（带文字，无灰底块） ---------- */
 .mg-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
 }
 
 .mg-item {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px 4px;
-  background: var(--bg-subtle, #f7f8fa);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md, 8px);
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm, 6px);
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .mg-item:hover {
-  background: #ffffff;
-  border-color: var(--border, #e5e6eb);
-  box-shadow: var(--shadow-card, 0 1px 2px rgba(0, 0, 0, 0.04));
+  background: var(--primary-bg, rgba(255, 103, 0, 0.08));
+  color: var(--primary-color, #ff6700);
 }
 
 .mg-icon {
-  font-size: 20px;
+  font-size: 15px;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .mg-name {
-  font-size: 11px;
-  color: var(--text-secondary, #4e5969);
+  font-size: 12px;
+  color: inherit;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -535,13 +531,13 @@
 
 .mg-close {
   position: absolute;
-  top: 1px;
-  right: 1px;
+  top: -4px;
+  right: -2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   border-radius: 4px;
   font-size: 11px;
   color: var(--text-muted, #86909c);

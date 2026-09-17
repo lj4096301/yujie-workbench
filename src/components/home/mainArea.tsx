@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { CalendarTool } from './toolGrid'
 
 interface KanbanProject {
   id: string
@@ -199,12 +200,13 @@ const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen })
   )
 }
 
-/** ③ 主工作区 2:1 */
+/** ③ 主工作区：看板总览 / 今日待办 / 日程 —— 一行三列 */
 const HomeMainArea: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
   return (
     <div className="hw-main">
       <KanbanOverview onOpen={onOpen} />
       <TodayTodo onOpen={onOpen} />
+      <CalendarTool onOpen={onOpen} />
     </div>
   )
 }

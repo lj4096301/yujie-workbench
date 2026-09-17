@@ -173,14 +173,4 @@ const CalendarTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen
   )
 }
 
-/** ④ 效率工具：天气 + 日程（知识/书签已收进「更多功能」卡） */
-const HomeToolGrid: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
-  return (
-    <div className="hw-tools">
-      <WeatherTool onOpen={onOpen} />
-      <CalendarTool onOpen={onOpen} />
-    </div>
-  )
-}
-
-export default HomeToolGrid
+export { WeatherTool, CalendarTool }
