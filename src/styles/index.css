@@ -348,6 +348,19 @@ body.is-dragging iframe {
   border-color: #d8dade;
 }
 
+/* 日志表格：外框 + 单元格网格线（表头与数据格统一竖线） */
+.logs-table th,
+.logs-table td {
+  border-left: 1px solid #EEF0F2;
+}
+.logs-table th:first-child,
+.logs-table td:first-child {
+  border-left: none;
+}
+.logs-table th {
+  border-bottom: 1px solid #E5E6EB;
+}
+
 .weather-temp {
   font-size: 44px;
   font-weight: 300;
