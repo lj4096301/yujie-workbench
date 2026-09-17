@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { Input, Tree, Empty, Spin, Tag, Alert, Button, Space, Modal, message, Segmented, Dropdown } from 'antd'
+import { Tree, Dropdown, message as antMessage } from 'antd'
 import {
   ReloadOutlined,
   FileAddOutlined,
@@ -12,6 +12,19 @@ import {
 } from '@ant-design/icons'
 import CodeMirror from '@uiw/react-codemirror'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
+import { Plus, RefreshCw, FilePlus2, Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import SplitPane from '@/shared/split-pane'
 import MarkdownView from './MarkdownView'
 import GraphView from './GraphView'
@@ -108,6 +121,9 @@ const KnowledgeModule: React.FC = () => {
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameFrom, setRenameFrom] = useState('')
   const [renameValue, setRenameValue] = useState('')
+
+  // 删除确认（通用 ConfirmDialog）
+  const [delTarget, setDelTarget] = useState<{ path: string; isFile: boolean } | null>(null)
 
   // Quick Switcher（Ctrl+P）
   const [quickOpen, setQuickOpen] = useState(false)
@@ -232,7 +248,7 @@ const KnowledgeModule: React.FC = () => {
           setEditContent(data.content || '')
           if (mode === 'graph') setMode('read')
         } else if (res.status === 404) {
-          message.warning(`未找到「${p}」，可能是尚未创建的链接`)
+          antMessage.warning(`未找到「${p}」，可能是尚未创建的链接`)
         }
       } catch {}
     },
@@ -257,7 +273,7 @@ const KnowledgeModule: React.FC = () => {
   const handleCreate = async () => {
     let name = newFileName.trim().replace(/\\/g, '/')
     if (!name) {
-      message.warning('请输入文件名')
+      antMessage.warning('请输入文件名')
       return
     }
     if (!name.toLowerCase().endsWith('.md')) name += '.md'
@@ -270,13 +286,13 @@ const KnowledgeModule: React.FC = () => {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
-      message.success('已创建')
+      antMessage.success('已创建')
       setCreateOpen(false)
       setNewFileName('')
       await loadVault()
       await handleSelect(name)
     } catch (err) {
-      message.error((err as Error).message)
+      antMessage.error((err as Error).message)
     } finally {
       setCreating(false)
     }
@@ -293,11 +309,11 @@ const KnowledgeModule: React.FC = () => {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
-      message.success('已保存')
+      antMessage.success('已保存')
       // 重新拉取，刷新标签 / 链接 / 反链等元数据
       await handleSelect(selectedFile.path)
     } catch (err) {
-      message.error((err as Error).message)
+      antMessage.error((err as Error).message)
     } finally {
       setSaving(false)
     }
@@ -314,7 +330,7 @@ const KnowledgeModule: React.FC = () => {
   const handleRename = async () => {
     let to = renameValue.trim().replace(/\\/g, '/')
     if (!to) {
-      message.warning('请输入新路径')
+      antMessage.warning('请输入新路径')
       return
     }
     if (renameFrom.toLowerCase().endsWith('.md') && !to.toLowerCase().endsWith('.md')) to += '.md'
@@ -331,7 +347,7 @@ const KnowledgeModule: React.FC = () => {
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
       const n = data?.updatedLinks ?? 0
-      message.success(n > 0 ? `已重命名，并更新了 ${n} 处链接` : '已重命名')
+      antMessage.success(n > 0 ? `已重命名，并更新了 ${n} 处链接` : '已重命名')
       setRenameOpen(false)
       setSelectedFile((prev) => {
         if (!prev) return prev
@@ -342,45 +358,35 @@ const KnowledgeModule: React.FC = () => {
       })
       await loadVault()
     } catch (err) {
-      message.error((err as Error).message)
+      antMessage.error((err as Error).message)
     }
   }
 
   /* ---------- 删除（进 .trash 可找回） ---------- */
 
-  const handleDelete = (path: string) => {
+  const confirmDelete = (path: string) => {
     const isFile = path.toLowerCase().endsWith('.md')
-    Modal.confirm({
-      title: isFile ? '删除这个笔记？' : '删除这个文件夹？',
-      content: (
-        <div>
-          <div style={{ color: '#fa541c', fontWeight: 600 }}>{path}</div>
-          <div style={{ fontSize: 12, color: '#999', marginTop: 6 }}>
-            将移入知识库的 .trash 目录，可在文件管理器中找回。
-          </div>
-        </div>
-      ),
-      okText: '删除',
-      okButtonProps: { danger: true },
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          const res = await fetch(`/api/knowledge/file?path=${encodeURIComponent(path)}`, { method: 'DELETE' })
-          const data = await res.json().catch(() => ({}))
-          if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
-          message.success('已删除（移入 .trash）')
-          setSelectedFile((prev) => {
-            if (!prev) return null
-            const normPath = path.toLowerCase()
-            if (prev.path.toLowerCase() === normPath || prev.path.toLowerCase().startsWith(normPath + '/')) return null
-            return prev
-          })
-          await loadVault()
-        } catch (err) {
-          message.error((err as Error).message)
-        }
-      },
-    })
+    setDelTarget({ path, isFile })
+  }
+
+  const handleDelete = async () => {
+    if (!delTarget) return
+    const path = delTarget.path
+    try {
+      const res = await fetch(`/api/knowledge/file?path=${encodeURIComponent(path)}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+      antMessage.success('已删除（移入 .trash）')
+      setSelectedFile((prev) => {
+        if (!prev) return null
+        const normPath = path.toLowerCase()
+        if (prev.path.toLowerCase() === normPath || prev.path.toLowerCase().startsWith(normPath + '/')) return null
+        return prev
+      })
+      await loadVault()
+    } catch (err) {
+      antMessage.error((err as Error).message)
+    }
   }
 
   /* ---------- Quick Switcher (Ctrl+P) ---------- */
@@ -441,7 +447,7 @@ const KnowledgeModule: React.FC = () => {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
-      message.success(`已移动到「${dropPath.split('/').pop()}」`)
+      antMessage.success(`已移动到「${dropPath.split('/').pop()}」`)
       setSelectedFile((prev) => {
         if (!prev) return prev
         const normDrag = dragPath.toLowerCase()
@@ -456,7 +462,7 @@ const KnowledgeModule: React.FC = () => {
       })
       await loadVault()
     } catch (err) {
-      message.error((err as Error).message)
+      antMessage.error((err as Error).message)
     }
   }
 
@@ -499,7 +505,7 @@ const KnowledgeModule: React.FC = () => {
           setCreateOpen(true)
         }
         if (key === 'rename') openRename(nodeData.path)
-        if (key === 'delete') handleDelete(nodeData.path)
+        if (key === 'delete') confirmDelete(nodeData.path)
       },
     }
   }
@@ -579,10 +585,30 @@ const KnowledgeModule: React.FC = () => {
     </div>
   ) : null
 
+  const modeTabs = (
+    <Tabs
+      value={mode}
+      onValueChange={(v) => {
+        const next = v as ViewMode
+        if ((next === 'edit' || next === 'split') && editContent !== previewContent) {
+          setEditContent(previewContent)
+        }
+        setMode(next)
+      }}
+    >
+      <TabsList>
+        <TabsTrigger value="read" className="h-8 px-3">阅读</TabsTrigger>
+        <TabsTrigger value="edit" className="h-8 px-3">编辑</TabsTrigger>
+        <TabsTrigger value="split" className="h-8 px-3">分屏</TabsTrigger>
+        <TabsTrigger value="graph" className="h-8 px-3">图谱</TabsTrigger>
+      </TabsList>
+    </Tabs>
+  )
+
   /* ---------- 视图 ---------- */
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
     <SplitPane
       storageKey="mimo-split-knowledge"
       defaultWidth={200}
@@ -590,50 +616,45 @@ const KnowledgeModule: React.FC = () => {
       maxWidth={520}
       left={
         <div style={{ paddingRight: 4 }}>
-          <Space.Compact block style={{ marginBottom: 8 }}>
+          {/* 左栏工具条 */}
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
             <Input
-              prefix="🔍"
               placeholder="搜索笔记..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              size="small"
-              allowClear
+              className="h-8 min-w-0 flex-1"
             />
-            <Button
-              size="small"
-              icon={<FileAddOutlined />}
-              onClick={() => {
-                setNewFileName('')
-                setCreateOpen(true)
-              }}
-              title="新建笔记"
-            />
-            <Button
-              size="small"
-              icon={<SearchOutlined />}
-              onClick={() => {
-                setQuickQuery('')
-                setQuickIdx(0)
-                setQuickOpen(true)
-              }}
-              title="快速切换 (Ctrl+P)"
-            />
-            <Button size="small" icon={<ReloadOutlined />} onClick={loadVault} title="重新加载文件树" />
-          </Space.Compact>
+            <Button size="sm" variant="ghost" onClick={() => { setNewFileName(''); setCreateOpen(true) }} title="新建笔记">
+              <FilePlus2 className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => { setQuickQuery(''); setQuickIdx(0); setQuickOpen(true) }} title="快速切换 (Ctrl+P)">
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={loadVault} title="重新加载文件树">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
           {loadError ? (
-            <Alert
-              type="error"
-              showIcon
-              message="知识库加载失败"
-              description={loadError}
-              action={
-                <Button size="small" danger onClick={loadVault}>
-                  重试
-                </Button>
-              }
-            />
+            <div
+              style={{
+                display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 8,
+                padding: '8px 12px', borderRadius: 8, background: '#ffece8',
+                border: '1px solid #fbaca3', fontSize: 12, color: '#cb272d',
+              }}
+            >
+              <span style={{ marginTop: 1 }}>⚠</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600 }}>知识库加载失败</div>
+                <div>{loadError}</div>
+              </div>
+              <Button size="sm" variant="outline" className="text-[#F53F3F]" onClick={loadVault}>
+                重试
+              </Button>
+            </div>
           ) : loading ? (
-            <div style={{ textAlign: 'center', padding: 20 }}><Spin size="small" /></div>
+            <div style={{ textAlign: 'center', padding: 20, fontSize: 12, color: '#86909C' }}>
+              加载中...
+            </div>
           ) : files.length > 0 ? (
             <Tree
               treeData={convertToTreeData(files)}
@@ -647,7 +668,9 @@ const KnowledgeModule: React.FC = () => {
               style={{ fontSize: 13 }}
             />
           ) : (
-            <Empty description={searchQuery ? '没有匹配的笔记' : '暂无笔记'} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            <div className="mod-empty" style={{ padding: '24px 8px' }}>
+              {searchQuery ? '没有匹配的笔记' : '暂无笔记'}
+            </div>
           )}
         </div>
       }
@@ -657,33 +680,21 @@ const KnowledgeModule: React.FC = () => {
         ) : selectedFile ? (
           <div className="kb-preview">
             <div className="kb-toolbar">
-              <h2 style={{ margin: 0, fontSize: 18 }}>{selectedFile.name}</h2>
-              {selectedFile.tags?.map((tag) => <Tag key={tag} color="blue">{tag}</Tag>)}
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>{selectedFile.name}</h2>
+              {selectedFile.tags?.map((tag) => (
+                <Badge key={tag} variant="outline" className="text-[#ff6700]">{tag}</Badge>
+              ))}
               <span style={{ flex: 1 }} />
               <span className="kb-statusbar">{stats.words} 字 · 约 {stats.minutes} 分钟</span>
-              <Segmented
-                size="small"
-                value={mode}
-                onChange={(v) => {
-                  const next = v as ViewMode
-                  if ((next === 'edit' || next === 'split') && editContent !== previewContent) {
-                    setEditContent(previewContent)
-                  }
-                  setMode(next)
-                }}
-                options={[
-                  { value: 'read', label: '阅读' },
-                  { value: 'edit', label: '编辑' },
-                  { value: 'split', label: '分屏' },
-                  { value: 'graph', label: '图谱' },
-                ]}
-              />
+              {modeTabs}
               {isEditing && (
                 <>
-                  <Button size="small" type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
-                    保存
+                  <Button size="sm" onClick={handleSave} disabled={saving}>
+                    <SaveOutlined style={{ fontSize: 12, marginRight: 4 }} />
+                    {saving ? '保存中…' : '保存'}
                   </Button>
-                  <Button size="small" icon={<CloseOutlined />} onClick={() => setMode('read')}>
+                  <Button size="sm" variant="outline" onClick={() => setMode('read')}>
+                    <CloseOutlined style={{ fontSize: 12, marginRight: 4 }} />
                     取消
                   </Button>
                 </>
@@ -736,20 +747,12 @@ const KnowledgeModule: React.FC = () => {
             <div className="kb-toolbar">
               <span style={{ fontSize: 12, color: '#999' }}>选择一个笔记查看 · Ctrl+P 快速切换</span>
               <span style={{ flex: 1 }} />
-              <Segmented
-                size="small"
-                value={mode}
-                onChange={(v) => setMode(v as ViewMode)}
-                options={[
-                  { value: 'read', label: '阅读' },
-                  { value: 'edit', label: '编辑' },
-                  { value: 'split', label: '分屏' },
-                  { value: 'graph', label: '图谱' },
-                ]}
-              />
+              {modeTabs}
             </div>
             <div style={{ flex: 1, overflow: 'hidden' }}>
-              <Empty description="选择一个笔记查看；图谱模式在上方切换" style={{ marginTop: 80 }} />
+              <div className="mod-empty" style={{ padding: '80px 16px' }}>
+                选择一个笔记查看；图谱模式在上方切换
+              </div>
             </div>
           </div>
         )
@@ -757,102 +760,127 @@ const KnowledgeModule: React.FC = () => {
     />
 
       {/* 新建笔记弹窗 */}
-      <Modal
-        title="新建笔记"
-        open={createOpen}
-        onOk={handleCreate}
-        onCancel={() => setCreateOpen(false)}
-        confirmLoading={creating}
-        okText="创建"
-        cancelText="取消"
-      >
-        <div style={{ marginTop: 12 }}>
-          <Input
-            placeholder="文件名，可含子文件夹，如：20_项目（project）/新笔记"
-            value={newFileName}
-            onChange={(e) => setNewFileName(e.target.value)}
-            onPressEnter={handleCreate}
-            suffix=".md"
-            autoFocus
-          />
-          <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>
-            不写 .md 后缀会自动补上；用 / 分隔可顺便创建子文件夹。
+      <Dialog open={createOpen} onOpenChange={(o) => !o && setCreateOpen(false)}>
+        <DialogContent className="max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>新建笔记</DialogTitle>
+          </DialogHeader>
+          <div style={{ padding: '4px 0' }}>
+            <Input
+              placeholder="文件名，可含子文件夹，如：20_项目（project）/新笔记"
+              value={newFileName}
+              onChange={(e) => setNewFileName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              autoFocus
+              className="h-8"
+            />
+            <div style={{ fontSize: 12, color: '#86909C', marginTop: 8 }}>
+              不写 .md 后缀会自动补上；用 / 分隔可顺便创建子文件夹。
+            </div>
           </div>
-        </div>
-      </Modal>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleCreate} disabled={creating}>
+              {creating ? '创建中…' : '创建'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 重命名弹窗 */}
-      <Modal
-        title="重命名（自动更新全库引用链接）"
-        open={renameOpen}
-        onOk={handleRename}
-        onCancel={() => setRenameOpen(false)}
-        okText="重命名"
-        cancelText="取消"
-      >
-        <div style={{ marginTop: 12 }}>
-          <Input
-            value={renameValue}
-            onChange={(e) => setRenameValue(e.target.value)}
-            onPressEnter={handleRename}
-            autoFocus
-            onFocus={(e) => e.target.select()}
-          />
-          <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>
-            修改路径中最后一段即可重命名；全库中 [[引用]] 会同步更新，别名和锚点保留。
+      <Dialog open={renameOpen} onOpenChange={(o) => !o && setRenameOpen(false)}>
+        <DialogContent className="max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>重命名（自动更新全库引用链接）</DialogTitle>
+          </DialogHeader>
+          <div style={{ padding: '4px 0' }}>
+            <Input
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+              autoFocus
+              onFocus={(e) => e.target.select()}
+              className="h-8"
+            />
+            <div style={{ fontSize: 12, color: '#86909C', marginTop: 8 }}>
+              修改路径中最后一段即可重命名；全库中 [[引用]] 会同步更新，别名和锚点保留。
+            </div>
           </div>
-        </div>
-      </Modal>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleRename}>重命名</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Quick Switcher */}
-      <Modal
-        title={null}
-        open={quickOpen}
-        onCancel={() => setQuickOpen(false)}
-        footer={null}
-        width={480}
-        styles={{ body: { padding: '12px 16px 16px' } }}
-      >
-        <Input
-          placeholder="输入笔记名，模糊匹配，↑↓ 选择，Enter 打开…"
-          value={quickQuery}
-          onChange={(e) => {
-            setQuickQuery(e.target.value)
-            setQuickIdx(0)
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowDown') {
-              e.preventDefault()
-              setQuickIdx((i) => Math.min(i + 1, quickResults.length - 1))
-            } else if (e.key === 'ArrowUp') {
-              e.preventDefault()
-              setQuickIdx((i) => Math.max(i - 1, 0))
-            } else if (e.key === 'Enter' && quickResults[quickIdx]) {
-              openFromQuick(quickResults[quickIdx])
-            }
-          }}
-          prefix={<SearchOutlined style={{ color: '#999' }} />}
-          autoFocus
-          allowClear
-        />
-        <div className="kb-quick-list">
-          {quickResults.length === 0 ? (
-            <div className="kb-quick-empty">没有匹配的笔记</div>
-          ) : (
-            quickResults.map((f, i) => (
-              <div
-                key={f.path}
-                className={`kb-quick-item${i === quickIdx ? ' active' : ''}`}
-                onMouseEnter={() => setQuickIdx(i)}
-                onClick={() => openFromQuick(f)}
-              >
-                <span className="kb-quick-name">📄 {f.name}</span>
-                <span className="kb-quick-path">{f.path}</span>
+      <Dialog open={quickOpen} onOpenChange={(o) => !o && setQuickOpen(false)}>
+        <DialogContent className="max-w-[480px]">
+          <div style={{ padding: '4px 0' }}>
+            <Input
+              placeholder="输入笔记名，模糊匹配，↑↓ 选择，Enter 打开…"
+              value={quickQuery}
+              onChange={(e) => {
+                setQuickQuery(e.target.value)
+                setQuickIdx(0)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  setQuickIdx((i) => Math.min(i + 1, quickResults.length - 1))
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault()
+                  setQuickIdx((i) => Math.max(i - 1, 0))
+                } else if (e.key === 'Enter' && quickResults[quickIdx]) {
+                  openFromQuick(quickResults[quickIdx])
+                }
+              }}
+              autoFocus
+              className="h-8"
+            />
+            <div className="kb-quick-list">
+              {quickResults.length === 0 ? (
+                <div className="kb-quick-empty">没有匹配的笔记</div>
+              ) : (
+                quickResults.map((f, i) => (
+                  <div
+                    key={f.path}
+                    className={`kb-quick-item${i === quickIdx ? ' active' : ''}`}
+                    onMouseEnter={() => setQuickIdx(i)}
+                    onClick={() => openFromQuick(f)}
+                  >
+                    <span className="kb-quick-name">📄 {f.name}</span>
+                    <span className="kb-quick-path">{f.path}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 删除二次确认（通用 ConfirmDialog） */}
+      <ConfirmDialog
+        open={!!delTarget}
+        content={
+          delTarget ? (
+            <>
+              <div style={{ fontWeight: 600, color: '#F53F3F' }}>{delTarget.path}</div>
+              <div style={{ fontSize: 12, color: '#86909C', marginTop: 6 }}>
+                {delTarget.isFile ? '删除这个笔记？' : '删除这个文件夹？'}将移入知识库的 .trash 目录，可在文件管理器中找回。
               </div>
-            ))
-          )}
-        </div>
-      </Modal>
+            </>
+          ) : null
+        }
+        okText="删除"
+        danger
+        onOk={() => handleDelete()}
+        onOpenChange={(o) => !o && setDelTarget(null)}
+      />
     </div>
   )
 }
