@@ -33,12 +33,12 @@ const LoginModule: React.FC = () => {
       localStorage.setItem(LOGIN_STORAGE_KEY, '1')
       setLoggedIn(true)
       message.success('登录成功，正在跳转...')
-      // 延迟一下让用户看到成功提示，然后跳转到首页
+      // 清除布局缓存后跳转回首页（不依赖 reload，直接导航）
       setTimeout(() => {
         window.localStorage.removeItem('mimo-active-module')
         window.localStorage.removeItem('mimo-panels')
         window.localStorage.removeItem('mimo-layouts')
-        window.location.reload()
+        window.location.href = '/'
       }, 800)
     } else {
       setError('用户名或密码错误')
