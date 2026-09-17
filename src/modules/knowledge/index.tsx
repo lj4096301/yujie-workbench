@@ -612,7 +612,7 @@ const KnowledgeModule: React.FC = () => {
     <SplitPane
       storageKey="mimo-split-knowledge"
       defaultWidth={200}
-      minWidth={140}
+      minWidth={200}
       maxWidth={520}
       left={
         <div style={{ paddingRight: 4 }}>

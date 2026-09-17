@@ -44,7 +44,9 @@
 
 **规则**：禁止硬编码 `#165dff`（旧蓝）与新色混用；发现即替换为 Token。
 
-**页面背景统一**：所有页面（首页 + 模块页）背景 = `var(--bg-page)` `#F2F3F5`；卡片一律白底 `#FFFFFF` + `1px solid #E5E6EB` 边框，保证卡片与背景对比明确（`.main-area` 显式声明，不依赖继承）。
+**Mini form reset（tailwind preflight 已禁用，务必保留）**：`src/styles/index.css` 中 `@tailwind utilities;` 之后有一段「Mini form reset」，重置原生 `button/input/textarea/select` 的 UA 默认样式（灰底 `#F0F0F0` + 2px 黑边）。**只能使用元素选择器（特异性 0-0-1）**——严禁加入 `[type='button']` 等属性选择器（特异性 0-1-0，会把 `.zoom-btn` 等类样式覆盖掉，此前已踩坑）。任何带类名的按钮（shadcn / antd / arco / 自定义类）样式都不受影响。
+
+**页面背景统一**：所有页面（首页 + 模块页）背景 = `var(--bg-page)` `#F2F3F5`；卡片一律白底 `#FFFFFF` + `1px solid #E5E6EB` 边框，保证卡片与背景对比明确（`.main-area` 显式声明，不依赖继承）。输入框统一 `bg-background` 白底（`src/components/ui/input.tsx`），不得改回 `bg-transparent`。
 
 **侧栏配色**（Mi Console 白底主线）：
 
