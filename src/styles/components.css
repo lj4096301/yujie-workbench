@@ -70,6 +70,22 @@
   margin-right: 4px;
   padding-right: 8px;
   border-right: 1px solid var(--panel-border);
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.panel-module-actions::-webkit-scrollbar {
+  display: none;
+}
+
+/* 模块标题栏工具栏容器（portal 进 panel-module-actions 的 div）：
+   强制横排，禁止标题栏空间不足时按钮换行成竖排 */
+.panel-module-actions > div {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 .panel-btn {
