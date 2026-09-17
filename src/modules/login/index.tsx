@@ -35,7 +35,7 @@ const LoginModule: React.FC = () => {
       message.success('登录成功，正在跳转...')
       // 延迟一下让用户看到成功提示，然后跳转
       setTimeout(() => {
-        window.location.href = window.location.pathname
+        window.location.reload()
       }, 800)
     } else {
       setError('用户名或密码错误')
