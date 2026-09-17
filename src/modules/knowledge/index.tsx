@@ -819,8 +819,8 @@ const KnowledgeModule: React.FC = () => {
 
       {/* Quick Switcher */}
       <Dialog open={quickOpen} onOpenChange={(o) => !o && setQuickOpen(false)}>
-        <DialogContent className="max-w-[480px]">
-          <div style={{ padding: '4px 0' }}>
+        <DialogContent className="w-[480px] max-w-[calc(100vw-32px)] min-w-0">
+          <div style={{ padding: '4px 0', minWidth: 0 }}>
             <Input
               placeholder="输入笔记名，模糊匹配，↑↓ 选择，Enter 打开…"
               value={quickQuery}

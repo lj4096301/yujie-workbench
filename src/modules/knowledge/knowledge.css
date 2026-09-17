@@ -238,6 +238,8 @@
   margin-top: 8px;
   max-height: 320px;
   overflow: auto;
+  /* 允许收缩，防止长文件名把弹窗撑破（grid 容器 min-width:auto 不受 max-width 约束） */
+  min-width: 0;
 }
 .kb-quick-item {
   display: flex;
@@ -248,15 +250,25 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
+  min-width: 0;
 }
-.kb-quick-item.active { background: #e6f0ff; }
-.kb-quick-name { color: #333; white-space: nowrap; }
+.kb-quick-item.active { background: rgba(255, 103, 0, 0.08); }
+.kb-quick-name {
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
+}
 .kb-quick-path {
   font-size: 11px;
   color: #aaa;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
 }
 .kb-quick-empty {
   padding: 20px;
