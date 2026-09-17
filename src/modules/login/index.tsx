@@ -2,7 +2,7 @@
  * 登录模块
  * 防止未授权用户误操作
  */
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Input, Button, Form, Alert, Card, message } from 'antd'
 import { UserOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons'
 import { useLayoutStore } from '@/stores/layoutStore'
@@ -35,7 +35,7 @@ const LoginModule: React.FC = () => {
       message.success('登录成功，正在跳转...')
       // 延迟一下让用户看到成功提示，然后跳转
       setTimeout(() => {
-        window.location.reload()
+        window.location.href = window.location.pathname
       }, 800)
     } else {
       setError('用户名或密码错误')
