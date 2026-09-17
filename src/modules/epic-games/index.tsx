@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Spin, Empty, Tag, Button, message } from 'antd'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface GameItem {
   id: string
@@ -82,14 +83,21 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     return true
   })
 
+  const StatusDot = ({ color, text }: { color: string; text: string }) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary, #4e5969)' }}>
+      <i style={{ width: 5, height: 5, borderRadius: '50%', background: color, boxShadow: `0 0 0 4px ${color}1f` }} />
+      {text}
+    </span>
+  )
+
   const getStatusTag = (status: string) => {
     switch (status) {
       case 'free':
-        return <Tag color="green">免费领取</Tag>
+        return <StatusDot color="#00b42a" text="免费领取" />
       case 'upcoming':
-        return <Tag color="blue">即将免费</Tag>
+        return <StatusDot color="#ff7d00" text="即将免费" />
       default:
-        return <Tag color="default">已结束</Tag>
+        return <StatusDot color="#c9cdd4" text="已结束" />
     }
   }
 
@@ -119,25 +127,25 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const headerActions = actionsHost
     ? createPortal(
         <div className="fg-header-actions">
-          <Button size="small" type={store === 'epic' ? 'primary' : 'default'} onClick={() => setStore('epic')}>
+          <Button size="sm" variant={store === 'epic' ? 'default' : 'outline'} onClick={() => setStore('epic')}>
             Epic
           </Button>
-          <Button size="small" type={store === 'steam' ? 'primary' : 'default'} onClick={() => setStore('steam')}>
+          <Button size="sm" variant={store === 'steam' ? 'default' : 'outline'} onClick={() => setStore('steam')}>
             Steam
           </Button>
-          <Button size="small" type={filter === 'all' ? 'primary' : 'default'} onClick={() => setFilter('all')}>
+          <Button size="sm" variant={filter === 'all' ? 'default' : 'outline'} onClick={() => setFilter('all')}>
             全部
           </Button>
-          <Button size="small" type={filter === 'free' ? 'primary' : 'default'} onClick={() => setFilter('free')}>
+          <Button size="sm" variant={filter === 'free' ? 'default' : 'outline'} onClick={() => setFilter('free')}>
             🎮 免费领
           </Button>
           {store === 'epic' && (
-            <Button size="small" type={filter === 'upcoming' ? 'primary' : 'default'} onClick={() => setFilter('upcoming')}>
+            <Button size="sm" variant={filter === 'upcoming' ? 'default' : 'outline'} onClick={() => setFilter('upcoming')}>
               ⏰ 即将免费
             </Button>
           )}
-          <Button size="small" icon="🔄" onClick={refresh} title="刷新（服务端缓存 30 分钟）">
-            刷新
+          <Button size="sm" variant="outline" onClick={refresh} title="刷新（服务端缓存 30 分钟）">
+            🔄 刷新
           </Button>
         </div>,
         actionsHost
@@ -150,8 +158,17 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
       {/* 游戏列表 */}
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60%' }}>
-          <Spin />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 4 }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="epic-game-card" style={{ cursor: 'default' }}>
+              <Skeleton className="h-[68px] w-[120px] shrink-0 rounded-md" />
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4 }}>
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : filteredGames.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -171,10 +188,10 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                 </div>
                 <div className="game-price">
                   {game.status === 'free' ? (
-                    <span style={{ color: '#52c41a' }}>
+                    <span style={{ color: 'var(--success, #00b42a)' }}>
                       免费
                       {game.originalPrice > 0 && (
-                        <span style={{ textDecoration: 'line-through', color: '#999', fontSize: 11, marginLeft: 6 }}>
+                        <span style={{ textDecoration: 'line-through', color: 'var(--text-disabled, #c9cdd4)', fontSize: 11, marginLeft: 6 }}>
                           ${game.originalPrice.toFixed(2)}
                         </span>
                       )}
@@ -188,17 +205,17 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     game.endDate ? (
                       <>
                         截止 {formatDate(game.endDate)}
-                        <span style={{ marginLeft: 8, color: '#ff7a45' }}>{getRemainingTime(game.endDate)}</span>
+                        <span style={{ marginLeft: 8, color: 'var(--warning, #ff7d00)' }}>{getRemainingTime(game.endDate)}</span>
                       </>
                     ) : (
-                      <span style={{ color: '#ff7a45' }}>不限时，先到先得</span>
+                      <span style={{ color: 'var(--warning, #ff7d00)' }}>不限时，先到先得</span>
                     )
                   ) : (
                     <>{formatDate(game.startDate)} 开始免费</>
                   )}
                 </div>
                 {game.description && (
-                  <div style={{ fontSize: 11, color: '#666', marginTop: 4, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-secondary, #4e5969)', marginTop: 4, lineHeight: 1.4 }}>
                     {game.description.length > 80 ? game.description.slice(0, 80) + '...' : game.description}
                   </div>
                 )}
@@ -207,7 +224,7 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     href={game.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ fontSize: 12, color: '#1677ff' }}
+                    style={{ fontSize: 12, color: 'var(--primary-color, #ff6700)' }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     {storeLinkLabel}
@@ -218,7 +235,7 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           ))}
         </div>
       ) : (
-        <Empty description={emptyText} />
+        <div className="mod-empty">{emptyText}</div>
       )}
     </div>
   )

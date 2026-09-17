@@ -442,15 +442,15 @@ body.is-dragging iframe {
   display: flex;
   gap: 12px;
   padding: 10px;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--border, #e5e6eb);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--bg-card, #ffffff);
   cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .epic-game-card:hover {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
 }
 
@@ -460,8 +460,8 @@ body.is-dragging iframe {
   flex-shrink: 0;
   border-radius: 6px;
   object-fit: cover;
-  background: #f5f5f5;
-  color: #999;
+  background: var(--bg-subtle, #f7f8fa);
+  color: var(--text-muted, #86909c);
 }
 
 .game-info {
@@ -482,7 +482,7 @@ body.is-dragging iframe {
 .game-dates {
   margin-top: 2px;
   font-size: 11px;
-  color: #999;
+  color: var(--text-muted, #86909c);
 }
 
 /* ============================================================
