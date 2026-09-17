@@ -141,7 +141,7 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         </div>
       ) : (
         <>
-          <div className="min-h-0 flex-1 overflow-auto">
+          <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-[#E5E6EB]">
             <Table>
               <TableHeader>
                 <TableRow>
