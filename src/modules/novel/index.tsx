@@ -1,17 +1,35 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { createPortal } from 'react-dom'
-import { Tabs, Input, Button, Card, Tag, Empty, Modal, Form, message, Progress, Popconfirm, Select, Tooltip } from 'antd'
+import { message } from 'antd'
 import {
-  UserOutlined,
-  PlusOutlined,
-  ArrowUpOutlined,
-  ArrowDownOutlined,
-  DeleteOutlined,
-  DownloadOutlined,
-  CheckCircleFilled,
-  LoadingOutlined,
-  EditOutlined,
-} from '@ant-design/icons'
+  Plus,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  Download,
+  Check,
+  Loader2,
+  Pencil,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import SplitPane from '@/shared/split-pane'
 
 interface Chapter {
@@ -63,14 +81,20 @@ function countWords(text: string): number {
   return cjk + en
 }
 
-const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
-  // 标题栏操作挂载点（Panel 的 panel-actions）
-  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
-  useEffect(() => {
-    if (!panelId) return
-    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
-  }, [panelId])
+const STATUS_META: Record<Chapter['status'], { label: string; dot: string }> = {
+  draft: { label: '草稿', dot: '#c9cdd4' },
+  writing: { label: '写作中', dot: '#ff6700' },
+  done: { label: '已完成', dot: '#00b42a' },
+}
 
+/** 通用删除确认目标：区分章节/人物/设定/灵感 */
+type DelTarget =
+  | { kind: 'chapter'; id: string; name: string }
+  | { kind: 'character'; id: string; name: string }
+  | { kind: 'world'; id: string; name: string }
+  | { kind: 'note'; id: string; name: string }
+
+const NovelModule: React.FC = () => {
   const [activeTab, setActiveTab] = useState('outline')
   const [data, setData] = useState<NovelData>(EMPTY)
   const [loaded, setLoaded] = useState(false)
@@ -84,18 +108,21 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null)
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null)
 
-  // 弹窗
+  // 弹窗（手写表单 state）
   const [noteModalVisible, setNoteModalVisible] = useState(false)
+  const [noteForm, setNoteForm] = useState({ content: '', tags: '' })
   const [charModalVisible, setCharModalVisible] = useState(false)
   const [editingChar, setEditingChar] = useState<Character | null>(null)
+  const [charForm, setCharForm] = useState({ name: '', age: '', personality: '', background: '', notes: '' })
   const [worldModalVisible, setWorldModalVisible] = useState(false)
-  const [noteForm] = Form.useForm()
-  const [charForm] = Form.useForm()
-  const [worldForm] = Form.useForm()
+  const [worldTitle, setWorldTitle] = useState('')
 
   // 人物关系编辑的临时状态
   const [relTarget, setRelTarget] = useState<string | undefined>()
   const [relLabel, setRelLabel] = useState('')
+
+  // 删除二次确认（通用 ConfirmDialog）
+  const [delTarget, setDelTarget] = useState<DelTarget | null>(null)
 
   // 加载数据
   useEffect(() => {
@@ -254,29 +281,44 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   /* ---------- 人物操作 ---------- */
 
-  const openEditCharacter = (c: Character) => {
-    setEditingChar(c)
-    charForm.setFieldsValue(c)
+  const openAddCharacter = () => {
+    setEditingChar(null)
+    setCharForm({ name: '', age: '', personality: '', background: '', notes: '' })
     setCharModalVisible(true)
   }
 
-  const handleCharModalOk = async () => {
-    const values = await charForm.validateFields()
+  const openEditCharacter = (c: Character) => {
+    setEditingChar(c)
+    setCharForm({
+      name: c.name,
+      age: c.age || '',
+      personality: c.personality || '',
+      background: c.background || '',
+      notes: c.notes || '',
+    })
+    setCharModalVisible(true)
+  }
+
+  const handleCharModalOk = () => {
+    if (!charForm.name.trim()) {
+      message.warning('请填写姓名')
+      return
+    }
     if (editingChar) {
       update((prev) => ({
         ...prev,
-        characters: prev.characters.map((c) => (c.id === editingChar.id ? { ...c, ...values } : c)),
+        characters: prev.characters.map((c) => (c.id === editingChar.id ? { ...c, ...charForm } : c)),
       }))
       message.success('人物已更新')
     } else {
       const character: Character = {
         id: Date.now().toString(),
-        name: values.name,
-        age: values.age || '',
-        personality: values.personality || '',
-        background: values.background || '',
+        name: charForm.name.trim(),
+        age: charForm.age,
+        personality: charForm.personality,
+        background: charForm.background,
         relationships: [],
-        notes: values.notes || '',
+        notes: charForm.notes,
       }
       update((prev) => ({ ...prev, characters: [...prev.characters, character] }))
       setSelectedCharacterId(character.id)
@@ -284,7 +326,6 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     }
     setCharModalVisible(false)
     setEditingChar(null)
-    charForm.resetFields()
   }
 
   const removeCharacter = (id: string) => {
@@ -323,13 +364,16 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   /* ---------- 世界观操作 ---------- */
 
-  const addWorldDoc = async () => {
-    const values = await worldForm.validateFields()
-    const doc: WorldDoc = { id: Date.now().toString(), title: values.title, content: '' }
+  const addWorldDoc = () => {
+    if (!worldTitle.trim()) {
+      message.warning('请填写设定名称')
+      return
+    }
+    const doc: WorldDoc = { id: Date.now().toString(), title: worldTitle.trim(), content: '' }
     update((prev) => ({ ...prev, worldDocs: [...prev.worldDocs, doc] }))
     setSelectedWorldId(doc.id)
     setWorldModalVisible(false)
-    worldForm.resetFields()
+    setWorldTitle('')
   }
 
   const removeWorldDoc = (id: string) => {
@@ -339,48 +383,53 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   /* ---------- 灵感操作 ---------- */
 
-  const handleAddNote = async (values: any) => {
+  const handleAddNote = () => {
+    if (!noteForm.content.trim()) {
+      message.warning('写点什么...')
+      return
+    }
     const note: Note = {
       id: Date.now().toString(),
-      content: values.content,
-      tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+      content: noteForm.content,
+      tags: noteForm.tags.split(',').map((t) => t.trim()).filter(Boolean),
       createdAt: new Date().toISOString(),
     }
     update((prev) => ({ ...prev, notes: [note, ...(prev.notes || [])] }))
     setNoteModalVisible(false)
-    noteForm.resetFields()
+    setNoteForm({ content: '', tags: '' })
     message.success('灵感已记录')
   }
 
   const removeNote = (id: string) =>
     update((prev) => ({ ...prev, notes: (prev.notes || []).filter((n) => n.id !== id) }))
 
+  /* ---------- 删除统一确认 ---------- */
+
+  const askDelete = (t: DelTarget) => setDelTarget(t)
+
+  const doDelete = () => {
+    if (!delTarget) return
+    if (delTarget.kind === 'chapter') removeChapter(delTarget.id)
+    if (delTarget.kind === 'character') removeCharacter(delTarget.id)
+    if (delTarget.kind === 'world') removeWorldDoc(delTarget.id)
+    if (delTarget.kind === 'note') removeNote(delTarget.id)
+  }
+
   /* ---------- 渲染 ---------- */
 
   const statusButtons = (ch: Chapter) => (
     <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-      <Button
-        size="small"
-        type={ch.status === 'draft' ? 'primary' : 'default'}
-        onClick={() => patchChapter(ch.id, { status: 'draft' })}
-      >
-        草稿
-      </Button>
-      <Button
-        size="small"
-        type={ch.status === 'writing' ? 'primary' : 'default'}
-        onClick={() => patchChapter(ch.id, { status: 'writing' })}
-      >
-        写作中
-      </Button>
-      <Button
-        size="small"
-        type={ch.status === 'done' ? 'primary' : 'default'}
-        style={ch.status === 'done' ? { background: '#52c41a', borderColor: '#52c41a' } : undefined}
-        onClick={() => patchChapter(ch.id, { status: 'done' })}
-      >
-        已完成
-      </Button>
+      {(['draft', 'writing', 'done'] as const).map((s) => (
+        <Button
+          key={s}
+          size="sm"
+          variant={ch.status === s ? 'default' : 'outline'}
+          className={ch.status === s && s === 'done' ? 'bg-[#00b42a] hover:bg-[#00b42a]' : ''}
+          onClick={() => patchChapter(ch.id, { status: s })}
+        >
+          {STATUS_META[s].label}
+        </Button>
+      ))}
     </div>
   )
 
@@ -395,7 +444,9 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 600 }}>章节</span>
-            <Button type="text" size="small" icon={<PlusOutlined />} onClick={addChapter} title="新建章节" />
+            <Button variant="ghost" size="sm" onClick={addChapter} title="新建章节">
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
           {chapters.map((ch, i) => (
             <div
@@ -404,44 +455,51 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               style={{
                 padding: '8px 10px',
                 cursor: 'pointer',
-                borderRadius: 6,
+                borderRadius: 8,
                 marginBottom: 4,
-                background: selectedChapterId === ch.id ? '#e6f4ff' : 'transparent',
-                borderLeft: selectedChapterId === ch.id ? '3px solid #1677ff' : '3px solid transparent',
+                background: selectedChapterId === ch.id ? '#fff3e8' : 'transparent',
+                borderLeft: selectedChapterId === ch.id ? '3px solid #ff6700' : '3px solid transparent',
                 fontSize: 13,
                 position: 'relative',
               }}
             >
               <div style={{ fontWeight: 500, paddingRight: 40 }}>{ch.title}</div>
-              <div style={{ fontSize: 11, color: '#999', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Tag
-                  color={ch.status === 'done' ? 'green' : ch.status === 'writing' ? 'blue' : 'default'}
-                  style={{ fontSize: 10, lineHeight: '16px', margin: 0 }}
-                >
-                  {ch.status === 'done' ? '已完成' : ch.status === 'writing' ? '写作中' : '草稿'}
-                </Tag>
-                {countWords(ch.content || '')} 字
+              <div style={{ fontSize: 11, color: '#86909C', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <i
+                  style={{
+                    display: 'inline-block',
+                    width: 5,
+                    height: 5,
+                    borderRadius: '50%',
+                    background: STATUS_META[ch.status].dot,
+                    boxShadow: `0 0 0 3px ${STATUS_META[ch.status].dot}22`,
+                  }}
+                />
+                {STATUS_META[ch.status].label}
+                <span>· {countWords(ch.content || '')} 字</span>
               </div>
               <span
                 style={{ position: 'absolute', right: 4, top: 6, display: 'flex', flexDirection: 'column', gap: 0 }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <Button
-                  type="text"
-                  size="small"
-                  icon={<ArrowUpOutlined />}
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-5 min-w-0 p-0"
                   disabled={i === 0}
                   onClick={() => moveChapter(ch.id, -1)}
-                  style={{ height: 16, width: 20, minWidth: 0, fontSize: 10 }}
-                />
+                >
+                  <ArrowUp className="h-3 w-3" />
+                </Button>
                 <Button
-                  type="text"
-                  size="small"
-                  icon={<ArrowDownOutlined />}
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-5 min-w-0 p-0"
                   disabled={i === chapters.length - 1}
                   onClick={() => moveChapter(ch.id, 1)}
-                  style={{ height: 16, width: 20, minWidth: 0, fontSize: 10 }}
-                />
+                >
+                  <ArrowDown className="h-3 w-3" />
+                </Button>
               </span>
             </div>
           ))}
@@ -456,12 +514,19 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                   value={selectedChapter.title}
                   onChange={(e) => patchChapter(selectedChapter.id, { title: e.target.value })}
                   style={{ fontWeight: 600 }}
+                  className="h-8"
                 />
-                <Popconfirm title="确定删除这个章节？" okText="删除" okButtonProps={{ danger: true }} cancelText="取消" onConfirm={() => removeChapter(selectedChapter.id)}>
-                  <Button size="small" danger icon={<DeleteOutlined />} title="删除章节" />
-                </Popconfirm>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[#F53F3F] shrink-0"
+                  title="删除章节"
+                  onClick={() => askDelete({ kind: 'chapter', id: selectedChapter.id, name: selectedChapter.title })}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
-              <Input.TextArea
+              <Textarea
                 value={selectedChapter.content}
                 onChange={(e) =>
                   patchChapter(selectedChapter.id, {
@@ -470,20 +535,18 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                   })
                 }
                 placeholder="开始写作..."
-                style={{ fontSize: 14, lineHeight: 1.9 }}
-                autoSize={{ minRows: 16 }}
+                style={{ fontSize: 14, lineHeight: 1.9, minHeight: 320 }}
               />
               <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 {statusButtons(selectedChapter)}
                 <span style={{ flex: 1 }} />
-                <span style={{ fontSize: 12, color: '#666' }}>
+                <span style={{ fontSize: 12, color: '#4E5969' }}>
                   本章 {countWords(selectedChapter.content || '')} 字
                   {selectedChapter.target ? ` / 目标 ${selectedChapter.target}` : ''}
                 </span>
                 <Input
                   type="number"
-                  size="small"
-                  style={{ width: 90 }}
+                  className="h-8 w-[90px]"
                   placeholder="目标字数"
                   value={selectedChapter.target ?? ''}
                   onChange={(e) =>
@@ -492,16 +555,22 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                 />
               </div>
               {selectedChapter.target ? (
-                <Progress
-                  size="small"
-                  style={{ marginTop: 6 }}
-                  percent={Math.min(100, Math.round((countWords(selectedChapter.content || '') / selectedChapter.target) * 100))}
-                  status={countWords(selectedChapter.content || '') >= selectedChapter.target ? 'success' : 'active'}
-                />
+                <div style={{ marginTop: 6, height: 4, borderRadius: 2, background: '#f2f3f5', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${Math.min(100, Math.round((countWords(selectedChapter.content || '') / selectedChapter.target) * 100))}%`,
+                      background:
+                        countWords(selectedChapter.content || '') >= selectedChapter.target ? '#00b42a' : '#ff6700',
+                      borderRadius: 2,
+                      transition: 'width 0.2s ease',
+                    }}
+                  />
+                </div>
               ) : null}
             </div>
           ) : (
-            <Empty description="选择一个章节开始写作" />
+            <div className="mod-empty" style={{ padding: '48px 16px' }}>选择一个章节开始写作</div>
           )}
         </div>
       }
@@ -521,16 +590,9 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 600 }}>人物</span>
-            <Button
-              type="text"
-              size="small"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setEditingChar(null)
-                charForm.resetFields()
-                setCharModalVisible(true)
-              }}
-            />
+            <Button variant="ghost" size="sm" onClick={openAddCharacter} title="添加人物">
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
           {data.characters.map((char) => (
             <div
@@ -539,16 +601,17 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               style={{
                 padding: '8px 10px',
                 cursor: 'pointer',
-                borderRadius: 6,
+                borderRadius: 8,
                 marginBottom: 4,
-                background: selectedCharacterId === char.id ? '#e6f4ff' : 'transparent',
+                background: selectedCharacterId === char.id ? '#fff3e8' : 'transparent',
+                borderLeft: selectedCharacterId === char.id ? '3px solid #ff6700' : '3px solid transparent',
                 fontSize: 13,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
               }}
             >
-              <UserOutlined style={{ color: '#1677ff' }} />
+              <span style={{ color: '#ff6700' }}>👤</span>
               <span>{char.name}</span>
             </div>
           ))}
@@ -559,67 +622,83 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           {selectedCharacter ? (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <h3 style={{ margin: 0 }}>{selectedCharacter.name}</h3>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{selectedCharacter.name}</h3>
                 <span style={{ flex: 1 }} />
-                <Button size="small" icon={<EditOutlined />} onClick={() => openEditCharacter(selectedCharacter)}>
+                <Button size="sm" variant="outline" onClick={() => openEditCharacter(selectedCharacter)}>
+                  <Pencil className="h-3.5 w-3.5" />
                   编辑资料
                 </Button>
-                <Popconfirm title="确定删除这个人物？" okText="删除" okButtonProps={{ danger: true }} cancelText="取消" onConfirm={() => removeCharacter(selectedCharacter.id)}>
-                  <Button size="small" danger icon={<DeleteOutlined />} />
-                </Popconfirm>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-[#F53F3F]"
+                  onClick={() => askDelete({ kind: 'character', id: selectedCharacter.id, name: selectedCharacter.name })}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
-              <Card size="small" style={{ marginBottom: 12 }}>
-                {selectedCharacter.age && <p><strong>年龄：</strong>{selectedCharacter.age}</p>}
-                {selectedCharacter.personality && <p><strong>性格：</strong>{selectedCharacter.personality}</p>}
-                {selectedCharacter.background && <p><strong>背景：</strong>{selectedCharacter.background}</p>}
-                {selectedCharacter.notes && <p><strong>备注：</strong>{selectedCharacter.notes}</p>}
+              <div
+                style={{
+                  marginBottom: 12,
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  border: '1px solid #f0f0f0',
+                  background: '#fff',
+                  fontSize: 13,
+                  lineHeight: 1.8,
+                }}
+              >
+                {selectedCharacter.age && <p style={{ margin: 0 }}><strong>年龄：</strong>{selectedCharacter.age}</p>}
+                {selectedCharacter.personality && <p style={{ margin: 0 }}><strong>性格：</strong>{selectedCharacter.personality}</p>}
+                {selectedCharacter.background && <p style={{ margin: 0 }}><strong>背景：</strong>{selectedCharacter.background}</p>}
+                {selectedCharacter.notes && <p style={{ margin: 0 }}><strong>备注：</strong>{selectedCharacter.notes}</p>}
                 {!selectedCharacter.age && !selectedCharacter.personality && !selectedCharacter.background && !selectedCharacter.notes && (
-                  <span style={{ color: '#999', fontSize: 12 }}>还没有资料，点「编辑资料」补充</span>
+                  <span style={{ color: '#86909C', fontSize: 12 }}>还没有资料，点「编辑资料」补充</span>
                 )}
-              </Card>
+              </div>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>人物关系</div>
               {(selectedCharacter.relationships || []).length > 0 && (
-                <div style={{ marginBottom: 8 }}>
+                <div style={{ marginBottom: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {selectedCharacter.relationships.map((r, i) => (
-                    <Tag
+                    <Badge
                       key={i}
-                      closable
-                      onClose={(e) => {
-                        e.preventDefault()
-                        removeRelationship(i)
-                      }}
-                      color="blue"
-                      style={{ fontSize: 12, marginBottom: 4 }}
+                      variant="outline"
+                      className="cursor-pointer text-[#ff6700]"
+                      onClick={() => removeRelationship(i)}
+                      title="点击移除关系"
                     >
-                      {charName(r.targetId)} · {r.relation}
-                    </Tag>
+                      {charName(r.targetId)} · {r.relation} ×
+                    </Badge>
                   ))}
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 6 }}>
-                <Select
-                  size="small"
-                  placeholder="选择人物"
-                  style={{ width: 130 }}
-                  value={relTarget}
-                  onChange={setRelTarget}
-                  options={data.characters
-                    .filter((c) => c.id !== selectedCharacter.id)
-                    .map((c) => ({ value: c.id, label: c.name }))}
-                />
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <Select value={relTarget} onValueChange={setRelTarget}>
+                  <SelectTrigger className="h-8 w-[130px]">
+                    <SelectValue placeholder="选择人物" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {data.characters
+                      .filter((c) => c.id !== selectedCharacter.id)
+                      .map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
                 <Input
-                  size="small"
+                  className="h-8 w-[150px]"
                   placeholder="关系，如：师徒/宿敌"
-                  style={{ width: 150 }}
                   value={relLabel}
                   onChange={(e) => setRelLabel(e.target.value)}
-                  onPressEnter={addRelationship}
+                  onKeyDown={(e) => e.key === 'Enter' && addRelationship()}
                 />
-                <Button size="small" onClick={addRelationship}>添加关系</Button>
+                <Button size="sm" variant="outline" onClick={addRelationship}>添加关系</Button>
               </div>
             </div>
           ) : (
-            <Empty description="选择一个人物查看" />
+            <div className="mod-empty" style={{ padding: '48px 16px' }}>选择一个人物查看</div>
           )}
         </div>
       }
@@ -637,7 +716,17 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 600 }}>世界观设定</span>
-            <Button type="text" size="small" icon={<PlusOutlined />} onClick={() => setWorldModalVisible(true)} />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setWorldTitle('')
+                setWorldModalVisible(true)
+              }}
+              title="新建设定"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
           {data.worldDocs.map((w) => (
             <div
@@ -646,9 +735,10 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               style={{
                 padding: '8px 10px',
                 cursor: 'pointer',
-                borderRadius: 6,
+                borderRadius: 8,
                 marginBottom: 4,
-                background: selectedWorldId === w.id ? '#e6f4ff' : 'transparent',
+                background: selectedWorldId === w.id ? '#fff3e8' : 'transparent',
+                borderLeft: selectedWorldId === w.id ? '3px solid #ff6700' : '3px solid transparent',
                 fontSize: 13,
               }}
             >
@@ -656,7 +746,7 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             </div>
           ))}
           {data.worldDocs.length === 0 && (
-            <div style={{ fontSize: 12, color: '#bbb', padding: '8px 10px' }}>
+            <div style={{ fontSize: 12, color: '#86909C', padding: '8px 10px' }}>
               地点、势力、功法、年表…都可以放这里
             </div>
           )}
@@ -676,12 +766,18 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     }))
                   }
                   style={{ fontWeight: 600 }}
+                  className="h-8"
                 />
-                <Popconfirm title="确定删除这条设定？" okText="删除" okButtonProps={{ danger: true }} cancelText="取消" onConfirm={() => removeWorldDoc(selectedWorld.id)}>
-                  <Button size="small" danger icon={<DeleteOutlined />} />
-                </Popconfirm>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[#F53F3F] shrink-0"
+                  onClick={() => askDelete({ kind: 'world', id: selectedWorld.id, name: selectedWorld.title })}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
-              <Input.TextArea
+              <Textarea
                 value={selectedWorld.content}
                 onChange={(e) =>
                   update((prev) => ({
@@ -690,12 +786,11 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                   }))
                 }
                 placeholder="自由填写设定内容…"
-                style={{ fontSize: 13, lineHeight: 1.8 }}
-                autoSize={{ minRows: 16 }}
+                style={{ fontSize: 13, lineHeight: 1.8, minHeight: 320 }}
               />
             </div>
           ) : (
-            <Empty description="选择一条设定查看；用「＋」新建" />
+            <div className="mod-empty" style={{ padding: '48px 16px' }}>选择一条设定查看；用「＋」新建</div>
           )}
         </div>
       }
@@ -706,48 +801,52 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     <div style={{ maxWidth: 760 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <span style={{ fontSize: 13, fontWeight: 600 }}>灵感速记</span>
-        <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setNoteModalVisible(true)}>
+        <Button size="sm" onClick={() => setNoteModalVisible(true)}>
+          <Plus className="h-4 w-4" />
           新速记
         </Button>
       </div>
       {(data.notes || []).length > 0 ? (
         data.notes.map((note) => (
-          <Card key={note.id} size="small" style={{ marginBottom: 8 }}>
-            <p style={{ margin: 0, fontSize: 13, paddingRight: 24 }}>{note.content}</p>
-            <div style={{ marginTop: 8, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div
+            key={note.id}
+            style={{
+              marginBottom: 8,
+              padding: '10px 14px',
+              borderRadius: 8,
+              border: '1px solid #f0f0f0',
+              background: '#fff',
+              position: 'relative',
+            }}
+          >
+            <p style={{ margin: 0, fontSize: 13, paddingRight: 24, lineHeight: 1.6 }}>{note.content}</p>
+            <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
               {note.tags.map((tag) => (
-                <Tag key={tag} color="blue">{tag}</Tag>
+                <Badge key={tag} variant="outline" className="text-[#ff6700]">{tag}</Badge>
               ))}
-              <span style={{ fontSize: 11, color: '#999', marginLeft: 'auto' }}>
+              <span style={{ fontSize: 11, color: '#86909C', marginLeft: 'auto' }}>
                 {new Date(note.createdAt).toLocaleString()}
               </span>
-              <Popconfirm title="删除这条灵感？" okText="删除" okButtonProps={{ danger: true }} cancelText="取消" onConfirm={() => removeNote(note.id)}>
-                <Button type="text" size="small" danger icon={<DeleteOutlined />} style={{ height: 20, width: 20, minWidth: 0 }} />
-              </Popconfirm>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-[#F53F3F]"
+                onClick={() => askDelete({ kind: 'note', id: note.id, name: '这条灵感' })}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
-          </Card>
+          </div>
         ))
       ) : (
-        <Empty description="还没有灵感记录" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        <div className="mod-empty" style={{ padding: '48px 16px' }}>还没有灵感记录</div>
       )}
     </div>
   )
 
-  const headerActions = actionsHost
-    ? createPortal(
-        <div className="novel-header-actions">
-          <Button size="small" icon={<DownloadOutlined />} onClick={() => window.open('/api/novel/export')}>
-            导出全本
-          </Button>
-        </div>,
-        actionsHost
-      )
-    : null
-
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {headerActions}
-      {/* 写作统计条（对标 novelWriter 的 Writing Targets） */}
+      {/* 写作统计条（对标 novelWriter 的 Writing Targets）+ 导出 */}
       <div
         style={{
           display: 'flex',
@@ -756,110 +855,195 @@ const NovelModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           padding: '6px 12px',
           borderBottom: '1px solid #f0f0f0',
           fontSize: 12,
-          color: '#555',
+          color: '#4E5969',
           flexWrap: 'wrap',
         }}
       >
         <span>📖 写作统计</span>
-        <span>总字数 <strong style={{ color: '#1677ff' }}>{totalWords}</strong></span>
-        <span>今日 <strong style={{ color: '#52c41a' }}>+{todayWords}</strong></span>
-        <span>章节完成 <strong>{doneCount}</strong>/{chapters.length}</span>
+        <span>
+          总字数 <strong style={{ color: '#ff6700', fontVariantNumeric: 'tabular-nums' }}>{totalWords}</strong>
+        </span>
+        <span>
+          今日 <strong style={{ color: '#00b42a', fontVariantNumeric: 'tabular-nums' }}>+{todayWords}</strong>
+        </span>
+        <span>
+          章节完成 <strong style={{ fontVariantNumeric: 'tabular-nums' }}>{doneCount}</strong>/{chapters.length}
+        </span>
         <span style={{ flex: 1 }} />
         {saveState === 'saved' ? (
-          <Tag color="success" style={{ margin: 0 }}><CheckCircleFilled /> 已自动保存</Tag>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#00b42a' }}>
+            <Check className="h-3.5 w-3.5" /> 已自动保存
+          </span>
         ) : saveState === 'saving' ? (
-          <Tag color="processing" style={{ margin: 0 }}><LoadingOutlined /> 保存中…</Tag>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#ff6700' }}>
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> 保存中…
+          </span>
         ) : (
-          <Tag color="warning" style={{ margin: 0 }}>待保存…</Tag>
+          <span style={{ color: '#ff7d00' }}>待保存…</span>
         )}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => window.open('/api/novel/export')}
+          title="导出全本"
+        >
+          <Download className="h-4 w-4" />
+          导出
+        </Button>
       </div>
 
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        size="small"
-        style={{ flex: 1, minHeight: 0 }}
-        items={[
-          { key: 'outline', label: <span>📖 大纲</span>, children: renderOutline() },
-          { key: 'characters', label: <span>👤 人物</span>, children: renderCharacters() },
-          { key: 'world', label: <span>🌍 世界观</span>, children: renderWorld() },
-          { key: 'notes', label: <span>💡 灵感</span>, children: renderNotes() },
-        ]}
-      />
+      <Tabs value={activeTab} onValueChange={setActiveTab} style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <TabsList>
+          <TabsTrigger value="outline" className="h-8 px-3">📖 大纲</TabsTrigger>
+          <TabsTrigger value="characters" className="h-8 px-3">👤 人物</TabsTrigger>
+          <TabsTrigger value="world" className="h-8 px-3">🌍 世界观</TabsTrigger>
+          <TabsTrigger value="notes" className="h-8 px-3">💡 灵感</TabsTrigger>
+        </TabsList>
+        <div style={{ flex: 1, minHeight: 0, paddingTop: 8, overflow: 'auto' }}>
+          {activeTab === 'outline' && renderOutline()}
+          {activeTab === 'characters' && renderCharacters()}
+          {activeTab === 'world' && renderWorld()}
+          {activeTab === 'notes' && renderNotes()}
+        </div>
+      </Tabs>
 
       {/* 灵感速记弹窗 */}
-      <Modal
-        title="💡 灵感速记"
-        open={noteModalVisible}
-        onCancel={() => setNoteModalVisible(false)}
-        footer={null}
-        width={400}
-      >
-        <Form form={noteForm} onFinish={handleAddNote} layout="vertical">
-          <Form.Item name="content" rules={[{ required: true, message: '写点什么...' }]}>
-            <Input.TextArea placeholder="记录你的灵感..." autoSize={{ minRows: 3 }} />
-          </Form.Item>
-          <Form.Item name="tags" help="用逗号分隔多个标签">
-            <Input placeholder="标签（可选）：角色, 情节, 对话" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>保存灵感</Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+      <Dialog open={noteModalVisible} onOpenChange={(o) => !o && setNoteModalVisible(false)}>
+        <DialogContent className="max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>💡 灵感速记</DialogTitle>
+          </DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '4px 0' }}>
+            <Textarea
+              placeholder="记录你的灵感..."
+              value={noteForm.content}
+              onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
+              style={{ minHeight: 90 }}
+            />
+            <Input
+              placeholder="标签（可选）：角色, 情节, 对话"
+              value={noteForm.tags}
+              onChange={(e) => setNoteForm({ ...noteForm, tags: e.target.value })}
+              className="h-8"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNoteModalVisible(false)}>
+              取消
+            </Button>
+            <Button onClick={handleAddNote}>保存灵感</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 添加/编辑人物弹窗 */}
-      <Modal
-        title={editingChar ? `✏️ 编辑人物：${editingChar.name}` : '👤 添加人物'}
-        open={charModalVisible}
-        onOk={handleCharModalOk}
-        onCancel={() => {
-          setCharModalVisible(false)
-          setEditingChar(null)
-          charForm.resetFields()
-        }}
-        okText={editingChar ? '保存' : '添加人物'}
-        cancelText="取消"
-        width={500}
-      >
-        <Form form={charForm} layout="vertical">
-          <Form.Item name="name" label="姓名" rules={[{ required: true }]}>
-            <Input placeholder="人物姓名" />
-          </Form.Item>
-          <Form.Item name="age" label="年龄">
-            <Input placeholder="年龄" />
-          </Form.Item>
-          <Form.Item name="personality" label="性格">
-            <Input.TextArea placeholder="性格特点" autoSize={{ minRows: 2 }} />
-          </Form.Item>
-          <Form.Item name="background" label="背景">
-            <Input.TextArea placeholder="人物背景故事" autoSize={{ minRows: 2 }} />
-          </Form.Item>
-          <Form.Item name="notes" label="备注">
-            <Input.TextArea placeholder="其他备注" autoSize={{ minRows: 2 }} />
-          </Form.Item>
-        </Form>
-      </Modal>
+      <Dialog open={charModalVisible} onOpenChange={(o) => !o && setCharModalVisible(false)}>
+        <DialogContent className="max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editingChar ? `✏️ 编辑人物：${editingChar.name}` : '👤 添加人物'}</DialogTitle>
+          </DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '4px 0' }}>
+            <div>
+              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>姓名 *</div>
+              <Input
+                placeholder="人物姓名"
+                value={charForm.name}
+                onChange={(e) => setCharForm({ ...charForm, name: e.target.value })}
+                className="h-8"
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>年龄</div>
+              <Input
+                placeholder="年龄"
+                value={charForm.age}
+                onChange={(e) => setCharForm({ ...charForm, age: e.target.value })}
+                className="h-8"
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>性格</div>
+              <Textarea
+                placeholder="性格特点"
+                value={charForm.personality}
+                onChange={(e) => setCharForm({ ...charForm, personality: e.target.value })}
+                style={{ minHeight: 56 }}
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>背景</div>
+              <Textarea
+                placeholder="人物背景故事"
+                value={charForm.background}
+                onChange={(e) => setCharForm({ ...charForm, background: e.target.value })}
+                style={{ minHeight: 56 }}
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>备注</div>
+              <Textarea
+                placeholder="其他备注"
+                value={charForm.notes}
+                onChange={(e) => setCharForm({ ...charForm, notes: e.target.value })}
+                style={{ minHeight: 56 }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCharModalVisible(false)
+                setEditingChar(null)
+              }}
+            >
+              取消
+            </Button>
+            <Button onClick={handleCharModalOk}>{editingChar ? '保存' : '添加人物'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 新建世界观设定弹窗 */}
-      <Modal
-        title="🌍 新建设定"
-        open={worldModalVisible}
-        onOk={addWorldDoc}
-        onCancel={() => {
-          setWorldModalVisible(false)
-          worldForm.resetFields()
-        }}
-        okText="创建"
-        cancelText="取消"
-        width={400}
-      >
-        <Form form={worldForm} layout="vertical">
-          <Form.Item name="title" label="设定名称" rules={[{ required: true, message: '例如：青云宗 / 大梁王朝 / 修炼体系' }]}>
-            <Input placeholder="如：青云宗、修炼体系、世界地图" />
-          </Form.Item>
-        </Form>
-      </Modal>
+      <Dialog open={worldModalVisible} onOpenChange={(o) => !o && setWorldModalVisible(false)}>
+        <DialogContent className="max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>🌍 新建设定</DialogTitle>
+          </DialogHeader>
+          <div style={{ padding: '4px 0' }}>
+            <Input
+              placeholder="如：青云宗、修炼体系、世界地图"
+              value={worldTitle}
+              onChange={(e) => setWorldTitle(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addWorldDoc()}
+              autoFocus
+              className="h-8"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWorldModalVisible(false)}>
+              取消
+            </Button>
+            <Button onClick={addWorldDoc}>创建</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 删除二次确认（通用 ConfirmDialog） */}
+      <ConfirmDialog
+        open={!!delTarget}
+        content={
+          delTarget
+            ? delTarget.kind === 'note'
+              ? '删除这条灵感？'
+              : `删除${delTarget.kind === 'character' ? '人物' : delTarget.kind === 'world' ? '设定' : '章节'}「${delTarget.name}」？`
+            : null
+        }
+        okText="删除"
+        danger
+        onOk={doDelete}
+        onOpenChange={(o) => !o && setDelTarget(null)}
+      />
     </div>
   )
 }
