@@ -6,7 +6,7 @@
 
 Electron · React · Ant Design · 本地优先 · 免密钥开箱即用
 
-[English](#english) | [简体中文](#简体中文)
+[English](#english) | [简体中文](#简体中文) | [设计规范](docs/DESIGN-SPEC.md)
 
 ![首页 · 全部模块平铺](docs/screenshots/home.png)
 
