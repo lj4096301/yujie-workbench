@@ -58,13 +58,13 @@ const STATUS_ORDER: Status[] = ['todo', 'doing', 'done']
 const STATUS_META: Record<Status, { label: string; color: string }> = {
   todo: { label: '待推进', color: 'default' },
   doing: { label: '进行中', color: 'processing' },
-  done: { label: '已完成', color: 'success' },
+  done: { label: '待完成', color: 'processing' },
 }
 
 const DOT_COLOR: Record<Status, string> = {
   todo: '#8f959e',
   doing: '#3370ff',
-  done: '#00b42a',
+  done: '#3370ff',
 }
 
 const PRIORITY_META: Record<'low' | 'mid' | 'high', { label: string; color: string }> = {
@@ -179,25 +179,24 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     if (!id) return
     const card = state.cards.find((c) => c.id === id)
     if (!card || card.status === status) return
-    const apply = () => {
+    // 完成操作需要确认；完成 = 标记为已完成并从看板移除（归档）
+    if (status === 'done') {
+      Modal.confirm({
+        title: '确认已完成？',
+        content: `「${card.title}」将标记为已完成并从看板移除，归档到操作记录页。`,
+        okText: '已完成',
+        cancelText: '取消',
+        onOk: () => {
+          const cards = state.cards.filter((c) => c.id !== id)
+          const records = [makeRecord('done', card), ...state.records]
+          persist({ ...state, cards, records })
+        },
+      })
+    } else {
       const cards = state.cards.map((c) =>
         c.id === id ? { ...c, status, updatedAt: Date.now() } : c
       )
-      const records =
-        status === 'done' ? [makeRecord('done', card), ...state.records] : state.records
-      persist({ ...state, cards, records })
-    }
-    // 完成操作需要确认，确认后归档到记录页
-    if (status === 'done') {
-      Modal.confirm({
-        title: '确认完成这张卡片？',
-        content: `「${card.title}」将标记为已完成，并归档到操作记录页。`,
-        okText: '确认完成',
-        cancelText: '取消',
-        onOk: apply,
-      })
-    } else {
-      apply()
+      persist({ ...state, cards, records: state.records })
     }
   }
 
@@ -229,28 +228,19 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     const card = state.cards.find((c) => c.id === id)
     if (!card) return
     if (zone === 'done') {
-      if (card.status === 'done') {
-        message.info('该卡片已经是已完成状态')
-        return
-      }
+      // 完成 = 标记为已完成并从看板移除（归档）
       Modal.confirm({
-        title: '确认完成这张卡片？',
-        content: `「${card.title}」将标记为已完成，并归档到操作记录页。`,
-        okText: '确认完成',
+        title: '确认已完成？',
+        content: `「${card.title}」将标记为已完成并从看板移除，归档到操作记录页。`,
+        okText: '已完成',
         cancelText: '取消',
         onOk: () => {
-          const cards = state.cards.map((c) =>
-            c.id === id ? { ...c, status: 'done' as Status, updatedAt: Date.now() } : c
-          )
+          const cards = state.cards.filter((c) => c.id !== id)
           const records = [makeRecord('done', card), ...state.records]
           persist({ ...state, cards, records })
         },
       })
     } else {
-      if (card.status === 'done') {
-        message.warning('已完成卡片如需删除，请使用卡片上的删除按钮')
-        return
-      }
       Modal.confirm({
         title: '确认删除这张卡片？',
         content: `「${card.title}」将被删除，并归档到操作记录页。`,
@@ -436,7 +426,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                           onDragLeave={(e) => onZoneDragLeave(e, 'noop')}
                           onDrop={(e) => onZoneDrop(e, 'noop')}
                         >
-                          <div className="kb-zone-head">已完成卡片</div>
+                          <div className="kb-zone-head">待完成卡片</div>
 {colCards.map((card) => (
                       <div
                         key={card.id}
@@ -490,7 +480,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                           onDragLeave={(e) => onZoneDragLeave(e, 'done')}
                           onDrop={(e) => onZoneDrop(e, 'done')}
                         >
-                          <div className="kb-zone-head">拖入此处 → 标记完成</div>
+                          <div className="kb-zone-head">拖入此处 → 已完成（移出看板）</div>
                         </div>
                         {/* 删除投放区：拖入 → 二次确认删除 */}
                         <div
