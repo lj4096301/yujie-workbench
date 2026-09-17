@@ -92,6 +92,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [loading, setLoading] = useState(true)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [overCol, setOverCol] = useState<Status | null>(null)
+  const [overZone, setOverZone] = useState<'noop' | 'done' | 'del' | null>(null)
   const [editVisible, setEditVisible] = useState(false)
   const [editCard, setEditCard] = useState<KanbanCard | null>(null)
   const [editStatus, setEditStatus] = useState<Status>('todo')
@@ -143,6 +144,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const onCardDragEnd = () => {
     setDraggingId(null)
     setOverCol(null)
+    setOverZone(null)
   }
 
   const onColDragOver = (e: React.DragEvent<HTMLDivElement>, status: Status) => {
@@ -196,6 +198,71 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       })
     } else {
       apply()
+    }
+  }
+
+  /* ---------------- 已完成列三区投放 ---------------- */
+  const onZoneDragOver = (e: React.DragEvent<HTMLDivElement>, zone: 'noop' | 'done' | 'del') => {
+    if (!draggingId) return
+    e.preventDefault()
+    e.stopPropagation()
+    e.dataTransfer.dropEffect = 'move'
+    if (overZone !== zone) setOverZone(zone)
+  }
+
+  const onZoneDragLeave = (e: React.DragEvent<HTMLDivElement>, zone: 'noop' | 'done' | 'del') => {
+    const target = e.relatedTarget as Node | null
+    if (!target || !e.currentTarget.contains(target)) {
+      if (overZone === zone) setOverZone(null)
+    }
+  }
+
+  const onZoneDrop = (e: React.DragEvent<HTMLDivElement>, zone: 'noop' | 'done' | 'del') => {
+    e.preventDefault()
+    e.stopPropagation()
+    const id = e.dataTransfer.getData('text/plain') || draggingId
+    setOverCol(null)
+    setOverZone(null)
+    setDraggingId(null)
+    if (!id) return
+    if (zone === 'noop') return // 无操作区：不执行任何操作
+    const card = state.cards.find((c) => c.id === id)
+    if (!card) return
+    if (zone === 'done') {
+      if (card.status === 'done') {
+        message.info('该卡片已经是已完成状态')
+        return
+      }
+      Modal.confirm({
+        title: '确认完成这张卡片？',
+        content: `「${card.title}」将标记为已完成，并归档到操作记录页。`,
+        okText: '确认完成',
+        cancelText: '取消',
+        onOk: () => {
+          const cards = state.cards.map((c) =>
+            c.id === id ? { ...c, status: 'done' as Status, updatedAt: Date.now() } : c
+          )
+          const records = [makeRecord('done', card), ...state.records]
+          persist({ ...state, cards, records })
+        },
+      })
+    } else {
+      if (card.status === 'done') {
+        message.warning('已完成卡片如需删除，请使用卡片上的删除按钮')
+        return
+      }
+      Modal.confirm({
+        title: '确认删除这张卡片？',
+        content: `「${card.title}」将被删除，并归档到操作记录页。`,
+        okText: '确认删除',
+        cancelText: '取消',
+        okButtonProps: { danger: true },
+        onOk: () => {
+          const cards = state.cards.filter((c) => c.id !== id)
+          const records = [makeRecord('deleted', card), ...state.records]
+          persist({ ...state, cards, records })
+        },
+      })
     }
   }
 
@@ -359,8 +426,18 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     <span>{STATUS_META[status].label}</span>
                     <span className="kb-count">{colCards.length}</span>
                   </div>
-                  <div className="kb-col-body">
-                    {colCards.map((card) => (
+                                    <div className={`kb-col-body${status === 'done' ? ' kb-done-body' : ''}`}>
+                    {status === 'done' ? (
+                      <>
+                        {/* 无操作区：已完成卡片列表，拖入不执行操作 */}
+                        <div
+                          className={`kb-zone kb-zone-noop${overZone === 'noop' ? ' drag-over' : ''}`}
+                          onDragOver={(e) => onZoneDragOver(e, 'noop')}
+                          onDragLeave={(e) => onZoneDragLeave(e, 'noop')}
+                          onDrop={(e) => onZoneDrop(e, 'noop')}
+                        >
+                          <div className="kb-zone-head">已完成卡片</div>
+{colCards.map((card) => (
                       <div
                         key={card.id}
                         className={`kb-card${draggingId === card.id ? ' dragging' : ''}`}
@@ -394,6 +471,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                         </div>
                       </div>
                     ))}
+
                     {colCards.length === 0 ? (
                       <div className="kb-empty" onClick={() => openCreate(status)}>
                         + 添加卡片
@@ -402,6 +480,76 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                       <Button type="dashed" block size="small" icon={<PlusOutlined />} onClick={() => openCreate(status)}>
                         添加
                       </Button>
+                    )}
+
+                        </div>
+                        {/* 已完成投放区：拖入 → 二次确认标记完成 */}
+                        <div
+                          className={`kb-zone kb-zone-done${overZone === 'done' ? ' drag-over' : ''}`}
+                          onDragOver={(e) => onZoneDragOver(e, 'done')}
+                          onDragLeave={(e) => onZoneDragLeave(e, 'done')}
+                          onDrop={(e) => onZoneDrop(e, 'done')}
+                        >
+                          <div className="kb-zone-head">拖入此处 → 标记完成</div>
+                        </div>
+                        {/* 删除投放区：拖入 → 二次确认删除 */}
+                        <div
+                          className={`kb-zone kb-zone-del${overZone === 'del' ? ' drag-over' : ''}`}
+                          onDragOver={(e) => onZoneDragOver(e, 'del')}
+                          onDragLeave={(e) => onZoneDragLeave(e, 'del')}
+                          onDrop={(e) => onZoneDrop(e, 'del')}
+                        >
+                          <div className="kb-zone-head">拖入此处 → 删除卡片</div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+{colCards.map((card) => (
+                      <div
+                        key={card.id}
+                        className={`kb-card${draggingId === card.id ? ' dragging' : ''}`}
+                        draggable
+                        onDragStart={(e) => onCardDragStart(e, card)}
+                        onDragEnd={onCardDragEnd}
+                        onClick={() => openEdit(card)}
+                      >
+                        <div className="kb-card-title">{card.title}</div>
+                        {card.content && <div className="kb-card-content">{card.content}</div>}
+                        <div className="kb-card-meta">
+                          <Tag color={PRIORITY_META[card.priority]?.color ?? 'default'} style={{ marginRight: 0 }}>
+                            {PRIORITY_META[card.priority]?.label ?? '中'}
+                          </Tag>
+                          {filter === 'all' && (
+                            <Tag style={{ marginRight: 0 }}>
+                              {state.projects.find((p) => p.id === card.projectId)?.name ?? '?'}
+                            </Tag>
+                          )}
+                          <span style={{ marginLeft: 'auto' }}>{dayjs(card.updatedAt).format('MM-DD HH:mm')}</span>
+                          <Popconfirm
+                            title="删除这张卡片？"
+                            onConfirm={() => removeCard(card.id)}
+                            okText="删除"
+                            cancelText="取消"
+                          >
+                            <span className="kb-del" onClick={(e) => e.stopPropagation()} role="button">
+                              <DeleteOutlined />
+                            </span>
+                          </Popconfirm>
+                        </div>
+                      </div>
+                    ))}
+
+                    {colCards.length === 0 ? (
+                      <div className="kb-empty" onClick={() => openCreate(status)}>
+                        + 添加卡片
+                      </div>
+                    ) : (
+                      <Button type="dashed" block size="small" icon={<PlusOutlined />} onClick={() => openCreate(status)}>
+                        添加
+                      </Button>
+                    )}
+
+                      </>
                     )}
                   </div>
                 </div>
