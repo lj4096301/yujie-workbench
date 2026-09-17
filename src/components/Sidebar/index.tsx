@@ -49,10 +49,6 @@ const Sidebar: React.FC = () => {
       saveLayout()
       return
     }
-    if (key === '__search') {
-      setSearchVisible(true)
-      return
-    }
     activateModule(key, getMainAreaBounds())
     saveLayout()
   }
@@ -89,10 +85,6 @@ const Sidebar: React.FC = () => {
         <MenuItem key={HOME_ID}>
           <span className="menu-icon">🏠</span>
           <span>首页</span>
-        </MenuItem>
-        <MenuItem key="__search">
-          <span className="menu-icon">🔍</span>
-          <span>搜索 (Ctrl+K)</span>
         </MenuItem>
         {MAIN_ITEMS.map((item) => (
           <MenuItem key={item.id}>
