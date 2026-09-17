@@ -13,6 +13,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* 卡片与窗口左右留空隙，避免贴边 */
+  padding: 0 16px;
 }
 
 /* ---------- 通用白卡 ---------- */

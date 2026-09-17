@@ -26,6 +26,8 @@ export default {
         'accent-foreground': 'var(--primary-color, #ff6700)',
         background: 'var(--bg-card, #ffffff)',
         foreground: 'var(--text-primary, #1f2329)',
+        popover: 'var(--bg-card, #ffffff)',
+        'popover-foreground': 'var(--text-primary, #1f2329)',
         ring: 'var(--primary-color, #ff6700)',
       },
       borderRadius: {

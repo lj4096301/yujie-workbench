@@ -32,6 +32,9 @@
   - `label.tsx`：表单标签（纯 HTML label）
   - `skeleton.tsx`：骨架屏（加载占位）
   - `dialog.tsx`：弹窗（Radix Dialog，圆角 8px、z-[60]、浮层阴影；需 @radix-ui/react-dialog）
+  - `select.tsx`：下拉选择（Radix Select，浮层 z-[60]、选中主色勾选；需 @radix-ui/react-select）
+  - `table.tsx`：表格（纯 HTML，表头浅灰 bg-muted、hover 行高亮、隔行无斑马纹、分页放右下角）
+  - `tabs.tsx`：标签页（Radix Tabs，选中态主色下划线 + 白底、圆角 6px；需 @radix-ui/react-tabs）
 - 工具：`cn()`（clsx + tailwind-merge）；图标：lucide-react 已装（按需引入）
 - 配置：`tailwind.config.js` 已映射 card/border/input/muted/rounded-xl/shadow-sm 到 DESIGN-SPEC Token（白底 / #E5E6EB 边框 / 12px 圆角 / 极轻阴影）；primary 收敛为 #ff6700
 - 试水（已实测通过）：首页 KPI 行 4 张 shadcn Card；banner「模块管理」与空态「恢复默认布局」按钮用 shadcn Button；看板「记录」计数用 shadcn Badge；首页 KPI 加载骨架屏（Skeleton）；看板「操作记录」弹窗用 shadcn Dialog
