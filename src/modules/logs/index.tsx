@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Button, Segmented, Spin, Empty, Tag, message } from 'antd'
-import { ReloadOutlined } from '@ant-design/icons'
+import { Button, Segmented, Table, Tag, Popconfirm, message, Tooltip } from 'antd'
+import { ReloadOutlined, DeleteOutlined } from '@ant-design/icons'
+import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 
 interface LogEntry {
@@ -20,8 +21,7 @@ interface LogEntry {
 type LogFilter = 'all' | 'done'
 
 /**
- * 日志管理：展示各模块的重点操作记录。
- * 顶部可切换「全部操作 / 项目完成」。
+ * 日志管理：以表格展示各模块的重点操作记录，支持筛选、删除、清空。
  */
 const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   // 标题栏操作挂载点（Panel 的 panel-actions）
@@ -36,6 +36,7 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
+    setLoading(true)
     try {
       const res = await fetch('/api/logs')
       if (res.ok) {
@@ -53,8 +54,89 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     load()
   }, [load])
 
+  const remove = async (id: string) => {
+    try {
+      const res = await fetch(`/api/logs/${encodeURIComponent(id)}`, { method: 'DELETE' })
+      if (res.ok) {
+        setRecords((prev) => prev.filter((r) => r.id !== id))
+        message.success('已删除该条日志')
+      }
+    } catch {
+      message.error('删除失败')
+    }
+  }
+
+  const clearAll = async () => {
+    try {
+      const res = await fetch('/api/logs', { method: 'DELETE' })
+      if (res.ok) {
+        setRecords([])
+        message.success('日志已清空')
+      }
+    } catch {
+      message.error('清空失败')
+    }
+  }
+
   const visible =
     filter === 'all' ? records : records.filter((r) => r.action === 'done')
+
+  const columns: ColumnsType<LogEntry> = [
+    {
+      title: '操作',
+      dataIndex: 'action',
+      width: 100,
+      render: (_, r) => (
+        <Tag color={r.action === 'done' ? 'success' : 'error'} style={{ marginInlineEnd: 0 }}>
+          {r.action === 'done' ? '✅ 完成' : '🗑️ 删除'}
+        </Tag>
+      ),
+    },
+    {
+      title: '来源',
+      dataIndex: 'moduleTitle',
+      width: 110,
+      render: (t: string) => <Tag color="arcoblue">{t}</Tag>,
+    },
+    {
+      title: '标题',
+      dataIndex: 'title',
+      ellipsis: true,
+      render: (t: string, r) =>
+        r.content ? (
+          <Tooltip title={<div style={{ maxWidth: 480 }}>{r.content}</div>}>
+            <span style={{ color: '#1d2129' }}>{t}</span>
+          </Tooltip>
+        ) : (
+          <span style={{ color: '#1d2129' }}>{t}</span>
+        ),
+    },
+    {
+      title: '项目',
+      dataIndex: 'projectName',
+      width: 150,
+      ellipsis: true,
+      render: (v?: string) => v || '-',
+    },
+    {
+      title: '时间',
+      dataIndex: 'at',
+      width: 165,
+      render: (v: number) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+    },
+    {
+      title: '操作',
+      key: 'ops',
+      width: 76,
+      render: (_, r) => (
+        <Popconfirm title="删除这条日志？" onConfirm={() => remove(r.id)} okText="删除" cancelText="取消">
+          <Button type="text" size="small" danger icon={<DeleteOutlined />}>
+            删除
+          </Button>
+        </Popconfirm>
+      ),
+    },
+  ]
 
   const headerActions = actionsHost
     ? createPortal(
@@ -67,6 +149,11 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               { label: `项目完成 (${records.filter((r) => r.action === 'done').length})`, value: 'done' },
             ]}
           />
+          <Popconfirm title="清空全部日志？" onConfirm={clearAll} okText="清空" cancelText="取消">
+            <Button size="small" danger>
+              清空
+            </Button>
+          </Popconfirm>
           <Button size="small" icon={<ReloadOutlined />} onClick={load} title="刷新">
             刷新
           </Button>
@@ -78,64 +165,20 @@ const LogsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {headerActions}
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: 40 }}>
-          <Spin />
-        </div>
-      ) : visible.length === 0 ? (
-        <Empty
-          style={{ marginTop: 48 }}
-          description={filter === 'done' ? '暂无项目完成记录' : '暂无重点操作记录'}
-        />
-      ) : (
-        <div style={{ flex: 1, overflow: 'auto', paddingRight: 4 }}>
-          {visible.map((r) => (
-            <div
-              key={r.id}
-              style={{
-                display: 'flex',
-                gap: 10,
-                alignItems: 'flex-start',
-                padding: '10px 4px',
-                borderBottom: '1px solid #f2f3f5',
-              }}
-            >
-              <Tag
-                color={r.action === 'done' ? 'success' : 'error'}
-                style={{ marginTop: 1, flexShrink: 0 }}
-              >
-                {r.action === 'done' ? '✅ 完成' : '🗑️ 删除'}
-              </Tag>
-              <Tag color="arcoblue" style={{ marginTop: 1, flexShrink: 0, marginRight: 4 }}>
-                {r.moduleTitle}
-              </Tag>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 500, fontSize: 13 }}>{r.title}</div>
-                {r.content && (
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: '#86909c',
-                      marginTop: 2,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {r.content}
-                  </div>
-                )}
-                <div style={{ fontSize: 12, color: '#4e5969', marginTop: 2 }}>
-                  {r.projectName ? `${r.projectName} · ` : ''}
-                  {dayjs(r.at).format('YYYY-MM-DD HH:mm')}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <Table<LogEntry>
+        rowKey="id"
+        size="small"
+        loading={loading}
+        columns={columns}
+        dataSource={visible}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: false,
+          showTotal: (t) => `共 ${t} 条`,
+        }}
+        locale={{ emptyText: filter === 'done' ? '暂无项目完成记录' : '暂无重点操作记录' }}
+        style={{ flex: 1 }}
+      />
     </div>
   )
 }

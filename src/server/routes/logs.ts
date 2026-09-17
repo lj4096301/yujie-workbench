@@ -59,5 +59,42 @@ export function createLogsRouter() {
     }
   })
 
+  // 删除单条日志（同步移除看板 records 中的对应记录）
+  router.delete('/:id', (req, res) => {
+    try {
+      const id = String(req.params.id ?? '')
+      if (!id) return res.status(400).json({ error: '缺少记录 ID' })
+      const file = dataFile('kanban.json')
+      if (fs.existsSync(file)) {
+        const kb = JSON.parse(fs.readFileSync(file, 'utf-8'))
+        if (kb && Array.isArray(kb.records)) {
+          const recs = kb.records as Array<{ id?: unknown }>
+          kb.records = recs.filter((r) => r?.id !== id)
+          fs.writeFileSync(file, JSON.stringify(kb, null, 2))
+        }
+      }
+      res.json({ ok: true })
+    } catch {
+      res.status(500).json({ error: '删除日志失败' })
+    }
+  })
+
+  // 清空全部日志
+  router.delete('/', (_req, res) => {
+    try {
+      const file = dataFile('kanban.json')
+      if (fs.existsSync(file)) {
+        const kb = JSON.parse(fs.readFileSync(file, 'utf-8'))
+        if (kb && typeof kb === 'object') {
+          kb.records = []
+          fs.writeFileSync(file, JSON.stringify(kb, null, 2))
+        }
+      }
+      res.json({ ok: true })
+    } catch {
+      res.status(500).json({ error: '清空日志失败' })
+    }
+  })
+
   return router
 }
