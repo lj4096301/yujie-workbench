@@ -146,6 +146,26 @@
 | 平板 600–840dp | 两栏（侧栏+内容） | 内容流自适应 |
 | 手机 <600dp | 单栏 | 满宽 + 16px 页边距 |
 
+### 2.7 表格规范（唯一标准，全项目统一）
+
+**一律使用 shadcn Table 系列**（src/components/ui/table.tsx，纯 HTML 无依赖），禁止混用 antd/Arco 表格。已落地：日志、API 价格、看板操作记录。
+
+| 项 | 规格 |
+|---|---|
+| 组件 | Table / TableHeader / TableBody / TableRow / TableHead / TableCell（纯 HTML） |
+| 表头 | 浅灰底 bg-muted/60、h-10、px-3、字号 12px 中字重、text-muted-foreground |
+| 行 | 分隔线 border-b border-border/60、hover 高亮 hover:bg-muted/40、**隔行无斑马纹** |
+| 单元格 | p-3（12px）、垂直居中 |
+| 数字/时间/ID 列 | **强制等宽**：tabular-nums；金额/数值列右对齐（text-right） |
+| 操作列 | 右对齐（text-right）、按钮 sm（32px）、图标 lucide 16px；文字按钮 variant="link" 主色 |
+| 状态列 | 5px 圆点 + 光环（同全局状态规范），禁止 chip |
+| 分页 | 表格**右下角**：共 N 条 + 上一页/页码/下一页（outline sm），筛选变化重置页码 |
+| 空态 | 表格下方 .mod-empty 或「暂无数据」 |
+| 溢出 | 外层 overflow-x: auto（shadcn Table 自带），禁止表格撑破面板 |
+| 排序/高亮逻辑 | 由模块手写（如 API 最优价、变动标记），视觉仍走本规范 |
+
+**规则**：表头不可用主色填充；行 hover 只变底色不抬起（表格行 ≠ 卡片）；金额单位跟随数值列右对齐；长文本列用省略号截断（truncate + min-w-0）。
+
 ---
 
 ## 3. 断点体系（禁止发明新值）
