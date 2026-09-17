@@ -128,7 +128,7 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && add()}
-          className="h-8 min-w-0 flex-1"
+          className="h-8 min-w-0 max-w-[320px] flex-1"
         />
         <Select
           value={priority}

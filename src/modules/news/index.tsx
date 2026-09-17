@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { Button, Spin, Dropdown, Menu } from 'antd'
+import { ExternalLink } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import LegacyNewsPanel from './legacy'
 import RssPanel from './RssPanel'
 
@@ -61,14 +62,7 @@ const SOURCES: NewsSource[] = [
   },
 ]
 
-const NewsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
-  // 标题栏操作挂载点（Panel 的 panel-actions）
-  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
-  useEffect(() => {
-    if (!panelId) return
-    setActionsHost(document.getElementById(`panel-actions-${panelId}`))
-  }, [panelId])
-
+const NewsModule: React.FC = () => {
   const [source, setSource] = useState<NewsSource>(SOURCES[0])
   const [loading, setLoading] = useState(true)
 
@@ -77,65 +71,74 @@ const NewsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     setLoading(true)
   }, [source])
 
-  const sourceMenu = (
-    <Menu
-      onClick={({ key }) => {
-        const hit = SOURCES.find((s) => s.key === key)
-        if (hit) setSource(hit)
-      }}
-    >
-      {SOURCES.map((s) => (
-        <Menu.Item key={s.key}>
-          {s.label}
-          {s.key === source.key ? ' ✓' : ''}
-        </Menu.Item>
-      ))}
-    </Menu>
-  )
-  const headerActions = actionsHost
-    ? createPortal(
-        <div className="news-header-actions">
-          <Dropdown overlay={sourceMenu} trigger={['click']}>
-            <Button size="small">
-              {source.label} ▾
-            </Button>
-          </Dropdown>
-          {source.url && (
-            <Button
-              size="small"
-              icon="↗"
-              title="在系统浏览器/新标签页打开"
-              onClick={() => window.open(source.url, '_blank')}
-            />
-          )}
-        </div>,
-        actionsHost
-      )
-    : null
-
   return (
-    <div className="news-embed-root">
-      {headerActions}
+    <div className="news-embed-root" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
+      {/* 工具条：源切换（Tabs）+ 外部打开 */}
+      <div
+        className="news-toolbar"
+        style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}
+      >
+        <Tabs
+          value={source.key}
+          onValueChange={(k) => {
+            const hit = SOURCES.find((s) => s.key === k)
+            if (hit) setSource(hit)
+          }}
+        >
+          <TabsList className="news-tabs-list" style={{ overflowX: 'auto' }}>
+            {SOURCES.map((s) => (
+              <TabsTrigger key={s.key} value={s.key} className="h-8 px-3">
+                {s.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+        {source.url && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            title="在系统浏览器/新标签页打开"
+            onClick={() => window.open(source.url, '_blank')}
+          >
+            <ExternalLink className="h-4 w-4" />
+            打开
+          </Button>
+        )}
+      </div>
 
       {/* 当前源说明 */}
       {source.key !== 'legacy' && source.key !== 'rss' && (
-        <div style={{ fontSize: 11, color: '#888', marginBottom: 6 }}>{source.desc}</div>
+        <div style={{ fontSize: 12, color: '#86909C', marginBottom: 8 }}>{source.desc}</div>
       )}
 
       {/* 内容区 */}
       {source.key === 'legacy' ? (
-        <div className="news-embed-legacy">
+        <div className="news-embed-legacy" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
           <LegacyNewsPanel />
         </div>
       ) : source.key === 'rss' ? (
-        <div className="news-embed-legacy">
+        <div className="news-embed-legacy" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
           <RssPanel />
         </div>
       ) : (
-        <div className="news-embed-frame-wrap">
+        <div className="news-embed-frame-wrap" style={{ flex: 1, minHeight: 0, position: 'relative' }}>
           {loading && (
-            <div className="news-embed-loading">
-              <Spin tip={`正在加载 ${source.label}...`} />
+            <div
+              className="news-embed-loading"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#fff',
+                zIndex: 2,
+                fontSize: 13,
+                color: '#86909C',
+              }}
+            >
+              正在加载 {source.label}...
             </div>
           )}
           <iframe
@@ -143,6 +146,7 @@ const NewsModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             src={source.url}
             title={source.label}
             className="news-embed-frame"
+            style={{ width: '100%', height: '100%', border: 'none' }}
             onLoad={() => setLoading(false)}
             referrerPolicy="no-referrer"
             sandbox="allow-scripts allow-same-origin allow-popups allow-forms"

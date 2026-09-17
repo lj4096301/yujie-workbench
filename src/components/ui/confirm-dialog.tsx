@@ -5,16 +5,16 @@ import {
   DialogHeader,
   DialogFooter,
   DialogTitle,
-  DialogDescription,
 } from './dialog'
 import { Button } from './button'
 
 /**
  * 通用二次确认弹窗（基于 shadcn Dialog）
  * 全项目统一使用：删除 / 完成 / 清空等危险或重要操作，宽度 420px。
+ * 顶部不显示标题文本，直接内容 + 操作按钮（标题仅保留给无障碍）。
  * 用法：
- *   const [confirm, setConfirm] = useState<{ title: string; content?: string; onOk: () => void } | null>(null)
- *   <ConfirmDialog open={!!confirm} title={confirm?.title} content={confirm?.content} danger
+ *   const [confirm, setConfirm] = useState<{ content?: string; onOk: () => void } | null>(null)
+ *   <ConfirmDialog open={!!confirm} content={confirm?.content} danger
  *     onOk={confirm?.onOk} onOpenChange={(o) => !o && setConfirm(null)} />
  */
 export interface ConfirmDialogProps {
@@ -42,9 +42,11 @@ export function ConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[420px]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="sr-only">{title}</DialogTitle>
         </DialogHeader>
-        {content != null && <DialogDescription>{content}</DialogDescription>}
+        {content != null && (
+          <div className="py-1 text-sm leading-5 text-[#4E5969]">{content}</div>
+        )}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange?.(false)}>
             {cancelText}
