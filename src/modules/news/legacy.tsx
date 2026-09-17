@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Spin, Empty, Tag, Input, Select, Button, message, Popconfirm } from 'antd'
-import { StarOutlined, StarFilled } from '@ant-design/icons'
+import { message } from 'antd'
+import { Search, RefreshCw, Star, CheckCheck } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface NewsItem {
   id: string
@@ -30,6 +37,7 @@ const LegacyNewsPanel: React.FC = () => {  const [news, setNews] = useState<News
   const [searchQuery, setSearchQuery] = useState('')
   const [view, setView] = useState<ViewMode>('all')
   const [sourceFilter, setSourceFilter] = useState('all')
+  const [markReadOpen, setMarkReadOpen] = useState(false)
 
   // 已读 / 收藏持久化状态（Feedly 式，按 url 存服务端）
   const [readKeys, setReadKeys] = useState<string[]>([])
@@ -144,52 +152,69 @@ const LegacyNewsPanel: React.FC = () => {  const [news, setNews] = useState<News
     <div>
       {/* 搜索 / 分类 / 刷新 */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <Input
-          size="small"
-          prefix="🔍"
-          placeholder="搜索新闻..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onPressEnter={fetchNews}
-          style={{ flex: 1 }}
-          allowClear
-        />
-        <Select
-          size="small"
-          value={category}
-          onChange={setCategory}
-          options={CATEGORIES}
-          style={{ width: 80 }}
-        />
-        <Button size="small" icon="🔄" onClick={fetchNews} />
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#86909C]" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') fetchNews() }}
+            placeholder="搜索新闻..."
+            className="h-8 pl-9"
+          />
+        </div>
+        <Select value={category} onValueChange={setCategory}>
+          <SelectTrigger className="h-8 w-[80px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {CATEGORIES.map((c) => (
+              <SelectItem key={c.value} value={c.value} className="text-xs">{c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button size="icon" variant="outline" className="h-8 w-8" onClick={fetchNews} title="刷新">
+          <RefreshCw className="h-3.5 w-3.5" />
+        </Button>
       </div>
 
       {/* 视图切换 / 来源 / 全部已读 */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        {([['all', '全部'], ['unread', `未读${unreadCount > 0 ? ` (${unreadCount})` : ''}`], ['bookmarked', '⭐ 收藏']] as Array<[ViewMode, string]>).map(
+        {([['all', '全部'], ['unread', '未读' + (unreadCount > 0 ? ' (' + unreadCount + ')' : '')], ['bookmarked', '⭐ 收藏']] as Array<[ViewMode, string]>).map(
           ([v, label]) => (
-            <Button key={v} size="small" type={view === v ? 'primary' : 'default'} onClick={() => setView(v)}>
+            <Button key={v} size="sm" variant={view === v ? 'default' : 'outline'} onClick={() => setView(v)}>
               {label}
             </Button>
           )
         )}
-        <Select
-          size="small"
-          value={sourceFilter}
-          onChange={setSourceFilter}
-          style={{ width: 110, marginLeft: 'auto' }}
-          options={[{ value: 'all', label: '全部来源' }, ...sources.map((s) => ({ value: s, label: s }))]}
-        />
+        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+          <SelectTrigger className="ml-auto h-8 w-[110px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all" className="text-xs">全部来源</SelectItem>
+            {sources.map((s) => (
+              <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {view !== 'bookmarked' && unreadCount > 0 && (
-          <Popconfirm title="把当前列表全部标为已读？" onConfirm={markAllRead} okText="确定" cancelText="取消">
-            <Button size="small">✓ 全部已读</Button>
-          </Popconfirm>
+          <Button size="sm" variant="outline" onClick={() => setMarkReadOpen(true)}>
+            <CheckCheck className="h-3.5 w-3.5" /> 全部已读
+          </Button>
         )}
       </div>
 
       {/* 新闻列表 */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '4px 0' }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="news-item">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="mt-1 h-4 w-3/4" />
+              <Skeleton className="mt-1.5 h-3 w-full" />
+            </div>
+          ))}
+        </div>
       ) : visibleNews.length > 0 ? (
         <div>
           {visibleNews.map((item) => {
@@ -205,15 +230,15 @@ const LegacyNewsPanel: React.FC = () => {  const [news, setNews] = useState<News
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     {/* 未读蓝点（Feedly 式） */}
-                    {!isRead && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#1677ff', flexShrink: 0 }} />}
+                    {!isRead && <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--primary-color, #ff6700)', boxShadow: '0 0 0 3px rgba(255,103,0,0.12)', flexShrink: 0 }} />}
                     <span className="news-source">{item.source}</span>
-                    <Tag color={getCategoryColor(item.category)} style={{ fontSize: 10, margin: 0 }}>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted, #86909c)', background: 'var(--bg-subtle, #f7f8fa)', padding: '0 6px', borderRadius: 4 }}>
                       {CATEGORIES.find((c) => c.value === item.category)?.label || item.category}
-                    </Tag>
+                    </span>
                   </div>
                   <div className="news-title" style={{ fontWeight: isRead ? 400 : 600 }}>{item.title}</div>
                   {item.summary && (
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 4, lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary, #4e5969)', marginTop: 4, lineHeight: 1.4 }}>
                       {item.summary.length > 100 ? item.summary.slice(0, 100) + '...' : item.summary}
                     </div>
                   )}
@@ -224,7 +249,9 @@ const LegacyNewsPanel: React.FC = () => {  const [news, setNews] = useState<News
                       style={{ cursor: 'pointer', fontSize: 14 }}
                       title={isBookmarked ? '取消收藏' : '收藏'}
                     >
-                      {isBookmarked ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined style={{ color: '#ccc' }} />}
+                      {isBookmarked
+                        ? <Star style={{ color: '#ff7d00', fill: '#ff7d00' }} />
+                        : <Star style={{ color: '#c9cdd4' }} />}
                     </span>
                   </div>
                 </div>
@@ -233,13 +260,19 @@ const LegacyNewsPanel: React.FC = () => {  const [news, setNews] = useState<News
           })}
         </div>
       ) : (
-        <Empty
-          description={
-            view === 'bookmarked' ? '还没有收藏的新闻' : view === 'unread' ? '没有未读新闻了 🎉' : '暂无新闻'
-          }
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
+        <div className="mod-empty">
+          {view === 'bookmarked' ? '还没有收藏的新闻' : view === 'unread' ? '没有未读新闻了 🎉' : '暂无新闻'}
+        </div>
       )}
+
+      <ConfirmDialog
+        open={markReadOpen}
+        title="全部标为已读"
+        content="把当前列表的全部新闻标为已读？"
+        okText="确定"
+        onOk={markAllRead}
+        onOpenChange={(o) => { if (!o) setMarkReadOpen(false) }}
+      />
     </div>
   )
 }

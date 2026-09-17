@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Button, Select, Spin } from 'antd'
+import { RefreshCw, ExternalLink } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 
 /**
  * RSS 订阅 tab：精选科技/AI 源，源下拉随时切换。
@@ -82,40 +87,50 @@ const RssPanel: React.FC = () => {
     <div className="rss-panel">
       {/* 源切换工具条 */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-        <Select
-          size="small"
-          style={{ minWidth: 150 }}
-          value={feedUrl}
-          onChange={(v) => setFeedUrl(v)}
-          options={RSS_FEEDS.map((f) => ({
-            value: f.url,
-            label: `${f.group === 'AI' ? '🤖' : '💻'} ${f.label}`,
-          }))}
-        />
-        <Button size="small" onClick={() => load(feedUrl)} loading={loading} title="重新抓取">
-          刷新
+        <Select value={feedUrl} onValueChange={setFeedUrl}>
+          <SelectTrigger className="h-8 min-w-[150px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {RSS_FEEDS.map((f) => (
+              <SelectItem key={f.url} value={f.url} className="text-xs">
+                {f.group === 'AI' ? '🤖' : '💻'} {f.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button size="sm" variant="outline" onClick={() => load(feedUrl)} disabled={loading} title="重新抓取">
+          <RefreshCw className="h-3.5 w-3.5" /> 刷新
         </Button>
         {current && (
           <Button
-            size="small"
-            icon="↗"
-            style={{ marginLeft: 'auto' }}
+            size="icon"
+            variant="ghost"
+            className="ml-auto h-8 w-8"
             title="打开源站"
-            onClick={() => window.open(`https://${current.site}`, '_blank')}
-          />
+            onClick={() => window.open('https://' + current.site, '_blank')}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+          </Button>
         )}
       </div>
 
       {loading && !data && (
-        <div style={{ textAlign: 'center', padding: 24 }}>
-          <Spin />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '4px 0' }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="rss-item">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="mt-1 h-3 w-1/4" />
+              <Skeleton className="mt-1.5 h-3 w-full" />
+            </div>
+          ))}
         </div>
       )}
 
       {error && (
-        <div style={{ color: '#cf1322', fontSize: 12, padding: 12 }}>
+        <div style={{ color: 'var(--danger, #f53f3f)', fontSize: 12, padding: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
           抓取失败：{error}
-          <Button size="small" style={{ marginLeft: 8 }} onClick={() => load(feedUrl)}>
+          <Button size="sm" variant="outline" onClick={() => load(feedUrl)}>
             重试
           </Button>
         </div>
@@ -141,7 +156,7 @@ const RssPanel: React.FC = () => {
             </div>
           ))}
           {data.items.length === 0 && (
-            <div style={{ color: '#999', fontSize: 12, padding: 16, textAlign: 'center' }}>
+            <div style={{ color: 'var(--text-muted, #86909c)', fontSize: 12, padding: 16, textAlign: 'center' }}>
               该源暂无内容
             </div>
           )}
