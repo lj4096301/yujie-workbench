@@ -229,7 +229,7 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
       {headerActions}
       {/* 统计栏 */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap', fontSize: 12, color: '#666', background: '#fafafa', borderRadius: 8, padding: '8px 12px' }}>

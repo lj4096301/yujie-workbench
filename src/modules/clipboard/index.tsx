@@ -79,7 +79,7 @@ const ClipboardModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
       {headerActions}
 
       {visible.length === 0 ? (

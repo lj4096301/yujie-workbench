@@ -139,7 +139,7 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
       <ConfigProvider getPopupContainer={popupContainer}>
         {headerActions}
 
@@ -159,10 +159,11 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         </div>
       </ConfigProvider>
 
-      {visible.length === 0 ? (
-        <Empty description={filter === 'done' ? '还没有完成的任务' : '暂无任务'} />
-      ) : (
-        visible.map((t) => (
+      <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+        {visible.length === 0 ? (
+          <Empty description={filter === 'done' ? '还没有完成的任务' : '暂无任务'} />
+        ) : (
+          visible.map((t) => (
           <div key={t.id} className="mod-row">
             <Checkbox checked={t.done} onChange={() => toggle(t.id)} />
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -186,7 +187,8 @@ const TasksModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             </Popconfirm>
           </div>
         ))
-      )}
+        )}
+      </div>
     </div>
   )
 }

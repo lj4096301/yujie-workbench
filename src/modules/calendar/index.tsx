@@ -196,7 +196,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0 }}>
       {headerActions}
       <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
         {viewTitle}
