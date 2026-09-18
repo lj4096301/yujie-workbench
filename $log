@@ -171,3 +171,4 @@
 [vite] [2m00:01:27[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mtailwind.config.js[22m
 [vite] [2m00:01:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/home/home.css[22m
 [vite] vite --port 5173 exited with code 4294967295
+[app] wait-on http://localhost:5173 http://localhost:3001 && electron . --remote-debugging-port=9222 exited with code 0
