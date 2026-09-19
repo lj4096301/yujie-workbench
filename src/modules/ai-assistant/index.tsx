@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { message } from 'antd'
-import { Send, Square, Trash2, Sparkles, Bot, Settings, RefreshCw, Loader2 } from 'lucide-react'
+import { Send, Square, Trash2, Sparkles, Bot, Settings, RefreshCw, Loader2, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -53,7 +53,7 @@ const AIModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   // 设置弹窗
   const [cfgOpen, setCfgOpen] = useState(false)
   const [cfg, setCfg] = useState({ baseUrl: '', apiKey: '', model: '' })
-  const [cfgMasked, setCfgMasked] = useState('')
+  const [showKey, setShowKey] = useState(false)
   const [cfgLoading, setCfgLoading] = useState(false)
   const [cfgSaving, setCfgSaving] = useState(false)
   const [modelsList, setModelsList] = useState<string[]>([])
@@ -90,11 +90,11 @@ const AIModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const openCfg = async () => {
     setCfgOpen(true)
     setCfgLoading(true)
+    setShowKey(false)
     try {
       const res = await fetch('/api/ai/config')
-      const d = (await res.json()) as { baseUrl?: string; apiKeyMasked?: string; model?: string }
-      setCfg({ baseUrl: d.baseUrl || '', apiKey: '', model: d.model || '' })
-      setCfgMasked(d.apiKeyMasked || '')
+      const d = (await res.json()) as { baseUrl?: string; apiKey?: string; model?: string }
+      setCfg({ baseUrl: d.baseUrl || '', apiKey: d.apiKey || '', model: d.model || '' })
     } catch {
       message.error('读取配置失败')
     } finally {
@@ -354,16 +354,23 @@ const AIModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               </div>
               <div className="ai-cfg-field">
                 <Label htmlFor="ai-key">API Key</Label>
-                <Input
-                  id="ai-key"
-                  type="password"
-                  value={cfg.apiKey}
-                  onChange={(e) => setCfg((c) => ({ ...c, apiKey: e.target.value }))}
-                  placeholder={cfgMasked || '粘贴你的 API Key'}
-                />
-                {cfgMasked && (
-                  <p className="ai-cfg-tip">当前已配置：{cfgMasked}，留空表示不修改。</p>
-                )}
+                <div className="ai-cfg-key-row">
+                  <Input
+                    id="ai-key"
+                    type={showKey ? 'text' : 'password'}
+                    value={cfg.apiKey}
+                    onChange={(e) => setCfg((c) => ({ ...c, apiKey: e.target.value }))}
+                    placeholder="粘贴你的 API Key"
+                  />
+                  <button
+                    type="button"
+                    className="ai-key-toggle"
+                    onClick={() => setShowKey((s) => !s)}
+                    title={showKey ? '隐藏 API Key' : '显示 API Key'}
+                  >
+                    {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <div className="ai-cfg-field">
                 <Label htmlFor="ai-model">模型（Model）</Label>

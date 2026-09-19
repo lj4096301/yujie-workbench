@@ -35,13 +35,13 @@ const SYSTEM_PROMPT =
   '回答使用简体中文，简洁清晰，尽量结构化（分点、小标题）。'
 
 /**
- * 读取当前 AI 配置（key 打码返回）
+ * 读取当前 AI 配置（本地应用，完整 key 回显给前端）
  */
 router.get('/config', (_req, res) => {
   const key = getKey()
   res.json({
     baseUrl: process.env.AI_BASE_URL || 'https://api.deepseek.com/v1',
-    apiKeyMasked: key ? `****${key.slice(-4)}` : '',
+    apiKey: key,
     hasKey: Boolean(key),
     model: getModel(),
   })

@@ -52,6 +52,37 @@
   gap: 6px;
 }
 
+.ai-cfg-key-row {
+  position: relative;
+}
+
+.ai-cfg-key-row input {
+  padding-right: 40px;
+}
+
+.ai-key-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: #86909c;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ai-key-toggle:hover {
+  color: #ff6700;
+  background: #f7f8fa;
+}
+
 .ai-cfg-model-row {
   display: flex;
   gap: 8px;
