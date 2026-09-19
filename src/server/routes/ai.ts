@@ -77,6 +77,40 @@ router.post('/config', (req, res) => {
 })
 
 /**
+ * 在线获取模型列表：GET /api/ai/models
+ * 兼容 OpenAI 兼容协议（data[].id）与 Ollama（models[].name）
+ */
+router.get('/models', async (_req, res) => {
+  if (!getKey()) {
+    res.status(400).json({ error: '请先在「设置」中填写 API Key' })
+    return
+  }
+  try {
+    const upstream = await fetch(`${getBase()}/models`, {
+      headers: { Authorization: `Bearer ${getKey()}` },
+      signal: AbortSignal.timeout(20_000),
+    })
+    if (!upstream.ok) {
+      const t = await upstream.text().catch(() => '')
+      res.status(502).json({ error: `获取模型失败（上游 ${upstream.status}）：${t.slice(0, 200)}` })
+      return
+    }
+    const json = (await upstream.json()) as {
+      data?: Array<{ id: string }>
+      models?: Array<{ name: string }>
+    }
+    const ids = Array.isArray(json.data)
+      ? json.data.map((m) => m.id)
+      : Array.isArray(json.models)
+        ? json.models.map((m) => m.name)
+        : []
+    res.json({ models: ids })
+  } catch (err) {
+    res.status(502).json({ error: '获取模型失败：' + String(err) })
+  }
+})
+
+/**
  * 聊天流式代理：POST /api/ai/chat
  * body: { messages: [{ role, content }] }（不含 system，由后端注入）
  * 响应：SSE，每行 data: {content: 增量}，结束 data: [DONE]；出错 data: {error}

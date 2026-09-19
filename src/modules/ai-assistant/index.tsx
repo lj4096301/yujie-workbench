@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { message } from 'antd'
-import { Send, Square, Trash2, Sparkles, Bot, Settings } from 'lucide-react'
+import { Send, Square, Trash2, Sparkles, Bot, Settings, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -56,6 +56,36 @@ const AIModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [cfgMasked, setCfgMasked] = useState('')
   const [cfgLoading, setCfgLoading] = useState(false)
   const [cfgSaving, setCfgSaving] = useState(false)
+  const [modelsList, setModelsList] = useState<string[]>([])
+  const [fetchingModels, setFetchingModels] = useState(false)
+
+  const fetchModels = async () => {
+    if (!cfg.apiKey.trim()) {
+      message.warning('请先填写 API Key 再获取模型')
+      return
+    }
+    setFetchingModels(true)
+    setModelsList([])
+    try {
+      const res = await fetch('/api/ai/models')
+      if (!res.ok) {
+        const e = (await res.json().catch(() => ({}))) as { error?: string }
+        message.error(e.error || '获取失败')
+        return
+      }
+      const d = (await res.json()) as { models?: string[] }
+      if (Array.isArray(d.models) && d.models.length) {
+        setModelsList(d.models)
+        if (!cfg.model) setCfg((c) => ({ ...c, model: d.models![0] }))
+      } else {
+        message.info('未获取到模型列表，可手动填写')
+      }
+    } catch {
+      message.error('获取模型失败')
+    } finally {
+      setFetchingModels(false)
+    }
+  }
 
   const openCfg = async () => {
     setCfgOpen(true)
@@ -337,12 +367,42 @@ const AIModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               </div>
               <div className="ai-cfg-field">
                 <Label htmlFor="ai-model">模型（Model）</Label>
-                <Input
-                  id="ai-model"
-                  value={cfg.model}
-                  onChange={(e) => setCfg((c) => ({ ...c, model: e.target.value }))}
-                  placeholder="deepseek-chat"
-                />
+                <div className="ai-cfg-model-row">
+                  <Input
+                    id="ai-model"
+                    value={cfg.model}
+                    onChange={(e) => setCfg((c) => ({ ...c, model: e.target.value }))}
+                    placeholder="deepseek-chat"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fetchModels}
+                    disabled={fetchingModels}
+                    title="在线获取模型列表"
+                  >
+                    {fetchingModels ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    )}
+                    获取
+                  </Button>
+                </div>
+                {modelsList.length > 0 && (
+                  <div className="ai-cfg-models">
+                    {modelsList.map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        className={'ai-cfg-model-chip' + (cfg.model === m ? ' active' : '')}
+                        onClick={() => setCfg((c) => ({ ...c, model: m }))}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <p className="ai-cfg-note">
                 配置会写入项目根目录 .env 并立即生效，无需重启。Key 仅保存在本机。
