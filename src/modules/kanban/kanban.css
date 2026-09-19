@@ -3,6 +3,7 @@
   min-height: 280px;
   display: flex;
   gap: 12px;
+  justify-content: center;
   overflow-x: auto;
   padding-bottom: 4px;
 }
