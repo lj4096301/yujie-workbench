@@ -312,29 +312,20 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     if (!id) return
     const card = state.cards.find((c) => c.id === id)
     if (!card || card.status === status) return
-    // 完成操作需要确认；完成 = 标记为已完成并从看板移除（归档）
-    if (status === 'done') {
-      askConfirm({
-        title: '确认已完成？',
-        content: '「' + card.title + '」将标记为已完成并从看板移除，归档到操作记录页。',
-        okText: '已完成',
-        onOk: () => {
-          const cards = state.cards.filter((c) => c.id !== id)
-          const records = [makeRecord('done', card), ...state.records]
-          persist({ ...state, cards, records })
-        },
-      })
-    } else {
-      const cards = state.cards.map((c) =>
-        c.id === id ? { ...c, status, updatedAt: Date.now() } : c
-      )
-      persist({ ...state, cards, records: state.records })
-    }
+    // 第三列 = 待完成：直接改变状态，不弹确认；「完成」走下方已完成投放区
+    const cards = state.cards.map((c) =>
+      c.id === id ? { ...c, status, updatedAt: Date.now() } : c
+    )
+    persist({ ...state, cards, records: state.records })
   }
 
   const handleZoneDrop = (zone: 'noop' | 'done' | 'del', id: string | null) => {
     if (!id) return
-    if (zone === 'noop') return // 无操作区：不执行任何操作
+    if (zone === 'noop') {
+      // 待完成卡片列表区：等同于移入待完成列
+      handleColDrop('done', id)
+      return
+    }
     const card = state.cards.find((c) => c.id === id)
     if (!card) return
     if (zone === 'done') {
