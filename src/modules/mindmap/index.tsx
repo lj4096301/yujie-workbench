@@ -4,12 +4,13 @@ import MindElixir, { type MindElixirData } from 'mind-elixir'
 import 'mind-elixir/style.css'
 import { zh_CN } from 'mind-elixir/i18n'
 import { message } from 'antd'
-import { Undo2, Redo2, Maximize2, Download, Trash2 } from 'lucide-react'
+import { Undo2, Redo2, Maximize2, Download, Trash2, FileCode2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { MarkdownMindmapDialog } from './markmap-dialog'
 import './mindmap.css'
 
 const STORAGE_KEY = 'yujie-mindmap'
@@ -222,6 +223,7 @@ function MindmapEditor({ panelId }: { panelId?: string }) {
   }
 
   const [clearOpen, setClearOpen] = useState(false)
+  const [mdOpen, setMdOpen] = useState(false)
   const clearAll = () => {
     const mind = mindRef.current
     if (!mind) return
@@ -243,6 +245,9 @@ function MindmapEditor({ panelId }: { panelId?: string }) {
           </Button>
           <Button size="sm" variant="outline" className="text-xs" onClick={toggleTheme} title="切换明暗主题">
             {dark ? '☀ 亮色' : '🌙 暗色'}
+          </Button>
+          <Button size="sm" variant="outline" className="text-xs" onClick={() => setMdOpen(true)} title="Markdown 自动生成脑图">
+            <FileCode2 className="h-3.5 w-3.5" /> MD 生成
           </Button>
           <Select
             value=""
@@ -285,6 +290,8 @@ function MindmapEditor({ panelId }: { panelId?: string }) {
         onOk={clearAll}
         onOpenChange={(o) => { if (!o) setClearOpen(false) }}
       />
+
+      <MarkdownMindmapDialog open={mdOpen} onOpenChange={setMdOpen} />
     </div>
   )
 }

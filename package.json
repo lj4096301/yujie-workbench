@@ -42,6 +42,8 @@
     "html-to-image": "^1.11.13",
     "lucide-react": "^1.46.0",
     "lunar-javascript": "^1.7.7",
+    "markmap-lib": "^0.18.12",
+    "markmap-view": "^0.18.12",
     "mind-elixir": "5.15.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
