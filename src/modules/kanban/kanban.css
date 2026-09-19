@@ -228,3 +228,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+
+
+/* dnd-kit 拖拽浮层 */
+.kb-drag-overlay {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  transform: rotate(2deg);
+  cursor: grabbing;
+  width: 220px;
+}

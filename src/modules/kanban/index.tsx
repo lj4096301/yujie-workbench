@@ -34,6 +34,20 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  TouchSensor,
+  pointerWithin,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDroppable,
+  type DragStartEvent,
+  type DragOverEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core'
 import './kanban.css'
 
 type Status = 'todo' | 'doing' | 'done'
@@ -106,6 +120,113 @@ const PRIORITY_DOT: Record<'low' | 'mid' | 'high', string> = {
 
 const PRIORITY_ORDER: Array<'low' | 'mid' | 'high'> = ['low', 'mid', 'high']
 
+/* ---------------- dnd-kit 拖拽组件 ---------------- */
+const CARD_PREFIX = 'card:'
+const COL_PREFIX = 'col:'
+const ZONE_PREFIX = 'zone:'
+const CARD_ID = (id: string) => CARD_PREFIX + id
+const COL_ID = (s: Status) => COL_PREFIX + s
+const ZONE_ID = (z: string) => ZONE_PREFIX + z
+
+interface DraggableCardProps {
+  card: KanbanCard
+  showProject: boolean
+  projectName: string
+  onClick: () => void
+  onDelete: (e: React.MouseEvent) => void
+}
+
+const DraggableCard: React.FC<DraggableCardProps> = ({
+  card,
+  showProject,
+  projectName,
+  onClick,
+  onDelete,
+}) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: CARD_ID(card.id) })
+  return (
+    <div
+      ref={setNodeRef}
+      className={'kb-card' + (isDragging ? ' dragging' : '')}
+      {...attributes}
+      {...listeners}
+      onClick={onClick}
+    >
+      <div className="kb-card-title">{card.title}</div>
+      {card.content && <div className="kb-card-content">{card.content}</div>}
+      <div className="kb-card-meta">
+        <span className="kb-pri">
+          <span className="kb-dot" style={{ background: PRIORITY_DOT[card.priority] }} />
+          {PRIORITY_META[card.priority].label}
+        </span>
+        {showProject && <span className="kb-proj">{projectName}</span>}
+        <span className="kb-time">{dayjs(card.updatedAt).format('MM-DD HH:mm')}</span>
+        <span className="kb-del" onClick={onDelete} role="button" title="删除卡片">
+          <Trash2 className="h-3.5 w-3.5" />
+        </span>
+      </div>
+    </div>
+  )
+}
+
+interface KanbanZoneProps {
+  id: string
+  className: string
+  head: string
+  active: boolean
+  children?: React.ReactNode
+}
+
+const KanbanZone: React.FC<KanbanZoneProps> = ({ id, className, head, active, children }) => {
+  const { setNodeRef } = useDroppable({ id })
+  return (
+    <div ref={setNodeRef} className={className + (active ? ' drag-over' : '')}>
+      <div className="kb-zone-head">{head}</div>
+      {children}
+    </div>
+  )
+}
+
+interface KanbanColProps {
+  id: string
+  active: boolean
+  count: number
+  statusLabel: string
+  dotColor: string
+  children?: React.ReactNode
+}
+
+const KanbanCol: React.FC<KanbanColProps> = ({ id, active, count, statusLabel, dotColor, children }) => {
+  const { setNodeRef } = useDroppable({ id })
+  return (
+    <div ref={setNodeRef} className={'kb-col' + (active ? ' drag-over' : '')}>
+      <div className="kb-col-head">
+        <span className="kb-dot" style={{ background: dotColor }} />
+        <span>{statusLabel}</span>
+        <span className="kb-count">{count}</span>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+const KanbanDragCard: React.FC<{ cardId: string; cards: KanbanCard[] }> = ({ cardId, cards }) => {
+  const card = cards.find((c) => c.id === cardId)
+  if (!card) return null
+  return (
+    <div className="kb-card kb-drag-overlay">
+      <div className="kb-card-title">{card.title}</div>
+      {card.content && <div className="kb-card-content">{card.content}</div>}
+      <div className="kb-card-meta">
+        <span className="kb-pri">
+          <span className="kb-dot" style={{ background: PRIORITY_DOT[card.priority] }} />
+          {PRIORITY_META[card.priority].label}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   // 标题栏操作挂载点（Panel 的 panel-actions）
   const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
@@ -174,33 +295,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     }
   }, [])
 
-  /* ---------------- 拖拽换列 ---------------- */
-  const onCardDragStart = (e: React.DragEvent<HTMLDivElement>, card: KanbanCard) => {
-    e.dataTransfer.setData('text/plain', card.id)
-    e.dataTransfer.effectAllowed = 'move'
-    setDraggingId(card.id)
-  }
-
-  const onCardDragEnd = () => {
-    setDraggingId(null)
-    setOverCol(null)
-    setOverZone(null)
-  }
-
-  const onColDragOver = (e: React.DragEvent<HTMLDivElement>, status: Status) => {
-    if (!draggingId) return
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    if (overCol !== status) setOverCol(status)
-  }
-
-  const onColDragLeave = (e: React.DragEvent<HTMLDivElement>, status: Status) => {
-    const target = e.relatedTarget as Node | null
-    if (!target || !e.currentTarget.contains(target)) {
-      if (overCol === status) setOverCol(null)
-    }
-  }
-
+  /* ---------------- 完成 / 删除归档（拖拽投放统一入口） ---------------- */
   const makeRecord = (action: 'done' | 'deleted', card: KanbanCard): KanbanRecord => ({
     id: `rec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     action,
@@ -213,11 +308,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   const askConfirm = (req: ConfirmReq) => setConfirmReq(req)
 
-  const onColDrop = (e: React.DragEvent<HTMLDivElement>, status: Status) => {
-    e.preventDefault()
-    const id = e.dataTransfer.getData('text/plain') || draggingId
-    setOverCol(null)
-    setDraggingId(null)
+  const handleColDrop = (status: Status, id: string | null) => {
     if (!id) return
     const card = state.cards.find((c) => c.id === id)
     if (!card || card.status === status) return
@@ -225,7 +316,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     if (status === 'done') {
       askConfirm({
         title: '确认已完成？',
-        content: `「${card.title}」将标记为已完成并从看板移除，归档到操作记录页。`,
+        content: '「' + card.title + '」将标记为已完成并从看板移除，归档到操作记录页。',
         okText: '已完成',
         onOk: () => {
           const cards = state.cards.filter((c) => c.id !== id)
@@ -241,29 +332,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     }
   }
 
-  /* ---------------- 已完成列三区投放 ---------------- */
-  const onZoneDragOver = (e: React.DragEvent<HTMLDivElement>, zone: 'noop' | 'done' | 'del') => {
-    if (!draggingId) return
-    e.preventDefault()
-    e.stopPropagation()
-    e.dataTransfer.dropEffect = 'move'
-    if (overZone !== zone) setOverZone(zone)
-  }
-
-  const onZoneDragLeave = (e: React.DragEvent<HTMLDivElement>, zone: 'noop' | 'done' | 'del') => {
-    const target = e.relatedTarget as Node | null
-    if (!target || !e.currentTarget.contains(target)) {
-      if (overZone === zone) setOverZone(null)
-    }
-  }
-
-  const onZoneDrop = (e: React.DragEvent<HTMLDivElement>, zone: 'noop' | 'done' | 'del') => {
-    e.preventDefault()
-    e.stopPropagation()
-    const id = e.dataTransfer.getData('text/plain') || draggingId
-    setOverCol(null)
-    setOverZone(null)
-    setDraggingId(null)
+  const handleZoneDrop = (zone: 'noop' | 'done' | 'del', id: string | null) => {
     if (!id) return
     if (zone === 'noop') return // 无操作区：不执行任何操作
     const card = state.cards.find((c) => c.id === id)
@@ -272,7 +341,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       // 完成 = 标记为已完成并从看板移除（归档）
       askConfirm({
         title: '确认已完成？',
-        content: `「${card.title}」将标记为已完成并从看板移除，归档到操作记录页。`,
+        content: '「' + card.title + '」将标记为已完成并从看板移除，归档到操作记录页。',
         okText: '已完成',
         onOk: () => {
           const cards = state.cards.filter((c) => c.id !== id)
@@ -283,7 +352,7 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     } else {
       askConfirm({
         title: '确认删除这张卡片？',
-        content: `「${card.title}」将被删除，并归档到操作记录页。`,
+        content: '「' + card.title + '」将被删除，并归档到操作记录页。',
         okText: '确认删除',
         danger: true,
         onOk: () => {
@@ -293,6 +362,44 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         },
       })
     }
+  }
+
+  /* ---------------- dnd-kit 拖拽事件 ---------------- */
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } })
+  )
+
+  const onDndStart = (e: DragStartEvent) => {
+    const id = String(e.active.id)
+    if (id.startsWith(CARD_PREFIX)) setDraggingId(id.slice(CARD_PREFIX.length))
+  }
+
+  const onDndOver = (e: DragOverEvent) => {
+    const overId = e.over ? String(e.over.id) : ''
+    if (overId.startsWith(COL_PREFIX)) {
+      setOverCol(overId.slice(COL_PREFIX.length) as Status)
+      setOverZone(null)
+    } else if (overId.startsWith(ZONE_PREFIX)) {
+      setOverZone(overId.slice(ZONE_PREFIX.length) as 'noop' | 'done' | 'del')
+    } else {
+      setOverCol(null)
+      setOverZone(null)
+    }
+  }
+
+  const onDndEnd = (e: DragEndEvent) => {
+    const id = String(e.active.id)
+    const cardId = id.startsWith(CARD_PREFIX) ? id.slice(CARD_PREFIX.length) : null
+    const overId = e.over ? String(e.over.id) : ''
+    if (overId.startsWith(COL_PREFIX)) {
+      handleColDrop(overId.slice(COL_PREFIX.length) as Status, cardId)
+    } else if (overId.startsWith(ZONE_PREFIX)) {
+      handleZoneDrop(overId.slice(ZONE_PREFIX.length) as 'noop' | 'done' | 'del', cardId)
+    }
+    setDraggingId(null)
+    setOverCol(null)
+    setOverZone(null)
   }
 
   /* ---------------- 新建 / 编辑 ---------------- */
@@ -446,37 +553,17 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   const renderCard = (card: KanbanCard) => (
-    <div
+    <DraggableCard
       key={card.id}
-      className={`kb-card${draggingId === card.id ? ' dragging' : ''}`}
-      draggable
-      onDragStart={(e) => onCardDragStart(e, card)}
-      onDragEnd={onCardDragEnd}
+      card={card}
+      showProject={filter === 'all'}
+      projectName={state.projects.find((p) => p.id === card.projectId)?.name ?? '?'}
       onClick={() => openEdit(card)}
-    >
-      <div className="kb-card-title">{card.title}</div>
-      {card.content && <div className="kb-card-content">{card.content}</div>}
-      <div className="kb-card-meta">
-        <span className="kb-pri">
-          <span className="kb-dot" style={{ background: PRIORITY_DOT[card.priority] }} />
-          {PRIORITY_META[card.priority].label}
-        </span>
-        {filter === 'all' && (
-          <span className="kb-proj">
-            {state.projects.find((p) => p.id === card.projectId)?.name ?? '?'}
-          </span>
-        )}
-        <span className="kb-time">{dayjs(card.updatedAt).format('MM-DD HH:mm')}</span>
-        <span
-          className="kb-del"
-          onClick={(e) => { e.stopPropagation(); setDelCard(card) }}
-          role="button"
-          title="删除卡片"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </span>
-      </div>
-    </div>
+      onDelete={(e) => {
+        e.stopPropagation()
+        setDelCard(card)
+      }}
+    />
   )
 
   const renderColBody = (status: Status) => {
@@ -522,62 +609,64 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             ))}
           </div>
         ) : (
-          <div className="kb-board">
-            {STATUS_ORDER.map((status) => {
-              const colCards = visibleCards
-                .filter((c) => c.status === status)
-                .sort((a, b) => b.createdAt - a.createdAt)
-              return (
-                <div
-                  key={status}
-                  className={`kb-col${overCol === status ? ' drag-over' : ''}`}
-                  onDragOver={(e) => onColDragOver(e, status)}
-                  onDragLeave={(e) => onColDragLeave(e, status)}
-                  onDrop={(e) => onColDrop(e, status)}
-                >
-                  <div className="kb-col-head">
-                    <span className="kb-dot" style={{ background: DOT_COLOR[status] }} />
-                    <span>{STATUS_META[status].label}</span>
-                    <span className="kb-count">{colCards.length}</span>
-                  </div>
-                  {status === 'done' ? (
-                    <>
-                      {/* 无操作区：待完成卡片列表，拖入不执行操作 */}
-                      <div
-                        className={`kb-zone kb-zone-noop${overZone === 'noop' ? ' drag-over' : ''}`}
-                        onDragOver={(e) => onZoneDragOver(e, 'noop')}
-                        onDragLeave={(e) => onZoneDragLeave(e, 'noop')}
-                        onDrop={(e) => onZoneDrop(e, 'noop')}
-                      >
-                        <div className="kb-zone-head">待完成卡片</div>
-                        {renderColBody(status)}
-                      </div>
-                      {/* 已完成投放区：拖入 → 二次确认标记完成 */}
-                      <div
-                        className={`kb-zone kb-zone-done${overZone === 'done' ? ' drag-over' : ''}`}
-                        onDragOver={(e) => onZoneDragOver(e, 'done')}
-                        onDragLeave={(e) => onZoneDragLeave(e, 'done')}
-                        onDrop={(e) => onZoneDrop(e, 'done')}
-                      >
-                        <div className="kb-zone-head">拖入此处 → 已完成（移出看板）</div>
-                      </div>
-                      {/* 删除投放区：拖入 → 二次确认删除 */}
-                      <div
-                        className={`kb-zone kb-zone-del${overZone === 'del' ? ' drag-over' : ''}`}
-                        onDragOver={(e) => onZoneDragOver(e, 'del')}
-                        onDragLeave={(e) => onZoneDragLeave(e, 'del')}
-                        onDrop={(e) => onZoneDrop(e, 'del')}
-                      >
-                        <div className="kb-zone-head">拖入此处 → 删除卡片</div>
-                      </div>
-                    </>
-                  ) : (
-                    renderColBody(status)
-                  )}
-                </div>
-              )
-            })}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={pointerWithin}
+            onDragStart={onDndStart}
+            onDragOver={onDndOver}
+            onDragEnd={onDndEnd}
+          >
+            <div className="kb-board">
+              {STATUS_ORDER.map((status) => {
+                const colCards = visibleCards
+                  .filter((c) => c.status === status)
+                  .sort((a, b) => b.createdAt - a.createdAt)
+                return (
+                  <KanbanCol
+                    key={status}
+                    id={COL_ID(status)}
+                    active={overCol === status}
+                    count={colCards.length}
+                    statusLabel={STATUS_META[status].label}
+                    dotColor={DOT_COLOR[status]}
+                  >
+                    {status === 'done' ? (
+                      <>
+                        {/* 无操作区：待完成卡片列表，拖入不执行操作 */}
+                        <KanbanZone
+                          id={ZONE_ID('noop')}
+                          className="kb-zone kb-zone-noop"
+                          head="待完成卡片"
+                          active={overZone === 'noop'}
+                        >
+                          {renderColBody(status)}
+                        </KanbanZone>
+                        {/* 已完成投放区：拖入 → 二次确认标记完成 */}
+                        <KanbanZone
+                          id={ZONE_ID('done')}
+                          className="kb-zone kb-zone-done"
+                          head="拖入此处 → 已完成（移出看板）"
+                          active={overZone === 'done'}
+                        />
+                        {/* 删除投放区：拖入 → 二次确认删除 */}
+                        <KanbanZone
+                          id={ZONE_ID('del')}
+                          className="kb-zone kb-zone-del"
+                          head="拖入此处 → 删除卡片"
+                          active={overZone === 'del'}
+                        />
+                      </>
+                    ) : (
+                      renderColBody(status)
+                    )}
+                  </KanbanCol>
+                )
+              })}
+            </div>
+            <DragOverlay dropAnimation={null}>
+              {draggingId ? <KanbanDragCard cardId={draggingId} cards={state.cards} /> : null}
+            </DragOverlay>
+          </DndContext>
         )}
       </div>
 

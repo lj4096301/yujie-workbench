@@ -7,9 +7,53 @@
     {
       "id": "p2",
       "name": "自学工作台"
+    },
+    {
+      "id": "p-mu6t3wbi-pdhb",
+      "name": "工作进程优化"
     }
   ],
   "cards": [
+    {
+      "id": "kb-1789743484466-krgq",
+      "title": "小说改版",
+      "content": "我的想法是根据现有产出物，修改我宇界工作台的小说创作模块，改为小说解读模块。1.目标是通过几个关键场景快速让我了解这本小说的主要内容 2.然后我可以通过对主要人物进行小说进度跟踪，了解小说主要人物的角色变化历程，生成人物小传。",
+      "projectId": "p1",
+      "priority": "mid",
+      "status": "todo",
+      "createdAt": 1789743484466,
+      "updatedAt": 1789743484466
+    },
+    {
+      "id": "kb-1789736202088-y2e6",
+      "title": "复用资源收集",
+      "content": "目前是有宇界，自学工作台的规范经验",
+      "projectId": "p-mu6t3wbi-pdhb",
+      "priority": "mid",
+      "status": "doing",
+      "createdAt": 1789736202088,
+      "updatedAt": 1789736208146
+    },
+    {
+      "id": "kb-1789726876998-1f2p",
+      "title": "收集规范并进行分类和整理",
+      "content": "技术规范\nUI设计规范",
+      "projectId": "p-mu6t3wbi-pdhb",
+      "priority": "mid",
+      "status": "doing",
+      "createdAt": 1789726876998,
+      "updatedAt": 1789736027300
+    },
+    {
+      "id": "kb-1789726829294-ixff",
+      "title": "提示词优化",
+      "content": "",
+      "projectId": "p-mu6t3wbi-pdhb",
+      "priority": "high",
+      "status": "todo",
+      "createdAt": 1789726829294,
+      "updatedAt": 1789726829294
+    },
     {
       "id": "kb-1789645015249-u9xl",
       "title": "新增功能：文件夹分析，自动整理建库",
