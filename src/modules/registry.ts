@@ -20,4 +20,5 @@ export const MODULE_META: ModuleMeta[] = [
   { id: 'flowchart', title: '流程图', icon: '📐' },
   { id: 'mindmap', title: '思维导图', icon: '🧠' },
   { id: 'logs', title: '日志管理', icon: '📜' },
+  { id: 'ai-assistant', title: 'AI 助手', icon: '🤖' },
 ]

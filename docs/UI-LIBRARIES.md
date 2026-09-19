@@ -49,6 +49,18 @@
 - **弃用原因（技术硬伤，非偏好）**：官方安装文档明确 Tremor Raw 3.x 要求 Tailwind CSS v4.0+（https://www.tremor.so/docs/getting-started/installation）；项目为 Tailwind v3.4（antd/Arco 共存、preflight 关闭），升级 v4 属破坏性变更 → 放弃
 - 附带教训：`better-sqlite3` 为无引用遗留 devDep，其原生构建在本机必失败（prebuild 下载失败 + 缺 VS Build Tools），阻塞一切 pnpm 变更 → 已从 devDependencies 移除
 
+## 已评估弃用：CopilotKit（AI 助手）
+
+- 仓库：https://github.com/CopilotKit/CopilotKit（MIT，React AI 助手组件套件）
+- **决策：❌ 不引入全套运行时，UI 能力由自研实现（`src/modules/ai-assistant/`）覆盖**
+- 评估理由：
+  1. CopilotKit 是框架级运行时（hooks/上下文/状态机深度绑定），"剥离对话渲染组件"实际需连带整套运行时，成本高于自研
+  2. 其核心价值在**工具调用编排**（对接 OpenClaw Agent），当前工作台无此后端；纯对话场景与自研流式实现能力重合
+  3. 自研方案已覆盖清单中可复用的 UI 面：流式打字（SSE 增量渲染）、对话气泡（用户/助手）、消息历史（localStorage 最近 40 条）、停止生成（AbortController）、清空二次确认（ConfirmDialog）
+- 后端：`src/server/routes/ai.ts`（POST /api/ai/chat，OpenAI 兼容 SSE 代理，system prompt 后端注入，120s 超时）；凭据 `.env` 三件套 `AI_BASE_URL / AI_API_KEY / AI_MODEL`
+- 若未来接入工具调用（Agent 模式），再评估 CopilotKit 或自研工具调用 UI，届时单独记录
+
+
 ## 集成/使用纪律
 
 1. 新组件库引入前：确认许可证（MIT/Apache 优先）→ 记录到本清单 → 小范围试用 → 验收后才铺开
