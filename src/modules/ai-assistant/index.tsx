@@ -1,9 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { message } from 'antd'
-import { Send, Square, Trash2, Sparkles, Bot } from 'lucide-react'
+import { Send, Square, Trash2, Sparkles, Bot, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import './ai-assistant.css'
 
@@ -39,6 +49,62 @@ const AIModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [streaming, setStreaming] = useState(false)
   const [error, setError] = useState('')
   const [clearOpen, setClearOpen] = useState(false)
+
+  // 设置弹窗
+  const [cfgOpen, setCfgOpen] = useState(false)
+  const [cfg, setCfg] = useState({ baseUrl: '', apiKey: '', model: '' })
+  const [cfgMasked, setCfgMasked] = useState('')
+  const [cfgLoading, setCfgLoading] = useState(false)
+  const [cfgSaving, setCfgSaving] = useState(false)
+
+  const openCfg = async () => {
+    setCfgOpen(true)
+    setCfgLoading(true)
+    try {
+      const res = await fetch('/api/ai/config')
+      const d = (await res.json()) as { baseUrl?: string; apiKeyMasked?: string; model?: string }
+      setCfg({ baseUrl: d.baseUrl || '', apiKey: '', model: d.model || '' })
+      setCfgMasked(d.apiKeyMasked || '')
+    } catch {
+      message.error('读取配置失败')
+    } finally {
+      setCfgLoading(false)
+    }
+  }
+
+  const saveCfg = async () => {
+    if (!cfg.baseUrl.trim()) {
+      message.warning('请填写接口地址')
+      return
+    }
+    if (!cfg.model.trim()) {
+      message.warning('请填写模型名称')
+      return
+    }
+    setCfgSaving(true)
+    try {
+      const res = await fetch('/api/ai/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseUrl: cfg.baseUrl.trim(),
+          apiKey: cfg.apiKey.trim(),
+          model: cfg.model.trim(),
+        }),
+      })
+      if (!res.ok) {
+        const e = (await res.json().catch(() => ({}))) as { error?: string }
+        message.error(e.error || '保存失败')
+        return
+      }
+      message.success('配置已保存，立即生效')
+      setCfgOpen(false)
+    } catch {
+      message.error('保存失败')
+    } finally {
+      setCfgSaving(false)
+    }
+  }
 
   const listRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -173,10 +239,9 @@ const AIModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       <div className="ai-status">
         <span className="ai-status-dot" style={{ background: streaming ? '#ff6700' : '#00b42a' }} />
         <span>{streaming ? '正在思考…' : '就绪'}</span>
-        <span className="ai-model">
-          <Sparkles className="h-3 w-3" />
-          OpenAI 兼容接口
-        </span>
+        <Button size="sm" variant="ghost" className="ai-settings-btn" onClick={openCfg} title="AI 接口设置">
+          <Settings className="h-3.5 w-3.5" /> 设置
+        </Button>
       </div>
 
       <div className="ai-list" ref={listRef}>
@@ -234,6 +299,67 @@ const AIModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       </div>
 
       {headerActions}
+
+      <Dialog open={cfgOpen} onOpenChange={(o) => !o && setCfgOpen(false)}>
+        <DialogContent className="ai-cfg-dialog">
+          <DialogHeader>
+            <DialogTitle>AI 接口设置</DialogTitle>
+            <DialogDescription>
+              兼容 OpenAI 接口协议，支持 DeepSeek、通义、本地 Ollama 等。
+            </DialogDescription>
+          </DialogHeader>
+
+          {cfgLoading ? (
+            <div className="ai-cfg-loading">读取配置中…</div>
+          ) : (
+            <div className="ai-cfg-body">
+              <div className="ai-cfg-field">
+                <Label htmlFor="ai-base">接口地址（Base URL）</Label>
+                <Input
+                  id="ai-base"
+                  value={cfg.baseUrl}
+                  onChange={(e) => setCfg((c) => ({ ...c, baseUrl: e.target.value }))}
+                  placeholder="https://api.deepseek.com/v1"
+                />
+              </div>
+              <div className="ai-cfg-field">
+                <Label htmlFor="ai-key">API Key</Label>
+                <Input
+                  id="ai-key"
+                  type="password"
+                  value={cfg.apiKey}
+                  onChange={(e) => setCfg((c) => ({ ...c, apiKey: e.target.value }))}
+                  placeholder={cfgMasked || '粘贴你的 API Key'}
+                />
+                {cfgMasked && (
+                  <p className="ai-cfg-tip">当前已配置：{cfgMasked}，留空表示不修改。</p>
+                )}
+              </div>
+              <div className="ai-cfg-field">
+                <Label htmlFor="ai-model">模型（Model）</Label>
+                <Input
+                  id="ai-model"
+                  value={cfg.model}
+                  onChange={(e) => setCfg((c) => ({ ...c, model: e.target.value }))}
+                  placeholder="deepseek-chat"
+                />
+              </div>
+              <p className="ai-cfg-note">
+                配置会写入项目根目录 .env 并立即生效，无需重启。Key 仅保存在本机。
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCfgOpen(false)} disabled={cfgSaving}>
+              取消
+            </Button>
+            <Button onClick={saveCfg} disabled={cfgSaving || cfgLoading}>
+              {cfgSaving ? '保存中…' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={clearOpen}

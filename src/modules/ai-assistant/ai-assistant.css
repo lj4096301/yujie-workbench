@@ -24,12 +24,46 @@
   flex-shrink: 0;
 }
 
-.ai-model {
+.ai-settings-btn {
   margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
   color: #4e5969;
+}
+
+.ai-cfg-dialog {
+  max-width: 480px;
+}
+
+.ai-cfg-loading {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 13px;
+  color: #86909c;
+}
+
+.ai-cfg-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ai-cfg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-cfg-tip {
+  font-size: 12px;
+  color: #86909c;
+}
+
+.ai-cfg-note {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #86909c;
+  background: #f7f8fa;
+  border-radius: 6px;
+  padding: 8px 10px;
 }
 
 .ai-list {

@@ -1,4 +1,6 @@
 import { Router } from 'express'
+import fs from 'fs'
+import { ENV_PATH } from '../env'
 
 const router = Router()
 
@@ -7,14 +9,72 @@ interface ChatMsg {
   content: string
 }
 
-/** OpenAI 兼容配置（.env 中 AI_BASE_URL / AI_API_KEY / AI_MODEL） */
-const AI_BASE = (process.env.AI_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, '')
-const AI_KEY = process.env.AI_API_KEY || ''
-const AI_MODEL = process.env.AI_MODEL || 'deepseek-chat'
+/** 每次请求实时读取（保存配置后立即生效，无需重启） */
+const getBase = () => (process.env.AI_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, '')
+const getKey = () => process.env.AI_API_KEY || ''
+const getModel = () => process.env.AI_MODEL || 'deepseek-chat'
+
+/** 写入/更新 .env 中 AI_* 键值（保留其他配置，CRLF 风格） */
+function upsertEnv(key: string, value: string): void {
+  const raw = fs.existsSync(ENV_PATH) ? fs.readFileSync(ENV_PATH, 'utf8') : ''
+  const lines = raw.split(/\r?\n/)
+  let found = false
+  const out = lines.map((line) => {
+    if (line.startsWith(`${key}=`)) {
+      found = true
+      return `${key}=${value}`
+    }
+    return line
+  })
+  if (!found) out.push(`${key}=${value}`)
+  fs.writeFileSync(ENV_PATH, out.join('\r\n'), 'utf8')
+}
 
 const SYSTEM_PROMPT =
   '你是「宇界工作台」的内置 AI 助手，帮助用户整理思路、规划任务、回答问题。' +
   '回答使用简体中文，简洁清晰，尽量结构化（分点、小标题）。'
+
+/**
+ * 读取当前 AI 配置（key 打码返回）
+ */
+router.get('/config', (_req, res) => {
+  const key = getKey()
+  res.json({
+    baseUrl: process.env.AI_BASE_URL || 'https://api.deepseek.com/v1',
+    apiKeyMasked: key ? `****${key.slice(-4)}` : '',
+    hasKey: Boolean(key),
+    model: getModel(),
+  })
+})
+
+/**
+ * 保存 AI 配置：写入 .env 并同步到当前进程（立即生效）
+ * body: { baseUrl?, apiKey?, model? }（空字符串不更新）
+ */
+router.post('/config', (req, res) => {
+  const { baseUrl, apiKey, model } = (req.body ?? {}) as {
+    baseUrl?: string
+    apiKey?: string
+    model?: string
+  }
+  try {
+    if (typeof baseUrl === 'string' && baseUrl.trim()) {
+      upsertEnv('AI_BASE_URL', baseUrl.trim())
+      process.env.AI_BASE_URL = baseUrl.trim()
+    }
+    if (typeof apiKey === 'string' && apiKey.trim()) {
+      upsertEnv('AI_API_KEY', apiKey.trim())
+      process.env.AI_API_KEY = apiKey.trim()
+    }
+    if (typeof model === 'string' && model.trim()) {
+      upsertEnv('AI_MODEL', model.trim())
+      process.env.AI_MODEL = model.trim()
+    }
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ error: '保存配置失败：' + String(err) })
+  }
+})
 
 /**
  * 聊天流式代理：POST /api/ai/chat
@@ -23,8 +83,8 @@ const SYSTEM_PROMPT =
  */
 router.post('/chat', async (req, res) => {
   const msgs = (req.body as { messages?: ChatMsg[] } | undefined)?.messages
-  if (!AI_KEY) {
-    res.status(400).json({ error: '未配置 AI_API_KEY，请在 .env 中设置后重启后端' })
+  if (!getKey()) {
+    res.status(400).json({ error: '未配置 AI_API_KEY，请点击「设置」填写 API Key' })
     return
   }
   if (!Array.isArray(msgs) || msgs.length === 0) {
@@ -39,14 +99,14 @@ router.post('/chat', async (req, res) => {
   res.flushHeaders?.()
 
   try {
-    const upstream = await fetch(`${AI_BASE}/chat/completions`, {
+    const upstream = await fetch(`${getBase()}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${AI_KEY}`,
+        Authorization: `Bearer ${getKey()}`,
       },
       body: JSON.stringify({
-        model: AI_MODEL,
+        model: getModel(),
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...msgs],
         stream: true,
       }),
