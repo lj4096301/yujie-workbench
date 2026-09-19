@@ -210,9 +210,15 @@ const KanbanCol: React.FC<KanbanColProps> = ({ id, active, count, statusLabel, d
   )
 }
 
-const KanbanDragCard: React.FC<{ cardId: string; cards: KanbanCard[] }> = ({ cardId, cards }) => {
+const KanbanDragCard: React.FC<{
+  cardId: string
+  cards: KanbanCard[]
+  showProject: boolean
+  projectName: string
+}> = ({ cardId, cards, showProject, projectName }) => {
   const card = cards.find((c) => c.id === cardId)
   if (!card) return null
+  // 与源卡片完全一致的结构，避免拿起时尺寸/内容跳变
   return (
     <div className="kb-card kb-drag-overlay">
       <div className="kb-card-title">{card.title}</div>
@@ -222,6 +228,8 @@ const KanbanDragCard: React.FC<{ cardId: string; cards: KanbanCard[] }> = ({ car
           <span className="kb-dot" style={{ background: PRIORITY_DOT[card.priority] }} />
           {PRIORITY_META[card.priority].label}
         </span>
+        {showProject && <span className="kb-proj">{projectName}</span>}
+        <span className="kb-time">{dayjs(card.updatedAt).format('MM-DD HH:mm')}</span>
       </div>
     </div>
   )
@@ -655,7 +663,14 @@ const KanbanModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               })}
             </div>
             <DragOverlay dropAnimation={null}>
-              {draggingId ? <KanbanDragCard cardId={draggingId} cards={state.cards} /> : null}
+              {draggingId ? (
+                <KanbanDragCard
+                  cardId={draggingId}
+                  cards={state.cards}
+                  showProject={filter === 'all'}
+                  projectName={state.projects.find((p) => p.id === (state.cards.find((c) => c.id === draggingId)?.projectId ?? ''))?.name ?? '?'}
+                />
+              ) : null}
             </DragOverlay>
           </DndContext>
         )}
