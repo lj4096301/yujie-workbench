@@ -43,6 +43,16 @@ interface HolidayItem {
   type: 'holiday' | 'workday'
 }
 
+interface DetailEvent {
+  id: string
+  title: string
+  start: string
+  end: string
+  color?: string
+  description?: string
+  source?: string
+}
+
 const EVENT_COLORS = ['#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
 
 const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
@@ -61,6 +71,10 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [pickerDate, setPickerDate] = useState<Dayjs>(dayjs())
+
+  // 事件详情弹窗
+  const [detailEvent, setDetailEvent] = useState<DetailEvent | null>(null)
+  const [detailConfirm, setDetailConfirm] = useState(false)
 
   // 添加日程表单
   const [evTitle, setEvTitle] = useState('')
@@ -149,14 +163,38 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     setModalVisible(true)
   }, [])
 
+  /** 点击事件 → 打开详情弹窗（查看/删除） */
   const handleEventClick = useCallback((arg: EventClickArg) => {
     const e = arg.event
-    message.open({
-      type: 'info',
-      content: `${e.title}${e.extendedProps?.description ? `｜${e.extendedProps.description}` : ''}`,
-      duration: 3,
+    setDetailConfirm(false)
+    setDetailEvent({
+      id: e.id,
+      title: e.title,
+      start: e.start?.toISOString?.() || e.startStr,
+      end: e.end?.toISOString?.() || e.endStr || e.startStr,
+      color: e.backgroundColor || e.borderColor || '#1677ff',
+      description: (e.extendedProps?.description as string | undefined) || '',
+      source: e.extendedProps?.source as string | undefined,
     })
   }, [])
+
+  /** 删除日程（二次确认后） */
+  const handleDeleteEvent = useCallback(async () => {
+    if (!detailEvent) return
+    try {
+      const res = await fetch(`/api/calendar/events/${detailEvent.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setEvents((prev) => prev.filter((e) => e.id !== detailEvent.id))
+        setDetailEvent(null)
+        setDetailConfirm(false)
+        message.success('日程已删除')
+      } else {
+        message.error('删除失败')
+      }
+    } catch {
+      message.error('删除失败，请检查服务')
+    }
+  }, [detailEvent])
 
   /** 月视图格子：农历 + 休/班标 */
   const dayCell = useCallback(
@@ -205,7 +243,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     start: e.start,
     end: e.end,
     color: e.color || '#1677ff',
-    extendedProps: { description: e.description || '' },
+    extendedProps: { description: e.description || '', source: e.source },
   }))
 
   const submitAdd = () => {
@@ -269,6 +307,12 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         actionsHost
       )
     : null
+
+  const fmtTime = (iso: string) => {
+    const d = dayjs(iso)
+    if (!d.isValid()) return iso
+    return d.format('YYYY-MM-DD HH:mm')
+  }
 
   return (
     <div ref={bodyRef} style={{ display: 'flex', padding: 0, gap: 12, alignItems: 'flex-start' }}>
@@ -337,6 +381,71 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           </Button>
         </div>
       </div>
+
+      {/* 事件详情弹窗：查看 + 删除（二次确认） */}
+      <Dialog open={!!detailEvent} onOpenChange={(o) => { if (!o) { setDetailEvent(null); setDetailConfirm(false) } }}>
+        <DialogContent className="max-w-[420px]">
+          {!detailConfirm ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      background: detailEvent?.color || '#1677ff',
+                    }}
+                  />
+                  {detailEvent?.title || '日程详情'}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 text-sm">
+                <div className="flex gap-2">
+                  <span className="w-14 flex-shrink-0 text-[#86909c]">时间</span>
+                  <span className="text-[#1d2129]">
+                    {detailEvent ? `${fmtTime(detailEvent.start)} → ${fmtTime(detailEvent.end)}` : ''}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-14 flex-shrink-0 text-[#86909c]">来源</span>
+                  <span className="text-[#1d2129]">{detailEvent?.source === 'feishu' ? '飞书日历' : '本地日程'}</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-14 flex-shrink-0 text-[#86909c]">描述</span>
+                  <span className="text-[#4e5969] whitespace-pre-wrap">{detailEvent?.description || '—'}</span>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDetailEvent(null)}>
+                  关闭
+                </Button>
+                <Button variant="destructive" onClick={() => setDetailConfirm(true)}>
+                  删除
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>确认删除</DialogTitle>
+              </DialogHeader>
+              <div className="text-sm text-[#4e5969]">
+                确定要删除日程「{detailEvent?.title}」吗？删除后不可恢复。
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDetailConfirm(false)}>
+                  取消
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteEvent}>
+                  确认删除
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* 添加日程弹窗 */}
       <Dialog open={modalVisible} onOpenChange={setModalVisible}>
