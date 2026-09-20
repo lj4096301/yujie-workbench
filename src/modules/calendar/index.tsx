@@ -287,7 +287,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           }}
           buttonText={{ today: '今天', month: '月', week: '周', day: '日', list: '列表' }}
           events={fcEvents}
-          height="100%"
+          height="auto"
           dayMaxEvents={3}
           nowIndicator
           selectable={false}
