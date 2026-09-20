@@ -233,8 +233,9 @@
 .holiday-loading { padding: 24px 0; text-align: center; color: #86909c; font-size: 13px; }
 /* ===== FullCalendar 样式收敛（Mi Console Token） ===== */
 .cal-fc-wrap {
-  width: 100%;
+  width: 50%;
   min-width: 0;
+  margin: 0 auto;
   overflow: visible;
   padding: 4px 2px 8px;
 }
@@ -258,7 +259,7 @@
   --fc-button-text-color: #4e5969;
   --fc-now-indicator-color: #ff6700;
   --fc-list-event-hover-bg-color: #f7f8fa;
-  font-size: 13px;
+  font-size: 12px;
   background: #ffffff;
   border-radius: 12px;
 }
