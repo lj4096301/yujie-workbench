@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { DatePicker, message } from 'antd'
 import { CalendarDays, Plus } from 'lucide-react'
@@ -115,27 +115,43 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       .finally(() => setHolidayLoading(false))
   }, [holidayYear, holidayOpen])
 
-  const fetchEvents = useCallback(async (start: Dayjs, end: Dayjs) => {
-    setLoading(true)
-    try {
-      const res = await fetch(
-        `/api/calendar/events?start=${start.format('YYYY-MM-DD')}&end=${end.format('YYYY-MM-DD')}`
-      )
-      if (res.ok) {
-        const data = (await res.json()) as CalendarEvent[]
-        setEvents(data)
+  const fetchAbortRef = useRef<AbortController | null>(null)
+  const lastRangeRef = useRef('')
+  const fetchEvents = useCallback(
+    async (start: Dayjs, end: Dayjs, signal?: AbortSignal) => {
+      setLoading(true)
+      try {
+        const res = await fetch(
+          `/api/calendar/events?start=${start.format('YYYY-MM-DD')}&end=${end.format('YYYY-MM-DD')}`,
+          { signal }
+        )
+        if (res.ok) {
+          const data = (await res.json()) as CalendarEvent[]
+          setEvents(data)
+        }
+      } catch {
+        // 网络失败或中止静默
+      } finally {
+        setLoading(false)
       }
-    } catch {
-      // 网络失败静默
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    },
+    []
+  )
 
   /** FullCalendar 视图范围变化 → 拉取日程 */
   const handleDatesSet = useCallback(
     (arg: DatesSetArg) => {
-      void fetchEvents(dayjs(arg.start).subtract(1, 'day'), dayjs(arg.end).add(1, 'day'))
+      // 同日期范围去重，避免 FC 反复触发导致请求堆积
+      const rangeKey = `${dayjs(arg.start).format('YYYY-MM-DD')}_${dayjs(arg.end).format('YYYY-MM-DD')}`
+      if (lastRangeRef.current === rangeKey) return
+      lastRangeRef.current = rangeKey
+      fetchAbortRef.current?.abort()
+      const ctrl = new AbortController()
+      fetchAbortRef.current = ctrl
+      const timer = setTimeout(() => ctrl.abort(), 6000)
+      void fetchEvents(dayjs(arg.start).subtract(1, 'day'), dayjs(arg.end).add(1, 'day'), ctrl.signal).finally(() =>
+        clearTimeout(timer)
+      )
     },
     [fetchEvents]
   )
@@ -267,7 +283,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
       {headerActions}
       {loading && (
         <div style={{ position: 'absolute', top: 40, right: 12, zIndex: 10, fontSize: 12, color: '#86909c' }}>
@@ -287,7 +303,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           }}
           buttonText={{ today: '今天', month: '月', week: '周', day: '日', list: '列表' }}
           events={fcEvents}
-          height="parent"
+          height="auto"
           dayMaxEvents={3}
           nowIndicator
           selectable={false}

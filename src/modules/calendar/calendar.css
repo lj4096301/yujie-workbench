@@ -110,7 +110,10 @@
    日历 · 节日 / 节气预告
    ============================================================ */
 .cal-festival-box {
-  margin-top: 10px;
+  margin-top: 8px;
+  flex-shrink: 0;
+  max-height: 96px;
+  overflow: hidden;
 }
 
 .cal-festival-title {
@@ -122,8 +125,10 @@
 
 .cal-festival-list {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .cal-festival-item {
@@ -131,9 +136,13 @@
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  padding: 3px 8px;
+  padding: 5px 10px;
   background: #fffbe6;
-  border-radius: 4px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  min-width: 168px;
+  height: 26px;
+  box-sizing: border-box;
 }
 
 .cal-festival-name {
@@ -224,9 +233,9 @@
 .holiday-loading { padding: 24px 0; text-align: center; color: #86909c; font-size: 13px; }
 /* ===== FullCalendar 样式收敛（Mi Console Token） ===== */
 .cal-fc-wrap {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
   padding: 4px 2px 8px;
 }
 .cal-fc-wrap .fc { min-width: 640px; }

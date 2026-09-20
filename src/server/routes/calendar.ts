@@ -145,6 +145,7 @@ async function fetchFeishuEvents(start?: string, end?: string): Promise<any[]> {
       {
         params,
         headers: { Authorization: `Bearer ${access_token}` },
+        timeout: 4000,
       }
     )
 
