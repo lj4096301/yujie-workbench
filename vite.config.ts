@@ -15,7 +15,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: '0.0.0.0',
+    host: '::',
     watch: {
       // ignore temp files from agent infra to avoid EBUSY watcher crash
       ignored: ['**/*.agent_infra_tmp_*', '**/.git/**', '**/node_modules/**'],
