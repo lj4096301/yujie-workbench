@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { DatePicker, message } from 'antd'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
 import dayjs, { Dayjs } from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
@@ -27,6 +27,12 @@ dayjs.extend(weekOfYear)
 dayjs.extend(localeData)
 dayjs.extend(customParseFormat)
 
+interface HolidayItem {
+  date: string
+  name: string
+  type: 'holiday' | 'workday'
+}
+
 interface CalendarEvent {
   id: string
   title: string
@@ -39,6 +45,19 @@ interface CalendarEvent {
 
 const HOURS = Array.from({ length: 16 }, (_, i) => i + 7) // 7:00 - 22:00
 const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日']
+
+/** 连续同名日期合并为一组 */
+function groupHolidays(list: HolidayItem[]) {
+  const groups: Array<{ name: string; type: string; dates: string[] }> = []
+  for (const it of list) {
+    const last = groups[groups.length - 1]
+    const prevDate = last ? last.dates[last.dates.length - 1] : ''
+    const isConsecutive = !!prevDate && dayjs(it.date).diff(dayjs(prevDate), 'day') === 1
+    if (last && last.name === it.name && isConsecutive) last.dates.push(it.date)
+    else groups.push({ name: it.name, type: it.type, dates: [it.date] })
+  }
+  return groups
+}
 
 const EVENT_COLORS = ['#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
 
@@ -67,6 +86,13 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [evColor, setEvColor] = useState('#1677ff')
   const [evDesc, setEvDesc] = useState('')
 
+  // 国家法定休息日
+  const [holidayMap, setHolidayMap] = useState<Map<string, HolidayItem>>(new Map())
+  const [holidayOpen, setHolidayOpen] = useState(false)
+  const [holidayYear, setHolidayYear] = useState(String(dayjs().year()))
+  const [holidayList, setHolidayList] = useState<HolidayItem[]>([])
+  const [holidayLoading, setHolidayLoading] = useState(false)
+
   // 当前视图需要展示的日期范围（用于拉取日程）
   const range = useMemo(() => {
     if (view === 'day') return { start: activeDay, end: activeDay }
@@ -78,6 +104,38 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     fetchEvents()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range.start.format('YYYY-MM-DD'), range.end.format('YYYY-MM-DD')])
+
+  // 预取今年与明年法定休息日（月视图标记用）
+  useEffect(() => {
+    const year = dayjs().year()
+    const load = async () => {
+      try {
+        const [a, b] = await Promise.all([
+          fetch(`/api/holiday?year=${year}`).then((r) => r.json()),
+          fetch(`/api/holiday?year=${year + 1}`).then((r) => r.json()),
+        ])
+        const m = new Map<string, HolidayItem>()
+        ;[a, b].forEach((d) => {
+          ;(d.list || []).forEach((h: HolidayItem) => m.set(h.date, h))
+        })
+        setHolidayMap(m)
+      } catch {
+        // 网络失败静默，月视图不加标记
+      }
+    }
+    void load()
+  }, [])
+
+  // 弹窗年份切换时拉取对应年份
+  useEffect(() => {
+    if (!holidayOpen) return
+    setHolidayLoading(true)
+    fetch(`/api/holiday?year=${holidayYear}`)
+      .then((r) => r.json())
+      .then((d) => setHolidayList((d.list || []) as HolidayItem[]))
+      .catch(() => message.error('获取节假日失败'))
+      .finally(() => setHolidayLoading(false))
+  }, [holidayYear, holidayOpen])
 
   const fetchEvents = async () => {
     setLoading(true)
@@ -235,6 +293,9 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           >
             日
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setHolidayOpen(true)} title="国家法定休息日">
+            <CalendarDays className="h-4 w-4" />
+          </Button>
           <Button size="sm" onClick={openAdd}>
             ＋
           </Button>
@@ -273,6 +334,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               const isToday = d.isSame(today, 'day')
               const info = getDayLunarInfo(d.toDate())
               const dayEvents = getEventsForDay(d)
+              const h = holidayMap.get(d.format('YYYY-MM-DD'))
               return (
                 <div
                   key={d.format('YYYY-MM-DD')}
@@ -282,7 +344,11 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                 >
                   <div className="cal-cell-date">
                     <span className={`cal-solar${isToday ? ' today-num' : ''}`}>{d.date()}</span>
+                    {h && <span className={`cal-hmark ${h.type}`}>{h.type === 'holiday' ? '休' : '班'}</span>}
+                  </div>
+                  <div className="cal-cell-lunar">
                     <span className={`cal-lunar${info.highlight ? ' fest' : ''}`}>{info.label}</span>
+                    {h && <span className="cal-hname">{h.name}</span>}
                   </div>
                   <div className="cal-cell-events">
                     {dayEvents.slice(0, 2).map((e) => (
@@ -392,6 +458,55 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           去连接
         </Button>
       </div>
+
+      {/* 国家法定休息日弹窗 */}
+      <Dialog open={holidayOpen} onOpenChange={setHolidayOpen}>
+        <DialogContent className="max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>国家法定休息日</DialogTitle>
+          </DialogHeader>
+          <div className="holiday-year-tabs">
+            {[String(dayjs().year() - 1), String(dayjs().year()), String(dayjs().year() + 1)].map((y) => (
+              <Button
+                key={y}
+                size="sm"
+                variant={holidayYear === y ? 'default' : 'outline'}
+                onClick={() => setHolidayYear(y)}
+              >
+                {y}
+              </Button>
+            ))}
+          </div>
+          <div className="holiday-body">
+            {holidayLoading ? (
+              <div className="holiday-loading">加载中…</div>
+            ) : holidayList.length === 0 ? (
+              <div className="holiday-loading">暂无数据</div>
+            ) : (
+              groupHolidays(holidayList).map((g, i) => {
+                const start = dayjs(g.dates[0])
+                const end = dayjs(g.dates[g.dates.length - 1])
+                const rangeText =
+                  g.dates.length > 1 ? `${start.format('M月D日')} - ${end.format('M月D日')}` : start.format('M月D日')
+                const isHoliday = g.type === 'holiday'
+                return (
+                  <div key={i} className="holiday-item">
+                    <span className={`holiday-dot ${g.type}`} />
+                    <span className={`holiday-name${isHoliday ? '' : ' work'}`}>{g.name}</span>
+                    <span className="holiday-range">{rangeText}</span>
+                    <span className={`holiday-tag ${g.type}`}>
+                      {isHoliday ? `放假${g.dates.length}天` : '上班'}
+                    </span>
+                  </div>
+                )
+              })
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHolidayOpen(false)}>关闭</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 添加日程弹窗 */}
       <Dialog open={modalVisible} onOpenChange={setModalVisible}>

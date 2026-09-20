@@ -16,6 +16,7 @@ import { createCalendarRouter } from './routes/calendar'
 import { createKanbanRouter } from './routes/kanban'
 import { createLogsRouter } from './routes/logs'
 import { createAIRouter } from './routes/ai'
+import { createHolidayRouter } from './routes/holiday'
 import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -47,6 +48,7 @@ app.use('/api/calendar', createCalendarRouter())
 app.use('/api/kanban', createKanbanRouter())
 app.use('/api/logs', createLogsRouter())
 app.use('/api/ai', createAIRouter())
+app.use('/api/holiday', createHolidayRouter())
 
 // SPA fallback
 app.get('*', (req, res) => {
