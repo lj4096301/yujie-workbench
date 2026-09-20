@@ -271,7 +271,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     : null
 
   return (
-    <div ref={bodyRef} style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
+    <div ref={bodyRef} style={{ display: 'flex', padding: 0, gap: 12, alignItems: 'flex-start' }}>
       {headerActions}
       {loading && (
         <div style={{ position: 'absolute', top: 40, right: 12, zIndex: 10, fontSize: 12, color: '#86909c' }}>
@@ -307,33 +307,35 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         />
       </div>
 
-      {/* 节日 / 节气预告 */}
-      {upcomingFestivals.length > 0 && (
-        <div className="cal-festival-box">
-          <div className="cal-festival-title">📌 近 60 天节日 · 节气预告</div>
-          <div className="cal-festival-list">
-            {upcomingFestivals.map((f) => (
-              <div key={`${f.name}-${f.date}`} className="cal-festival-item">
-                <span className={`cal-festival-name${f.isJieQi ? ' jieqi' : ''}`}>{f.name}</span>
-                <span className="cal-festival-date">
-                  {f.date.slice(5)}
-                  {f.lunarText ? ` · ${f.lunarText}` : ''}
-                </span>
-                <span className={`cal-festival-away${f.daysAway <= 3 ? ' soon' : ''}`}>
-                  {f.daysAway === 0 ? '今天' : `${f.daysAway} 天后`}
-                </span>
-              </div>
-            ))}
+      {/* 右栏：节日 / 节气预告 + 飞书状态 */}
+      <div className="cal-sidebar">
+        {upcomingFestivals.length > 0 && (
+          <div className="cal-festival-box">
+            <div className="cal-festival-title">📌 近 60 天节日 · 节气</div>
+            <div className="cal-festival-list">
+              {upcomingFestivals.map((f) => (
+                <div key={`${f.name}-${f.date}`} className="cal-festival-item">
+                  <span className={`cal-festival-name${f.isJieQi ? ' jieqi' : ''}`}>{f.name}</span>
+                  <span className="cal-festival-date">
+                    {f.date.slice(5)}
+                    {f.lunarText ? ` · ${f.lunarText}` : ''}
+                  </span>
+                  <span className={`cal-festival-away${f.daysAway <= 3 ? ' soon' : ''}`}>
+                    {f.daysAway === 0 ? '今天' : `${f.daysAway} 天后`}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 飞书同步状态 */}
-      <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#999' }}>
-        <span>📅 飞书日历：未连接</span>
-        <Button variant="link" size="sm" style={{ fontSize: 11, padding: 0 }}>
-          去连接
-        </Button>
+        {/* 飞书同步状态 */}
+        <div className="cal-feishu-status">
+          <span>📅 飞书日历：未连接</span>
+          <Button variant="link" size="sm" style={{ fontSize: 11, padding: 0 }}>
+            去连接
+          </Button>
+        </div>
       </div>
 
       {/* 添加日程弹窗 */}

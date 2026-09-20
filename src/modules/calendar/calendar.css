@@ -109,11 +109,16 @@
 /* ============================================================
    日历 · 节日 / 节气预告
    ============================================================ */
-.cal-festival-box {
-  margin-top: 8px;
+.cal-sidebar {
+  width: 220px;
   flex-shrink: 0;
-  max-height: 96px;
-  overflow: hidden;
+  border-left: 1px solid #f2f3f5;
+  padding-left: 12px;
+  padding-top: 8px;
+  align-self: stretch;
+}
+.cal-festival-box {
+  flex-shrink: 0;
 }
 
 .cal-festival-title {
@@ -125,10 +130,11 @@
 
 .cal-festival-list {
   display: flex;
-  flex-direction: row;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .cal-festival-item {
@@ -233,9 +239,8 @@
 .holiday-loading { padding: 24px 0; text-align: center; color: #86909c; font-size: 13px; }
 /* ===== FullCalendar 样式收敛（Mi Console Token） ===== */
 .cal-fc-wrap {
-  width: 50%;
+  flex: 1;
   min-width: 0;
-  margin: 0 auto;
   overflow: visible;
   padding: 4px 2px 8px;
 }
@@ -338,4 +343,14 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* 飞书状态（右栏） */
+.cal-feishu-status {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #999;
 }
