@@ -1,37 +1,31 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { DatePicker, message } from 'antd'
-import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
+import { CalendarDays, Plus } from 'lucide-react'
 import dayjs, { Dayjs } from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import localeData from 'dayjs/plugin/localeData'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import listPlugin from '@fullcalendar/list'
+import interactionPlugin from '@fullcalendar/interaction'
+import zhCnLocale from '@fullcalendar/core/locales/zh-cn'
+import type { DatesSetArg, DayCellContentArg, DayHeaderContentArg, EventClickArg } from '@fullcalendar/core'
 import { getDayLunarInfo, getUpcomingFestivals } from './lunarUtils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog'
 import './calendar.css'
 
 dayjs.extend(isoWeek)
 dayjs.extend(weekOfYear)
 dayjs.extend(localeData)
 dayjs.extend(customParseFormat)
-
-interface HolidayItem {
-  date: string
-  name: string
-  type: 'holiday' | 'workday'
-}
 
 interface CalendarEvent {
   id: string
@@ -43,8 +37,13 @@ interface CalendarEvent {
   source: 'local' | 'feishu'
 }
 
-const HOURS = Array.from({ length: 16 }, (_, i) => i + 7) // 7:00 - 22:00
-const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日']
+interface HolidayItem {
+  date: string
+  name: string
+  type: 'holiday' | 'workday'
+}
+
+const EVENT_COLORS = ['#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
 
 /** 连续同名日期合并为一组 */
 function groupHolidays(list: HolidayItem[]) {
@@ -59,10 +58,6 @@ function groupHolidays(list: HolidayItem[]) {
   return groups
 }
 
-const EVENT_COLORS = ['#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
-
-type ViewMode = 'month' | 'week' | 'day'
-
 const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   // 标题栏操作挂载点（Panel 的 panel-actions）
   const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null)
@@ -73,14 +68,9 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(false)
-  const [view, setView] = useState<ViewMode>('month')
-  // isoWeek 下 startOf('isoWeek') 即周一，不能再额外加一天
-  const [currentWeekStart, setCurrentWeekStart] = useState(dayjs().startOf('isoWeek'))
-  const [currentMonth, setCurrentMonth] = useState(dayjs().startOf('month'))
-  const [activeDay, setActiveDay] = useState(dayjs())
   const [modalVisible, setModalVisible] = useState(false)
 
-  // 添加日程表单（手写 state，替代 antd Form）
+  // 添加日程表单
   const [evTitle, setEvTitle] = useState('')
   const [evRange, setEvRange] = useState<[Dayjs, Dayjs] | null>(null)
   const [evColor, setEvColor] = useState('#1677ff')
@@ -92,18 +82,6 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [holidayYear, setHolidayYear] = useState(String(dayjs().year()))
   const [holidayList, setHolidayList] = useState<HolidayItem[]>([])
   const [holidayLoading, setHolidayLoading] = useState(false)
-
-  // 当前视图需要展示的日期范围（用于拉取日程）
-  const range = useMemo(() => {
-    if (view === 'day') return { start: activeDay, end: activeDay }
-    if (view === 'week') return { start: currentWeekStart, end: currentWeekStart.add(6, 'day') }
-    return { start: currentMonth.startOf('month'), end: currentMonth.endOf('month') }
-  }, [view, activeDay, currentWeekStart, currentMonth])
-
-  useEffect(() => {
-    fetchEvents()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [range.start.format('YYYY-MM-DD'), range.end.format('YYYY-MM-DD')])
 
   // 预取今年与明年法定休息日（月视图标记用）
   useEffect(() => {
@@ -137,76 +115,99 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       .finally(() => setHolidayLoading(false))
   }, [holidayYear, holidayOpen])
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async (start: Dayjs, end: Dayjs) => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/calendar/events?start=${range.start.format('YYYY-MM-DD')}&end=${range.end.format('YYYY-MM-DD')}`)
+      const res = await fetch(
+        `/api/calendar/events?start=${start.format('YYYY-MM-DD')}&end=${end.format('YYYY-MM-DD')}`
+      )
       if (res.ok) {
-        const data = await res.json()
+        const data = (await res.json()) as CalendarEvent[]
         setEvents(data)
       }
-    } catch {} finally {
+    } catch {
+      // 网络失败静默
+    } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const getEventsForSlot = (day: Dayjs, hour: number) => {
-    return events.filter((e) => {
-      const start = dayjs(e.start)
-      return start.isSame(day, 'day') && start.hour() === hour
-    })
-  }
+  /** FullCalendar 视图范围变化 → 拉取日程 */
+  const handleDatesSet = useCallback(
+    (arg: DatesSetArg) => {
+      void fetchEvents(dayjs(arg.start).subtract(1, 'day'), dayjs(arg.end).add(1, 'day'))
+    },
+    [fetchEvents]
+  )
 
-  const getEventsForDay = (day: Dayjs) =>
-    events.filter((e) => dayjs(e.start).isSame(day, 'day'))
-
-  const handlePrev = () => {
-    if (view === 'day') {
-      const prev = activeDay.subtract(1, 'day')
-      setActiveDay(prev)
-      setCurrentWeekStart(prev.startOf('isoWeek'))
-      setCurrentMonth(prev.startOf('month'))
-    } else if (view === 'week') {
-      setCurrentWeekStart(currentWeekStart.subtract(1, 'week'))
-    } else {
-      setCurrentMonth(currentMonth.subtract(1, 'month'))
-    }
-  }
-
-  const handleNext = () => {
-    if (view === 'day') {
-      const next = activeDay.add(1, 'day')
-      setActiveDay(next)
-      setCurrentWeekStart(next.startOf('isoWeek'))
-      setCurrentMonth(next.startOf('month'))
-    } else if (view === 'week') {
-      setCurrentWeekStart(currentWeekStart.add(1, 'week'))
-    } else {
-      setCurrentMonth(currentMonth.add(1, 'month'))
-    }
-  }
-
-  const handleToday = () => {
-    const now = dayjs()
-    setCurrentWeekStart(now.startOf('isoWeek'))
-    setCurrentMonth(now.startOf('month'))
-    setActiveDay(now)
-  }
-
-  /** 月视图点击某天 → 跳到日视图看详情 */
-  const openDay = (d: Dayjs) => {
-    setActiveDay(d)
-    setCurrentWeekStart(d.startOf('isoWeek'))
-    setView('day')
-  }
-
-  const openAdd = () => {
+  /** 点空白日期 → 打开添加弹窗并预填 */
+  const handleDateClick = useCallback((arg: { date: Date }) => {
+    const d = dayjs(arg.date)
     setEvTitle('')
-    setEvRange(null)
-    setEvColor('#1677ff')
+    setEvRange([d.startOf('day'), d.startOf('day').add(1, 'hour')])
+    setEvColor(EVENT_COLORS[0])
     setEvDesc('')
     setModalVisible(true)
-  }
+  }, [])
+
+  const handleEventClick = useCallback((arg: EventClickArg) => {
+    const e = arg.event
+    message.open({
+      type: 'info',
+      content: `${e.title}${e.extendedProps?.description ? `｜${e.extendedProps.description}` : ''}`,
+      duration: 3,
+    })
+  }, [])
+
+  /** 月视图格子：农历 + 休/班标 */
+  const dayCell = useCallback(
+    (arg: DayCellContentArg) => {
+      const d = dayjs(arg.date)
+      const info = getDayLunarInfo(arg.date)
+      const h = holidayMap.get(d.format('YYYY-MM-DD'))
+      return (
+        <div className="fc-daycell">
+          <div className="fc-daycell-top">
+            <span className="fc-daycell-num">{arg.dayNumberText}</span>
+            {h && <span className={`cal-hmark ${h.type}`}>{h.type === 'holiday' ? '休' : '班'}</span>}
+          </div>
+          <div className="fc-daycell-lunar">
+            <span className={`fc-lunar${info.highlight ? ' fest' : ''}`}>{info.label}</span>
+            {h && <span className="cal-hname">{h.name}</span>}
+          </div>
+        </div>
+      )
+    },
+    [holidayMap]
+  )
+
+  /** 周/日视图列头：农历 + 休/班标 */
+  const dayHeader = useCallback(
+    (arg: DayHeaderContentArg) => {
+      const d = dayjs(arg.date)
+      const info = getDayLunarInfo(arg.date)
+      const h = holidayMap.get(d.format('YYYY-MM-DD'))
+      return (
+        <div className="fc-dayheader">
+          <div className="fc-dayheader-text">{arg.text}</div>
+          <div className="fc-dayheader-sub">
+            <span className={`fc-lunar${info.highlight ? ' fest' : ''}`}>{info.label}</span>
+            {h && <span className={`cal-hmark ${h.type}`}>{h.type === 'holiday' ? '休' : '班'}</span>}
+          </div>
+        </div>
+      )
+    },
+    [holidayMap]
+  )
+
+  const fcEvents = events.map((e) => ({
+    id: e.id,
+    title: e.title,
+    start: e.start,
+    end: e.end,
+    color: e.color || '#1677ff',
+    extendedProps: { description: e.description || '' },
+  }))
 
   const submitAdd = () => {
     const title = evTitle.trim()
@@ -231,73 +232,34 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     setModalVisible(false)
     message.success('日程已添加')
     try {
-      fetch('/api/calendar/events', {
+      void fetch('/api/calendar/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(event),
       })
-    } catch {}
+    } catch {
+      // 网络失败静默
+    }
   }
 
-  const viewTitle = view === 'day'
-    ? activeDay.format('YYYY年M月D日 ddd')
-    : view === 'week'
-      ? `${currentWeekStart.format('YYYY年M月')} 第${currentWeekStart.format('W')}周`
-      : currentMonth.format('YYYY年M月')
+  const upcomingFestivals = getUpcomingFestivals(60, 8)
 
-  // ============ 月视图：6 行 × 7 列网格 ============
-  const monthCells = useMemo(() => {
-    const gridStart = currentMonth.startOf('month').startOf('isoWeek')
-    return Array.from({ length: 42 }, (_, i) => gridStart.add(i, 'day'))
-  }, [currentMonth])
-
-  const upcomingFestivals = useMemo(
-    () => (view === 'month' ? getUpcomingFestivals(60, 8) : []),
-    [view]
-  )
-
-  const today = dayjs()
-
-  const weekDays = view === 'day'
-    ? [activeDay]
-    : Array.from({ length: 7 }, (_, i) => currentWeekStart.add(i, 'day'))
-
-  const dayLunar = getDayLunarInfo(activeDay.toDate())
+  function openAdd() {
+    setEvTitle('')
+    setEvRange(null)
+    setEvColor('#1677ff')
+    setEvDesc('')
+    setModalVisible(true)
+  }
 
   const headerActions = actionsHost
     ? createPortal(
         <div className="cal-header-actions" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <Button variant="outline" size="sm" onClick={handlePrev}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleToday}>
-            今天
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleNext}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <span style={{ width: 6 }} />
-          <Button variant={view === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setView('month')}>
-            月
-          </Button>
-          <Button variant={view === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setView('week')}>
-            周
-          </Button>
-          <Button
-            variant={view === 'day' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => {
-              if (!activeDay.isSame(currentMonth, 'month')) setActiveDay(dayjs())
-              setView('day')
-            }}
-          >
-            日
-          </Button>
           <Button size="sm" variant="outline" onClick={() => setHolidayOpen(true)} title="国家法定休息日">
             <CalendarDays className="h-4 w-4" />
           </Button>
           <Button size="sm" onClick={openAdd}>
-            ＋
+            <Plus className="h-4 w-4" />
           </Button>
         </div>,
         actionsHost
@@ -307,148 +269,58 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
       {headerActions}
-      <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
-        {viewTitle}
-        {view === 'day' && dayLunar.full && (
-          <div style={{ fontSize: 11, color: '#888' }}>
-            {dayLunar.full} · {dayLunar.ganZhi}
-            {dayLunar.festival ? ` · ${dayLunar.festival}` : ''}
-          </div>
-        )}
-      </div>
-      {loading ? (
-        <div className="cal-month-grid">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full" />
-          ))}
+      {loading && (
+        <div style={{ position: 'absolute', top: 40, right: 12, zIndex: 10, fontSize: 12, color: '#86909c' }}>
+          加载中…
         </div>
-      ) : view === 'month' ? (
-        <>
-          {/* ===== 月视图 ===== */}
-          <div className="cal-month-grid">
-            {WEEK_LABELS.map((w) => (
-              <div key={w} className={`cal-month-weekday${w === '六' || w === '日' ? ' weekend' : ''}`}>{w}</div>
-            ))}
-            {monthCells.map((d) => {
-              const inMonth = d.isSame(currentMonth, 'month')
-              const isToday = d.isSame(today, 'day')
-              const info = getDayLunarInfo(d.toDate())
-              const dayEvents = getEventsForDay(d)
-              const h = holidayMap.get(d.format('YYYY-MM-DD'))
-              return (
-                <div
-                  key={d.format('YYYY-MM-DD')}
-                  className={`cal-month-cell${inMonth ? '' : ' dim'}${isToday ? ' today' : ''}`}
-                  onClick={() => openDay(d)}
-                  title={info.festival || info.full}
-                >
-                  <div className="cal-cell-date">
-                    <span className={`cal-solar${isToday ? ' today-num' : ''}`}>{d.date()}</span>
-                    {h && <span className={`cal-hmark ${h.type}`}>{h.type === 'holiday' ? '休' : '班'}</span>}
-                  </div>
-                  <div className="cal-cell-lunar">
-                    <span className={`cal-lunar${info.highlight ? ' fest' : ''}`}>{info.label}</span>
-                    {h && <span className="cal-hname">{h.name}</span>}
-                  </div>
-                  <div className="cal-cell-events">
-                    {dayEvents.slice(0, 2).map((e) => (
-                      <div key={e.id} className="cal-cell-event" style={{ borderLeftColor: e.color || '#1677ff' }}>
-                        {e.title}
-                      </div>
-                    ))}
-                    {dayEvents.length > 2 && (
-                      <div className="cal-cell-more">还有 {dayEvents.length - 2} 项</div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+      )}
+      <div className="cal-fc-wrap">
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+          locales={[zhCnLocale]}
+          locale="zh-cn"
+          initialView="dayGridMonth"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
+          }}
+          buttonText={{ today: '今天', month: '月', week: '周', day: '日', list: '列表' }}
+          events={fcEvents}
+          height="100%"
+          dayMaxEvents={3}
+          nowIndicator
+          selectable={false}
+          editable={false}
+          datesSet={handleDatesSet}
+          dateClick={handleDateClick}
+          eventClick={handleEventClick}
+          dayCellContent={dayCell}
+          dayHeaderContent={dayHeader}
+          eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+          slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+        />
+      </div>
 
-          {/* 节日 / 节气预告 */}
-          {upcomingFestivals.length > 0 && (
-            <div className="cal-festival-box">
-              <div className="cal-festival-title">📌 近 60 天节日 · 节气预告</div>
-              <div className="cal-festival-list">
-                {upcomingFestivals.map((f) => (
-                  <div key={`${f.name}-${f.date}`} className="cal-festival-item">
-                    <span className={`cal-festival-name${f.isJieQi ? ' jieqi' : ''}`}>{f.name}</span>
-                    <span className="cal-festival-date">
-                      {f.date.slice(5)}
-                      {f.lunarText ? ` · ${f.lunarText}` : ''}
-                    </span>
-                    <span className={`cal-festival-away${f.daysAway <= 3 ? ' soon' : ''}`}>
-                      {f.daysAway === 0 ? '今天' : `${f.daysAway} 天后`}
-                    </span>
-                  </div>
-                ))}
+      {/* 节日 / 节气预告 */}
+      {upcomingFestivals.length > 0 && (
+        <div className="cal-festival-box">
+          <div className="cal-festival-title">📌 近 60 天节日 · 节气预告</div>
+          <div className="cal-festival-list">
+            {upcomingFestivals.map((f) => (
+              <div key={`${f.name}-${f.date}`} className="cal-festival-item">
+                <span className={`cal-festival-name${f.isJieQi ? ' jieqi' : ''}`}>{f.name}</span>
+                <span className="cal-festival-date">
+                  {f.date.slice(5)}
+                  {f.lunarText ? ` · ${f.lunarText}` : ''}
+                </span>
+                <span className={`cal-festival-away${f.daysAway <= 3 ? ' soon' : ''}`}>
+                  {f.daysAway === 0 ? '今天' : `${f.daysAway} 天后`}
+                </span>
               </div>
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          {/* ===== 周 / 日视图 ===== */}
-          <div
-            className="calendar-week-grid"
-            style={{ fontSize: 11, gridTemplateColumns: `44px repeat(${weekDays.length}, minmax(0, 1fr))` }}
-          >
-            {/* 表头 */}
-            <div className="calendar-day-header" style={{ background: '#fafafa' }}>时间</div>
-            {weekDays.map((day) => {
-              const info = getDayLunarInfo(day.toDate())
-              return (
-                <div
-                  key={day.format('YYYY-MM-DD')}
-                  className="calendar-day-header"
-                  style={{
-                    background: day.isSame(today, 'day') ? '#e6f4ff' : '#fafafa',
-                    fontWeight: day.isSame(today, 'day') ? 700 : 600,
-                  }}
-                >
-                  <div>{day.format('ddd')}</div>
-                  <div style={{ fontSize: 14 }}>{day.format('D')}</div>
-                  <div style={{ fontSize: 10, fontWeight: 400, color: info.highlight ? '#f5222d' : '#999' }}>
-                    {info.label}
-                  </div>
-                </div>
-              )
-            })}
-
-            {/* 时间格 */}
-            {HOURS.map((hour) => (
-              <React.Fragment key={hour}>
-                <div className="calendar-time-slot">{`${hour}:00`}</div>
-                {weekDays.map((day) => {
-                  const slotEvents = getEventsForSlot(day, hour)
-                  return (
-                    <div
-                      key={`${day.format('YYYY-MM-DD')}-${hour}`}
-                      style={{
-                        borderBottom: '1px solid #f5f5f5',
-                        borderRight: '1px solid #f5f5f5',
-                        padding: 2,
-                        minHeight: 48,
-                        position: 'relative',
-                      }}
-                    >
-                      {slotEvents.map((e) => (
-                        <div
-                          key={e.id}
-                          className="calendar-event"
-                          style={{ borderLeftColor: e.color || '#1677ff' }}
-                          title={`${e.title}\n${e.description || ''}`}
-                        >
-                          {e.title}
-                        </div>
-                      ))}
-                    </div>
-                  )
-                })}
-              </React.Fragment>
             ))}
           </div>
-        </>
+        </div>
       )}
 
       {/* 飞书同步状态 */}
@@ -503,7 +375,9 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setHolidayOpen(false)}>关闭</Button>
+            <Button variant="outline" onClick={() => setHolidayOpen(false)}>
+              关闭
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
