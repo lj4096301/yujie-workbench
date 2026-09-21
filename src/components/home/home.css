@@ -388,14 +388,20 @@
   color: var(--text-muted, #86909c);
 }
 
-/* ---------- ④ 日期天气卡 + 更多功能 ----------
-   天气卡尺寸对齐 Windows 11 小组件天气卡（约 340px 宽、卡片比例）；
+/* ---------- ④ 数据统计卡 + 日期天气卡 + 更多功能 ----------
+   KPI 数据卡与天气卡尺寸对齐 Windows 小组件卡（340px 宽）；
    更多功能卡自适应剩余宽度 */
 .hw-tools {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: 340px 340px minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
+}
+
+/* KPI 数据卡：与天气卡同宽（340px） */
+.hw-kpi-strip {
+  width: 100%;
+  max-width: 340px;
 }
 
 /* 日程卡：迷你月历（Outlook 日历小组件风） */

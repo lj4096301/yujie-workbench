@@ -38,9 +38,9 @@ const HomeWorkbench: React.FC<{
 
   return (
     <div className="hw">
-      <HomeKpiRow onOpen={onOpen} />
       <HomeMainArea onOpen={onOpen} />
       <div className="hw-tools">
+        <HomeKpiRow onOpen={onOpen} />
         <WeatherTool onOpen={onOpen} />
         <HomeMoreGrid onOpen={onOpen} onClose={onClose} />
       </div>
