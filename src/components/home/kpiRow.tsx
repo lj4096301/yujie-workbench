@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface KpiItem {
@@ -94,43 +93,39 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
   }, [])
 
   if (kpis.length === 0) {
-    // 加载中：骨架卡展示
+    // 加载中：骨架数据卡
     return (
-      <div className="hw-kpis">
+      <div className="hw-kpi-strip">
         {[0, 1, 2, 3].map((i) => (
-          <Card key={i} className="hw-kpi-card">
-            <div className="hw-kpi-card-head">
-              <Skeleton className="h-3 w-14 rounded" />
+          <div key={i} className="hw-kpi-cell">
+            <div className="hw-kpi-cell-main">
               <Skeleton className="h-4 w-4 rounded" />
+              <Skeleton className="h-5 w-10 rounded" />
             </div>
-            <Skeleton className="h-7 w-16 rounded" />
-            <Skeleton className="mt-2 h-3 w-20 rounded" />
-          </Card>
+            <Skeleton className="mt-2 h-3 w-14 rounded" />
+          </div>
         ))}
       </div>
     )
   }
 
   return (
-    <div className="hw-kpis">
+    <div className="hw-kpi-strip">
       {kpis.map((k) => (
-        <Card
+        <div
           key={k.key}
-          className="hw-kpi-card"
+          className="hw-kpi-cell"
           onClick={() => onOpen(k.moduleId)}
-          title={`进入 ${k.label}`}
+          title={`进入 ${k.label}${k.sub ? `（${k.sub}）` : ''}`}
         >
-          <div className="hw-kpi-card-head">
-            <span className="hw-kpi-card-label">{k.label}</span>
-            <span className="hw-kpi-card-icon" style={{ color: k.color }}>
+          <div className="hw-kpi-cell-main">
+            <span className="hw-kpi-cell-icon" style={{ color: k.color }}>
               {k.icon}
             </span>
+            <span className="hw-kpi-cell-value num-mono">{k.value}</span>
           </div>
-          <CardContent className="p-0">
-            <div className="hw-kpi-card-value">{k.value}</div>
-            {k.sub && <div className="hw-kpi-card-sub">{k.sub}</div>}
-          </CardContent>
-        </Card>
+          <div className="hw-kpi-cell-label">{k.label}</div>
+        </div>
       ))}
     </div>
   )

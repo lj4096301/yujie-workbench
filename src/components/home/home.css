@@ -726,22 +726,29 @@
 
 /* 结构 600–839px：平板两栏（侧栏 + 内容两栏） */
 @media (max-width: 839px) and (min-width: 600px) {
-  .hw-kpis { grid-template-columns: repeat(2, 1fr); }
+  .hw-kpis { gap: 10px; grid-template-columns: repeat(2, 1fr); }
   .hw-main { grid-template-columns: 1fr; }
   .hw-tools { grid-template-columns: 1fr 1fr; }
   .mg-grid { grid-template-columns: repeat(3, 1fr); }
+  .hw-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  .hw-kpi-cell { padding: 10px 14px; }
+  .hw-kpi-cell:nth-child(3) { border-left: none; }
+  .hw-kpi-cell:nth-child(n + 3) { border-top: 1px solid var(--border-light, #f2f3f5); }
 }
 
 /* 结构 <600px：手机单栏 */
 @media (max-width: 599px) {
-  .hw-kpis { grid-template-columns: 1fr 1fr; }
+  .hw-kpis { gap: 8px; grid-template-columns: 1fr 1fr; }
   .hw-main { grid-template-columns: 1fr; }
   .hw-tools { grid-template-columns: 1fr; }
   .mg-grid { grid-template-columns: repeat(2, 1fr); }
   .hw-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
   .hw-banner-right { flex-wrap: wrap; gap: 8px; }
   .hw-banner-temp { font-size: 18px; }
-  .hw-kpi { padding: 10px 12px; }
+  .hw-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  .hw-kpi-cell { padding: 10px 12px; }
+  .hw-kpi-cell:nth-child(3) { border-left: none; }
+  .hw-kpi-cell:nth-child(n + 3) { border-top: 1px solid var(--border-light, #f2f3f5); }
 }
 
 /* ---------- 天气卡（小米风格） ---------- */
@@ -886,52 +893,61 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- KPI 卡（shadcn/ui Card 风格） ---------- */
-.hw-kpi-card {
+/* ---------- KPI 数据卡（单个紧凑数据卡片，4 指标并排） ---------- */
+.hw-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--card-bg, #fff);
+  border-radius: var(--radius-lg, 8px);
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+}
+
+.hw-kpi-cell {
   cursor: pointer;
-  padding: 14px 16px;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  padding: 12px 20px;
+  transition: background-color 0.15s ease;
+  min-width: 0;
 }
 
-.hw-kpi-card:hover {
-  box-shadow: var(--shadow-popup, 0 8px 24px rgba(0, 0, 0, 0.1)) !important;
-  transform: translateY(-1px);
+.hw-kpi-cell + .hw-kpi-cell {
+  border-left: 1px solid var(--border-light, #f2f3f5);
 }
 
-.hw-kpi-card-head {
+.hw-kpi-cell:hover {
+  background: var(--bg-hover, rgba(0, 0, 0, 0.04));
+}
+
+.hw-kpi-cell-main {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.hw-kpi-card-label {
-  font-size: 12px;
-  color: var(--text-muted, #86909c);
-  line-height: 1.4;
-}
-
-.hw-kpi-card-icon {
-  font-size: 18px;
+  gap: 8px;
   line-height: 1;
 }
 
-.hw-kpi-card-value {
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--text-primary, #1f2329);
-  line-height: 1.2;
-  font-family: var(--font-num, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
+.hw-kpi-cell-icon {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
-.hw-kpi-card-sub {
-  margin-top: 4px;
-  font-size: 11px;
+.hw-kpi-cell-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2329);
+  font-family: var(--font-num, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hw-kpi-cell-label {
+  margin-top: 6px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
+  line-height: 1.4;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* ---------- 可点击卡片 hover 统一（与 KPI 卡一致） ---------- */
