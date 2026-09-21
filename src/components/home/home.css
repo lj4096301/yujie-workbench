@@ -736,19 +736,46 @@
   .hw-kpi-cell:nth-child(n + 3) { border-top: 1px solid var(--border-light, #f2f3f5); }
 }
 
-/* 结构 <600px：手机单栏 */
+/* 结构 <600px：手机单栏 + 卡片触控/密度优化 */
 @media (max-width: 599px) {
   .hw-kpis { gap: 8px; grid-template-columns: 1fr 1fr; }
-  .hw-main { grid-template-columns: 1fr; }
-  .hw-tools { grid-template-columns: 1fr; }
+  .hw-main { gap: 12px; grid-template-columns: 1fr; }
+  .hw-tools { gap: 12px; grid-template-columns: 1fr; }
   .mg-grid { grid-template-columns: repeat(2, 1fr); }
   .hw-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
   .hw-banner-right { flex-wrap: wrap; gap: 8px; }
   .hw-banner-temp { font-size: 18px; }
+
+  /* KPI 数据卡：2x2，收紧 */
   .hw-kpi-strip { grid-template-columns: repeat(2, 1fr); }
-  .hw-kpi-cell { padding: 10px 12px; }
+  .hw-kpi-cell { padding: 11px 14px; }
+  .hw-kpi-cell-value { font-size: 20px; }
   .hw-kpi-cell:nth-child(3) { border-left: none; }
   .hw-kpi-cell:nth-child(n + 3) { border-top: 1px solid var(--border-light, #f2f3f5); }
+
+  /* 天气卡：全宽紧凑（温度 44px、图标 26px） */
+  .wx-win-temp { font-size: 44px; }
+  .wx-win-icon svg { width: 26px !important; height: 26px !important; }
+  .wx-win-main { padding: 10px 2px 12px; }
+  .wx-win-meta { gap: 12px; padding: 8px 2px 0; }
+  .wx-win-desc { font-size: 14px; }
+
+  /* 迷你月历：触控格子加大（≥34px 热区） */
+  .cal-mini { padding: 8px 10px 10px; }
+  .cal-mini-day { height: 34px; font-size: 13px; }
+  .cal-mini-week { font-size: 12px; padding-bottom: 6px; }
+
+  /* 今日待办：触控行高 + 勾选框加大 */
+  .td-item { padding: 9px 0; }
+  .td-check { width: 20px; height: 20px; font-size: 13px; }
+  .td-title { font-size: 13px; }
+
+  /* 更多功能：触控热区 ≥36px */
+  .mg-item { min-height: 36px; padding: 6px 10px; }
+  .mg-icon { width: 22px; height: 22px; font-size: 16px; }
+
+  /* 看板总览项目行字号略大 */
+  .wo-project-row { font-size: 13px; }
 }
 
 /* ---------- 天气卡（小米风格） ---------- */
@@ -961,3 +988,16 @@
   transform: translateY(-1px);
 }
 
+
+/* ---------- 手机端首页卡片最终覆盖（置于末尾确保优先级） ---------- */
+@media (max-width: 599px) {
+  /* 天气卡：温度 44px、图标 26px、间距收紧（高特异性覆盖主定义） */
+  .hw-card .wx-win-temp { font-size: 44px; }
+  .wx-win-icon { width: 26px !important; height: 26px !important; }
+  .hw-card .wx-win-main { padding: 10px 2px 12px; }
+  .hw-card .wx-win-meta { gap: 12px; padding: 8px 2px 0; }
+  .hw-card .wx-win-desc { font-size: 14px; }
+
+  /* KPI 数据卡数字收紧 */
+  .hw-kpi-cell-value { font-size: 20px; }
+}
