@@ -130,6 +130,59 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ============================================================
+   tactile-weather 组件主题覆盖
+   该库用 --twx-* CSS 变量做主题；此处覆盖为 Mi Console v3
+   白底主线 + 橙色功能色 + 极轻阴影，与工作台全局 Token 一致
+   ============================================================ */
+:root {
+  --twx-bg-app: var(--bg-page, #f2f3f5);
+  --twx-bg-widget: var(--bg-card, #ffffff);
+  --twx-bg-panel: var(--bg-card, #ffffff);
+  --twx-bg-input: var(--bg-subtle, #f7f8fa);
+  --twx-bg-button: var(--bg-subtle, #f7f8fa);
+  --twx-bg-button-hover: #eef0f2;
+  --twx-bg-switch: var(--border, #e5e6eb);
+  --twx-bg-switch-knob: #ffffff;
+  --twx-bg-item-hover: var(--bg-subtle, #f7f8fa);
+  --twx-text-primary: var(--text-primary, #1f2329);
+  --twx-text-emphasis: var(--text-primary, #1f2329);
+  --twx-text-secondary: var(--text-secondary, #4e5969);
+  --twx-text-tertiary: var(--text-secondary, #4e5969);
+  --twx-text-muted: var(--text-muted, #86909c);
+  --twx-text-light: #ffffff;
+  --twx-text-icon: var(--text-secondary, #4e5969);
+  --twx-text-placeholder: var(--text-muted, #86909c);
+  --twx-accent-success: var(--success, #00b42a);
+  --twx-border-light: rgba(0, 0, 0, 0.06);
+  --twx-divider: var(--border, #e5e6eb);
+  --twx-shadow-heavy: rgba(0, 0, 0, 0.10);
+  --twx-shadow-medium: rgba(0, 0, 0, 0.08);
+  --twx-shadow-subtle: rgba(0, 0, 0, 0.04);
+  --twx-highlight: rgba(255, 255, 255, 0.6);
+  --twx-highlight-strong: rgba(255, 255, 255, 1);
+  --twx-text-shadow: 0 1px 0 rgba(255, 255, 255, 1);
+  --twx-shadow-inner: rgba(0, 0, 0, 0.05);
+}
+
+/* 组件内部字体跟随全局 UI 字体，数字保持等宽 */
+.tactile-root,
+.tactile-root * {
+  font-family: var(--font-ui);
+}
+.tactile-root .num,
+.tactile-root [class*="temp"],
+.tactile-root [class*="Temp"] {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+/* tactile-weather 大卡自带"空气质量 优"为写死的装饰性假值（组件无 AQI 数据源），
+   工作台真实 AQI/PM2.5 由项目天气模块自行展示，故隐藏该行 */
+.tactile-root div:has(> .bg-\[var\(--twx-accent-success\)\]) {
+  display: none;
+}
+
 body {
   font-family: var(--font-ui);
   font-size: var(--fs-sm);

@@ -59,6 +59,7 @@
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.0",
     "rss-parser": "^3.13.0",
+    "tactile-weather": "0.0.5",
     "tailwind-merge": "^3.7.0",
     "zustand": "^4.5.0"
   },

@@ -1,18 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Card, Progress, Statistic } from '@arco-design/web-react'
 import { IconRight } from '@arco-design/web-react/icon'
+import WeatherCard, { type TactileSource } from '@/modules/weather/tactile'
 import './homecard.css'
-
-/** 与天气模块一致的 WMO 图标映射 */
-const WEATHER_ICONS: Record<string, string> = {
-  sunny: '☀️',
-  cloudy: '☁️',
-  overcast: '☁️',
-  rain: '🌧️',
-  snow: '🌨️',
-  fog: '🌫️',
-  thunder: '⛈️',
-}
 
 interface HomeCardProps {
   moduleId: string
@@ -22,13 +12,18 @@ interface HomeCardProps {
   onClose: (id: string) => void
 }
 
-/** 天气卡片详情数据（来自 /api/weather 完整字段） */
+/** 天气卡片详情数据（来自 /api/weather 完整字段，供 tactile-weather 卡片使用） */
 interface WeatherDetail {
+  temp?: number
   feelsLike?: number
   humidity?: number
+  windSpeed?: number
   windScale?: number
   windDir?: string
   uvIndex?: number | null
+  icon?: string
+  city?: string
+  forecast?: Array<{ date: string; tempMax: number; tempMin: number; icon: string }>
   hourly?: Array<{ time: string; temp: number; icon: string }>
 }
 
@@ -82,60 +77,21 @@ const KanbanBody: React.FC<{ s: Summary }> = ({ s }) => (
   </div>
 )
 
-/** 天气卡：大温度 hero + 城市 + 指标格 + 逐时预报条（成熟天气卡模式） */
+/** 天气卡：tactile-weather wide-small 卡（图标 + 城市 + 大温度，成熟天气卡片设计） */
 const WeatherBody: React.FC<{ s: Summary }> = ({ s }) => {
   const w = s.weather
-  const hourly = (w?.hourly ?? []).slice(0, 5)
+  if (!w || w.temp == null) return <div className="hc-empty">暂无天气数据</div>
+  const source: TactileSource = {
+    temp: w.temp,
+    humidity: w.humidity ?? 0,
+    windSpeed: w.windSpeed ?? 0,
+    icon: w.icon ?? 'sunny',
+    forecast: w.forecast ?? [],
+    hourly: w.hourly,
+  }
   return (
     <div className="hc-body hc-weather">
-      <div className="hc-weather-main">
-        <span className="hc-weather-icon">{s.icon ?? '🌤️'}</span>
-        <div className="hc-weather-info">
-          <div className="hc-weather-temp-row">
-            <span className="hc-weather-temp">{s.main ?? '--'}</span>
-            {s.tag && <span className="hc-weather-city">{s.tag}</span>}
-          </div>
-          <div className="hc-weather-desc">{s.sub ?? ''}</div>
-        </div>
-      </div>
-      <div className="hc-weather-metrics">
-        <div className="hc-weather-metric">
-          <span className="hc-weather-metric-value">
-            {w?.humidity != null ? `${w.humidity}%` : '--'}
-          </span>
-          <span className="hc-weather-metric-label">湿度</span>
-        </div>
-        <div className="hc-weather-metric">
-          <span className="hc-weather-metric-value">
-            {w?.windScale != null ? `${w.windScale}级` : '--'}
-          </span>
-          <span className="hc-weather-metric-label">{w?.windDir ?? '风'}</span>
-        </div>
-        <div className="hc-weather-metric">
-          <span className="hc-weather-metric-value">
-            {w?.uvIndex != null ? String(w.uvIndex) : '--'}
-          </span>
-          <span className="hc-weather-metric-label">紫外线</span>
-        </div>
-      </div>
-      {hourly.length > 0 && (
-        <div className="hc-weather-hourly">
-          {hourly.map((h, i) => {
-            const t = typeof h.time === 'string' && h.time.includes('T')
-              ? h.time.slice(11, 13) + '时'
-              : h.time
-            return (
-              <div className="hc-weather-hour" key={i}>
-                <span className="hc-weather-hour-time">{i === 0 ? '现在' : t}</span>
-                <span className="hc-weather-hour-icon">
-                  {WEATHER_ICONS[h.icon] ?? '🌤️'}
-                </span>
-                <span className="hc-weather-hour-temp">{h.temp}°</span>
-              </div>
-            )
-          })}
-        </div>
-      )}
+      <WeatherCard source={source} size="wide-small" city={w.city ?? s.tag ?? '北京'} />
     </div>
   )
 }
@@ -226,9 +182,11 @@ const HomeCard: React.FC<HomeCardProps> = ({ moduleId, title, icon, onOpen, onCl
           icon?: string
           city?: string
           humidity?: number
+          windSpeed?: number
           windScale?: number
           windDir?: string
           uvIndex?: number | null
+          forecast?: Array<{ date: string; tempMax: number; tempMin: number; icon: string }>
           hourly?: Array<{ time: string; temp: number; icon: string }>
         }) => {
           if (cancelled) return
@@ -236,13 +194,17 @@ const HomeCard: React.FC<HomeCardProps> = ({ moduleId, title, icon, onOpen, onCl
             main: d.temp != null ? `${d.temp}°C` : '--',
             tag: d.city ?? '北京',
             sub: `${d.description ?? ''}${d.feelsLike != null ? ` · 体感 ${d.feelsLike}°C` : ''}`,
-            icon: WEATHER_ICONS[d.icon ?? ''] ?? '🌤️',
             weather: {
+              temp: d.temp,
               feelsLike: d.feelsLike,
               humidity: d.humidity,
+              windSpeed: d.windSpeed,
               windScale: d.windScale,
               windDir: d.windDir,
               uvIndex: d.uvIndex,
+              icon: d.icon,
+              city: d.city,
+              forecast: d.forecast,
               hourly: d.hourly,
             },
           })

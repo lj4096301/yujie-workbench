@@ -5,7 +5,7 @@ import { MODULE_META } from '@/modules/registry'
 const metaById = new Map(MODULE_META.map((m) => [m.id, m]))
 
 /**
- * ⑤ 更多功能卡：低频模块统一收进一张卡片（知识/书签/流程图/思维导图等）
+ * ⑤ 更多功能卡：低频模块统一收进一张卡片（知识库 + 书签/流程图/思维导图等）
  * - 不依赖 isVisible（低频模块默认隐藏，卡片作为常驻入口始终可见）
  * - 点击单个图标直接跳转对应模块
  * - hover 浮出 × 移除（session 记忆；模块管理重新勾选后恢复）
@@ -22,8 +22,8 @@ const HomeMoreGrid: React.FC<{
     setHidden((h) => h.filter((id) => panels.find((p) => p.id === id)?.isVisible))
   }, [panels])
 
-  // 低频入口：知识库/书签（原工具四卡）+ 扩展低频模块，统一收进一张卡片
-  const list = ['knowledge', 'bookmarks', ...EXTRA_MODULE_IDS].filter((id) => !hidden.includes(id))
+  // 低频入口：知识库 + 全部低频模块（含书签），统一收进一张卡片
+  const list = ['knowledge', ...EXTRA_MODULE_IDS].filter((id) => !hidden.includes(id))
   if (list.length === 0) return null
 
   const remove = (id: string) => {

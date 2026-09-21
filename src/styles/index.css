@@ -1,3 +1,4 @@
+@import "tactile-weather/dist/tactile-weather.css";
 @import "./design-tokens.css";
 @import "./components.css";
 @tailwind base;

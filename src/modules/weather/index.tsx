@@ -8,6 +8,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import WeatherCard from './tactile'
 
 interface ForecastDay {
   date: string
@@ -491,55 +492,55 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         </div>
       )}
 
-      {/* 当前天气 */}
+      {/* 当前天气：tactile-weather large 卡（成熟天气组件，含当前/体感/湿度/风力/7天预报） */}
       {weather && (
         <>
-          <div className="weather-card">
-            <div className="weather-temp">{weather.temp}°</div>
-            <div className="weather-info">
-              <div className="city">
-                {weather.city}
-                {regionLabel && (
-                  <span style={{ fontSize: 12, color: '#999', fontWeight: 400, marginLeft: 6 }}>
-                    {regionLabel}
-                  </span>
-                )}
-              </div>
-              <div className="desc">
-                {getWeatherIcon(weather.icon)} {weather.description}
-              </div>
-              <div className="desc">
-                体感 {weather.feelsLike}° · 湿度 {weather.humidity}%
-              </div>
-              <div className="desc">
-                {weather.windDir} {weather.windScale}级（{weather.windSpeed} km/h）
-              </div>
-              {weather.aqi > 0 && (
-                <div className="desc">
-                  <span
-                    className="inline-block"
-                    style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: '50%',
-                      background: getAqiLevel(weather.aqi).color,
-                      boxShadow: '0 0 0 4px rgba(0,0,0,0.05)',
-                      marginRight: 6,
-                    }}
-                  />
-                  AQI{' '}
-                  <span style={{ color: getAqiLevel(weather.aqi).color, fontWeight: 600 }}>{weather.aqi}</span>
-                  <span style={{ opacity: 0.8 }}> ({getAqiLevel(weather.aqi).text})</span>
-                  {weather.pm25 != null && <span style={{ opacity: 0.7 }}> · PM2.5 {weather.pm25}μg/m³</span>}
-                </div>
+          <WeatherCard
+            source={weather}
+            size="large"
+            city={weather.city}
+            loading={loading}
+            onRefresh={refresh}
+          />
+
+          {/* 空气质量（真实数据；组件大卡 AQI 为装饰性假值已 CSS 隐藏） */}
+          {weather.aqi > 0 && (
+            <div
+              style={{
+                marginTop: 12,
+                padding: '10px 12px',
+                background: '#fff',
+                border: '1px solid #e5e6eb',
+                borderRadius: 12,
+                fontSize: 12,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <span
+                className="inline-block"
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  background: getAqiLevel(weather.aqi).color,
+                  boxShadow: '0 0 0 4px rgba(0,0,0,0.05)',
+                }}
+              />
+              <span style={{ fontWeight: 600 }}>空气质量</span>
+              <span style={{ color: getAqiLevel(weather.aqi).color, fontWeight: 600 }}>{weather.aqi}</span>
+              <span style={{ opacity: 0.8 }}> ({getAqiLevel(weather.aqi).text})</span>
+              {weather.pm25 != null && (
+                <span style={{ opacity: 0.7 }}>· PM2.5 {weather.pm25}μg/m³</span>
               )}
               {(weather.sunrise || weather.sunset) && (
-                <div className="desc">
+                <span style={{ opacity: 0.7, marginLeft: 'auto' }}>
                   🌅 日出 {fmtTime(weather.sunrise)} · 🌇 日落 {fmtTime(weather.sunset)}
-                </div>
+                </span>
               )}
             </div>
-          </div>
+          )}
 
           {/* 24 小时逐时预报 */}
           {(weather.hourly?.length ?? 0) > 0 && (
@@ -579,46 +580,6 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               </div>
             </div>
           )}
-
-          {/* 7天预报 */}
-          <div
-            style={{
-              marginTop: 12,
-              padding: 12,
-              background: '#fff',
-              border: '1px solid #e5e6eb',
-              borderRadius: 12,
-            }}
-          >
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#4E5969' }}>7天预报</div>
-            <div style={{ display: 'flex', gap: 4, overflowX: 'auto' }}>
-              {weather.forecast.map((day, i) => (
-                <div
-                  key={day.date}
-                  style={{
-                    flex: '1 0 52px',
-                    textAlign: 'center',
-                    padding: '8px 4px',
-                    background: '#fff',
-                    border: '1px solid ' + (i === 0 ? '#ffc8a8' : '#f2f3f5'),
-                    borderRadius: 8,
-                    fontSize: 11,
-                  }}
-                  title={day.description}
-                >
-                  <div style={{ color: '#86909C', marginBottom: 4 }}>
-                    {i === 0 ? '今天' : new Date(day.date).toLocaleDateString('zh-CN', { weekday: 'short' })}
-                  </div>
-                  <div style={{ fontSize: 18, marginBottom: 4 }}>{getWeatherIcon(day.icon)}</div>
-                  <div style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{day.tempMax}°</div>
-                  <div style={{ color: '#86909C', fontVariantNumeric: 'tabular-nums' }}>{day.tempMin}°</div>
-                  {day.precipProbability != null && day.precipProbability > 0 && (
-                    <div style={{ color: '#165DFF', marginTop: 2 }}>💧{day.precipProbability}%</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* 出行建议 */}
           <div

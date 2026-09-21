@@ -61,6 +61,27 @@
 - 若未来接入工具调用（Agent 模式），再评估 CopilotKit 或自研工具调用 UI，届时单独记录
 
 
+## 已集成：tactile-weather（天气卡片 ✅）
+
+- 包：`tactile-weather@0.0.5`（npm，MIT，作者 kzqkzq，锤子科技天气 App 高仿；React 18+/Tailwind/Lucide/TS；数据源 Open-Meteo 免 key）
+- 设计标准参考：华为鸿蒙卡片（8dp 网格、卡内边距 16dp、图标微动效 300ms EaseOut）、小米澎湃 OS 小部件（2×2/4×2/4×4 按尺寸填充内容）
+- 7 种尺寸：large / medium / small / mini / wide-small / wide-medium / micro；props：`size / data / loading / unit / locationName / lang / onToggleUnit / onRefresh / onLocationSelect`；导出 `WeatherWidget / ThemeProvider / useTheme` + `WeatherData`（Open-Meteo 结构）
+- 接入位置：
+  - 天气模块页主卡：`src/modules/weather/index.tsx` `<WeatherCard size="large">`（适配层 `src/modules/weather/tactile.tsx` 把项目数据映射成 Open-Meteo 结构）；独立 AQI/PM2.5/日出日落/24h 条保留
+  - 首页天气卡：`src/components/home/toolGrid.tsx` WeatherTool → `<WeatherCard size="wide-small">`（标题行保留真实 AQI 圆点，点击进入模块页）
+- **⚠️ 关键坑（React 版本兼容）**：官方 dist `es.js` **内嵌了 React 19.2 的 react-jsx-runtime**（组件用 React 19.2 构建时把 jsx-runtime bundle 进了产物，含 `react.transitional.element` Symbol、`recentlyCreatedOwnerStacks`、`react_stack_bottom_frame` 等 React 19.2 私有字段），项目 React 18 运行直接抛 `TypeError: reading 'recentlyCreatedOwnerStacks'`。
+- **解决方案（vendor 化修补）**：
+  1. 把 es.js 中从 `var P = { exports: {} }, T = {};` 到 `var e = _e();` 的内嵌 jsx-runtime 整块替换为 `import { Fragment as _twFragment, jsx as _twJsx, jsxs as _twJsxs } from "react/jsx-runtime"` + `var e = { Fragment: _twFragment, jsx: _twJsx, jsxs: _twJsxs };`
+  2. 结果写入 `src/vendor/tactile-weather/index.js`（连同 index.d.ts / lib-entry.d.ts / types.d.ts / tactile-weather.css / components/ 类型全部 vendor 化）
+  3. `vite.config.ts` alias（数组形式，**css 子路径必须排在通用前缀之前**）：`tactile-weather` → vendor/index.js；`tactile-weather/dist/tactile-weather.css` → vendor css
+  4. `tsconfig.json` paths：`tactile-weather` → `src/vendor/tactile-weather/index.d.ts`
+  5. `tailwind.config.js` content 加 vendor index.js（Tailwind 类名扫描）；`src/styles/index.css` 顶部 @import tactile css；`design-tokens.css` 用 `--twx-*` 变量覆盖为 Mi Console 白底橙 Token + 等宽数字
+- 归档：`D:\docker-ai\复用资源\组件\tactile-weather-0.0.5.tgz` + `tactile-weather-pkg\package\`（npm pack 镜像源拉取；GitHub/jsdelivr/ghproxy 直连均被重置不可用）
+- 坑位备忘：
+  - 包 exports 未声明 css/types 子路径 → vite/tsc 都需 alias/paths 兜底（已解决）
+  - large 卡"空气质量 优"是组件写死的装饰假值 → CSS 规则 `.tactile-root div:has(> .bg-[var(--twx-accent-success)]) { display: none; }` 隐藏，真实 AQI 由项目独立条展示
+  - pnpm 安装包后 node_modules 被进程占用报 `ERR_PNPM_PACKAGE_MANAGER_SYMLINK_FAILED` → 杀占用进程后重装
+
 ## 集成/使用纪律
 
 1. 新组件库引入前：确认许可证（MIT/Apache 优先）→ 记录到本清单 → 小范围试用 → 验收后才铺开

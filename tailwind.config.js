@@ -1,6 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+    // tactile-weather 组件库（dist 内为构建产物，含 Tailwind 类名字面量）
+    './node_modules/tactile-weather/dist/tactile-weather.es.js',
+  ],
   theme: {
     extend: {
       colors: {

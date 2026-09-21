@@ -21,7 +21,9 @@
       "@modules/*": ["src/modules/*"],
       "@components/*": ["src/components/*"],
       "@stores/*": ["src/stores/*"],
-      "@services/*": ["src/services/*"]
+      "@services/*": ["src/services/*"],
+      // tactile-weather：vendor 化（React 18 兼容修补版），类型指向 vendor
+      "tactile-weather": ["src/vendor/tactile-weather/index.d.ts"]
     }
   },
   "include": ["src"],

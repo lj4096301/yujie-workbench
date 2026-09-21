@@ -1,18 +1,9 @@
 import React, { useEffect, useState } from 'react'
-
-const WMO_ICONS: Record<string, string> = {
-  sunny: '☀️',
-  cloudy: '☁️',
-  overcast: '☁️',
-  rain: '🌧️',
-  snow: '🌨️',
-  fog: '🌫️',
-  thunder: '⛈️',
-}
+import WeatherCard, { type TactileSource } from '@/modules/weather/tactile'
 
 interface Hour {
-  time?: string
-  temp?: number
+  time: string
+  temp: number
   icon?: string
 }
 
@@ -20,6 +11,7 @@ interface WeatherData {
   humidity?: number
   windDir?: string
   windScale?: number
+  windSpeed?: number
   uvIndex?: number
   hourly?: Hour[]
 }
@@ -38,12 +30,13 @@ function fmtToday(): string {
   ).padStart(2, '0')}`
 }
 
-/** 天气卡（小米风格）：大温度 + 指标行 + AQI 圆点 + 逐时条 */
+/** 天气卡（tactile-weather wide-small 成熟卡片） */
 interface WeatherFull extends WeatherData {
   temp?: number
   description?: string
   aqi?: number
   city?: string
+  icon?: string
 }
 
 function aqiState(aqi?: number): { text: string; cls: string } {
@@ -69,8 +62,18 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
     }
   }, [])
 
-  const hours = (w?.hourly ?? []).slice(0, 5)
-  const icon = WMO_ICONS[w?.hourly?.[0]?.icon ?? ''] ?? '🌤️'
+  const source: TactileSource | null =
+    w?.temp != null
+      ? {
+          temp: w.temp,
+          humidity: w.humidity ?? 0,
+          windSpeed: w.windSpeed ?? 0,
+          icon: w.icon ?? 'sunny',
+          forecast: [],
+          hourly: w.hourly,
+        }
+      : null
+
   const aqi = aqiState(w?.aqi)
 
   return (
@@ -81,7 +84,7 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
       style={{ cursor: 'pointer' }}
     >
       <div className="hw-card-head">
-        <span className="hw-card-title">🌤 {w?.city ?? '北京'} · {w?.description ?? '天气'}</span>
+        <span className="hw-card-title">🌤 天气预报</span>
         {aqi.cls && (
           <span className={'wx-aqi ' + aqi.cls} title={'AQI ' + (w?.aqi ?? '')}>
             <i className="wx-aqi-dot" />
@@ -90,38 +93,7 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
         )}
       </div>
       <div className="hw-card-body wx-body">
-        <div className="wx-hero">
-          <span className="wx-temp">{w?.temp != null ? `${w.temp}°` : '--'}</span>
-          <span className="wx-icon">{icon}</span>
-        </div>
-        <div className="wx-metrics">
-          <div className="wx-metric">
-            湿度<b>{w?.humidity != null ? `${w.humidity}%` : '--'}</b>
-          </div>
-          <div className="wx-metric">
-            风
-            <b>
-              {w?.windDir ?? ''}
-              {w?.windScale != null ? `${w.windScale}级` : ''}
-            </b>
-          </div>
-          <div className="wx-metric">
-            紫外线<b>{w?.uvIndex != null ? `${w.uvIndex}` : '--'}</b>
-          </div>
-        </div>
-        <div className="tg-weather-hourly">
-          {hours.map((h, i) => {
-            const t = h.time ?? ''
-            const label = i === 0 ? '现在' : t.slice(11, 16) || `${i}h`
-            return (
-              <div key={i} className="tg-hour">
-                <span>{label}</span>
-                <span className="tg-hour-icon">{WMO_ICONS[h.icon ?? ''] ?? '🌤️'}</span>
-                <span className="tg-hour-temp">{h.temp != null ? `${h.temp}°` : '--'}</span>
-              </div>
-            )
-          })}
-        </div>
+        <WeatherCard source={source} size="wide-small" city={w?.city ?? '北京'} />
       </div>
     </div>
   )

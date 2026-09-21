@@ -33,7 +33,7 @@ export const SECTION_HEADS: Array<{ id: string; title: string; y: number }> = [
   { id: 'sec-more', title: '📦 更多模块', y: 52 },
 ]
 /** 低频模块：默认不上首页，点「更多模块」展开 */
-export const EXTRA_MODULE_IDS = ['novel', 'epic', 'news', 'tv', 'api-monitor', 'clipboard', 'flowchart', 'mindmap', 'logs']
+export const EXTRA_MODULE_IDS = ['novel', 'epic', 'news', 'tv', 'api-monitor', 'clipboard', 'bookmarks', 'flowchart', 'mindmap', 'logs']
 
 interface LayoutStore {
   // 侧栏
@@ -111,11 +111,10 @@ const DEFAULT_GRIDS: Record<string, { x: number; y: number; w: number; h: number
   /* 我的项目：看板大卡 + 待办清单 */
   kanban: { x: 0, y: 3, w: 16, h: 22 },
   tasks: { x: 16, y: 3, w: 8, h: 22 },
-  /* 效率工具：一行四卡（天气/日程/知识/书签） */
+  /* 效率工具：一行三卡（天气/日程/知识） */
   weather: { x: 0, y: 31, w: 6, h: 18 },
   calendar: { x: 6, y: 31, w: 6, h: 18 },
   knowledge: { x: 12, y: 31, w: 6, h: 18 },
-  bookmarks: { x: 18, y: 31, w: 6, h: 18 },
   /* 更多模块：低频入口卡，一行三个 */
   novel: { x: 0, y: 55, w: 8, h: 14 },
   epic: { x: 8, y: 55, w: 8, h: 14 },
@@ -123,10 +122,11 @@ const DEFAULT_GRIDS: Record<string, { x: number; y: number; w: number; h: number
   tv: { x: 0, y: 72, w: 8, h: 14 },
   'api-monitor': { x: 8, y: 72, w: 8, h: 14 },
   clipboard: { x: 16, y: 72, w: 8, h: 14 },
+  bookmarks: { x: 0, y: 89, w: 8, h: 14 },
 }
 
-/** 精选模块：默认在首页展示 */
-const HOME_PINNED = new Set(['kanban', 'tasks', 'weather', 'calendar', 'bookmarks', 'knowledge'])
+/** 精选模块：默认在首页展示（书签已移入低频区） */
+const HOME_PINNED = new Set(['kanban', 'tasks', 'weather', 'calendar', 'knowledge'])
 
 /** 首次启动：默认进首页，精选模块可见，低频模块从「更多模块」展开 */
 const DEFAULT_PANELS: PanelState[] = MODULE_DEFS.map(({ id, title }, index) => {

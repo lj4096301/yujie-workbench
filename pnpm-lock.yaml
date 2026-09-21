@@ -134,6 +134,9 @@ importers:
       rss-parser:
         specifier: ^3.13.0
         version: 3.13.0
+      tactile-weather:
+        specifier: 0.0.5
+        version: 0.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tailwind-merge:
         specifier: ^3.7.0
         version: 3.7.0
@@ -2985,6 +2988,11 @@ packages:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
 
+  lucide-react@0.561.0:
+    resolution: {integrity: sha512-Y59gMY38tl4/i0qewcqohPdEbieBy7SovpBL9IFebhc2mDd8x4PZSOsiFRkpPcOq6bj1r/mjH/Rk73gSlIJP2A==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   lucide-react@1.46.0:
     resolution: {integrity: sha512-Bv+FZXgZPrxc/NCl1e7JJVQFLdiCxYgxNVhqoV7X0p6I8ADJo8DxBnK1auH0fZz4AmqOJ3jgneL4f1i8LJQRAA==}
     peerDependencies:
@@ -4201,6 +4209,12 @@ packages:
 
   tabbable@6.5.0:
     resolution: {integrity: sha512-wieBHXygIm7OyQOu5hQlkk62/WyCFYGlWg7L6/ZCUZwx0o398Zkn4pVmMyfYhfMG8kGrj/Krt8eIk6UKC6VzwA==}
+
+  tactile-weather@0.0.5:
+    resolution: {integrity: sha512-yGdemGCUyaRN1GpFh1Z1c1g+SvdFtqZ3RBT0PJZ3yakSj0IQyV1LHpBDzur21JvtorgNlSo0cIvSdtjPXtUJ9A==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
 
   tailwind-merge@2.6.1:
     resolution: {integrity: sha512-Oo6tHdpZsGpkKG88HJ8RR1rg/RdnEkQEfMoEk2x1XRI3F1AxeU+ijRXpiVUF4UbLfcxxRGw6TbUINKYdWVsQTQ==}
@@ -7659,6 +7673,10 @@ snapshots:
     dependencies:
       yallist: 4.0.0
 
+  lucide-react@0.561.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+
   lucide-react@1.46.0(react@18.3.1):
     dependencies:
       react: 18.3.1
@@ -9268,6 +9286,12 @@ snapshots:
   supports-preserve-symlinks-flag@1.0.0: {}
 
   tabbable@6.5.0: {}
+
+  tactile-weather@0.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      lucide-react: 0.561.0(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   tailwind-merge@2.6.1: {}
 
