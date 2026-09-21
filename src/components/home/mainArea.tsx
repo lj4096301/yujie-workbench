@@ -137,7 +137,7 @@ const KanbanOverview: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOp
   )
 }
 
-/** ③ 右：今日待办——未完成任务清单，勾选即完成 */
+/** ③ 右：今日待办（微软待办风格）——未完成计数徽标 + 勾选圆环列表 */
 const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
   const [list, setList] = useState<TodoItem[]>([])
 
@@ -162,6 +162,8 @@ const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen })
     setList(next.filter((t) => !t.done))
   }
 
+  const undone = list.length
+
   return (
     <div
       className="hw-card hw-card-link"
@@ -171,10 +173,16 @@ const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen })
     >
       <div className="hw-card-head">
         <span className="hw-card-title">✅ 今日待办</span>
+        {undone > 0 && (
+          <span className="td-badge num-mono" title={`${undone} 条未完成`}>{undone}</span>
+        )}
       </div>
       <div className="hw-card-body">
         {list.length === 0 ? (
-          <div className="td-empty">暂无待办，休息一下</div>
+          <div className="td-empty">
+            <span className="td-empty-emoji">🎉</span>
+            <span>待办已清空，休息一下</span>
+          </div>
         ) : (
           <div className="td-list">
             {list.slice(0, 6).map((t) => (

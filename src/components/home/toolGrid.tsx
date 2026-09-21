@@ -150,14 +150,20 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
   )
 }
 
-/** 日程卡：今日事件列表 */
+/** 日程卡（Windows Outlook 日历小组件风格）：迷你月历 + 今日事件 */
+const WEEK_HEAD = ['日', '一', '二', '三', '四', '五', '六']
+
 const CalendarTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
   const [events, setEvents] = useState<CalEvent[]>([])
+  const [now, setNow] = useState(() => new Date())
 
   useEffect(() => {
     let cancelled = false
-    const today = fmtToday()
-    fetch(`/api/calendar/events?start=${today}&end=${today}`)
+    const y = now.getFullYear()
+    const m = now.getMonth()
+    const start = `${y}-${String(m + 1).padStart(2, '0')}-01`
+    const end = `${y}-${String(m + 1).padStart(2, '0')}-${String(new Date(y, m + 1, 0).getDate()).padStart(2, '0')}`
+    fetch(`/api/calendar/events?start=${start}&end=${end}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((d) => {
         if (!cancelled) setEvents(Array.isArray(d) ? (d as CalEvent[]) : [])
@@ -168,6 +174,22 @@ const CalendarTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen
     }
   }, [])
 
+  const y = now.getFullYear()
+  const m = now.getMonth()
+  const today = now.getDate()
+  const week = '日一二三四五六'[now.getDay()]
+  const firstDay = new Date(y, m, 1).getDay()
+  const daysInMonth = new Date(y, m + 1, 0).getDate()
+  const dateKey = (d: number) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  const eventDates = new Set(events.map((e) => (e.start ?? '').slice(0, 10)))
+  const todayEvents = events
+    .filter((e) => (e.start ?? '').startsWith(dateKey(today)))
+    .slice(0, 3)
+
+  const cells: (number | null)[] = []
+  for (let i = 0; i < firstDay; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+
   return (
     <div
       className="hw-card hw-card-link"
@@ -177,20 +199,42 @@ const CalendarTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen
     >
       <div className="hw-card-head">
         <span className="hw-card-title">📅 日程</span>
+        <span className="cal-today-label num-mono">{m + 1}月{today}日 · 周{week}</span>
       </div>
       <div className="hw-card-body">
-        {events.length === 0 ? (
-          <div className="tg-empty">今日暂无安排</div>
-        ) : (
-          <div className="tg-list">
-            {events.slice(0, 4).map((e, i) => (
+        <div className="cal-mini">
+          <div className="cal-mini-week">
+            {WEEK_HEAD.map((w) => (
+              <span key={w} className="cal-mini-week-item">{w}</span>
+            ))}
+          </div>
+          <div className="cal-mini-grid">
+            {cells.map((d, i) => (
+              <span
+                key={i}
+                className={
+                  'cal-mini-day' +
+                  (d === today ? ' is-today' : '') +
+                  (d != null && eventDates.has(dateKey(d)) ? ' has-event' : '')
+                }
+              >
+                {d ?? ''}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="cal-today-events">
+          {todayEvents.length === 0 ? (
+            <div className="tg-empty">今日暂无安排</div>
+          ) : (
+            todayEvents.map((e, i) => (
               <div key={e.id ?? i} className="tg-list-item">
                 <span className="tg-list-title">🔸 {e.title ?? ''}</span>
                 {e.start && <span className="tg-list-time">{e.start.slice(11, 16)}</span>}
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   )
