@@ -388,10 +388,12 @@
   color: var(--text-muted, #86909c);
 }
 
-/* ---------- ④ 天气 + 更多功能（1:1） ---------- */
+/* ---------- ④ 日期天气卡 + 更多功能 ----------
+   天气卡尺寸对齐 Windows 11 小组件天气卡（约 340px 宽、卡片比例）；
+   更多功能卡自适应剩余宽度 */
 .hw-tools {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 340px minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
 }
@@ -657,29 +659,30 @@
   overflow: hidden;
 }
 
-/* Windows 11 小组件/锁屏天气卡风格 */
+/* Windows 11 小组件/锁屏天气卡风格（尺寸对齐 ~330px 宽卡片） */
 .wx-win-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 2px 12px;
+  gap: 16px;
+  padding: 14px 4px 16px;
 }
 
 .wx-win-temp {
-  font-size: 44px;
+  font-size: 52px;
   font-weight: 300;
   line-height: 1;
   color: var(--text-primary, #1d2129);
   font-family: var(--font-num, ui-monospace, monospace);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .wx-win-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 3px;
+  gap: 4px;
 }
 
 .wx-win-icon {
@@ -687,21 +690,21 @@
 }
 
 .wx-win-desc {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-primary, #1d2129);
 }
 
 .wx-win-feel {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
 }
 
 .wx-win-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 2px 0;
+  gap: 16px;
+  padding: 10px 4px 2px;
   border-top: 1px solid var(--border-light, #f2f3f5);
   font-size: 12px;
   color: var(--text-secondary, #4e5969);

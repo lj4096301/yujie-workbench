@@ -59,7 +59,7 @@ function aqiState(aqi?: number): { text: string; cls: string } {
 
 /** WMO icon 键 → lucide 图标（Windows Fluent 线性风格） */
 function WeatherGlyph({ icon, className }: { icon?: string; className?: string }) {
-  const size = 22
+  const size = 30
   switch (icon) {
     case 'sunny':
       return <Sun size={size} className={className} strokeWidth={1.6} />
