@@ -730,10 +730,7 @@
   .hw-main { grid-template-columns: 1fr; }
   .hw-tools { grid-template-columns: 1fr 1fr; }
   .mg-grid { grid-template-columns: repeat(3, 1fr); }
-  .hw-kpi-strip { grid-template-columns: repeat(2, 1fr); }
   .hw-kpi-cell { padding: 10px 14px; }
-  .hw-kpi-cell:nth-child(3) { border-left: none; }
-  .hw-kpi-cell:nth-child(n + 3) { border-top: 1px solid var(--border-light, #f2f3f5); }
 }
 
 /* 结构 <600px：手机单栏 + 卡片触控/密度优化 */
@@ -746,12 +743,9 @@
   .hw-banner-right { flex-wrap: wrap; gap: 8px; }
   .hw-banner-temp { font-size: 18px; }
 
-  /* KPI 数据卡：2x2，收紧 */
-  .hw-kpi-strip { grid-template-columns: repeat(2, 1fr); }
-  .hw-kpi-cell { padding: 11px 14px; }
+  /* KPI 数据卡：纵向行，收紧 */
+  .hw-kpi-cell { padding: 10px 14px; }
   .hw-kpi-cell-value { font-size: 20px; }
-  .hw-kpi-cell:nth-child(3) { border-left: none; }
-  .hw-kpi-cell:nth-child(n + 3) { border-top: 1px solid var(--border-light, #f2f3f5); }
 
   /* 天气卡：全宽紧凑（温度 44px、图标 26px） */
   .wx-win-temp { font-size: 44px; }
@@ -920,10 +914,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- KPI 数据卡（单个紧凑数据卡片，4 指标并排） ---------- */
+/* ---------- KPI 数据卡（单个卡片，4 个数据纵向排列） ---------- */
 .hw-kpi-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-direction: column;
   background: var(--card-bg, #fff);
   border-radius: var(--radius-lg, 8px);
   box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
@@ -932,13 +926,17 @@
 
 .hw-kpi-cell {
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 12px 20px;
   transition: background-color 0.15s ease;
   min-width: 0;
 }
 
 .hw-kpi-cell + .hw-kpi-cell {
-  border-left: 1px solid var(--border-light, #f2f3f5);
+  border-top: 1px solid var(--border-light, #f2f3f5);
 }
 
 .hw-kpi-cell:hover {
@@ -948,8 +946,9 @@
 .hw-kpi-cell-main {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   line-height: 1;
+  min-width: 0;
 }
 
 .hw-kpi-cell-icon {
@@ -968,13 +967,13 @@
 }
 
 .hw-kpi-cell-label {
-  margin-top: 6px;
   font-size: 12px;
   color: var(--text-muted, #86909c);
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 /* ---------- 可点击卡片 hover 统一（与 KPI 卡一致） ---------- */
