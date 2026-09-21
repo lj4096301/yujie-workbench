@@ -14,6 +14,7 @@ import { createTVRouter } from './routes/tv'
 import { createPricingRouter } from './routes/pricing'
 import { createCalendarRouter } from './routes/calendar'
 import { createKanbanRouter } from './routes/kanban'
+import { createTasksRouter } from './routes/tasks'
 import { createLogsRouter } from './routes/logs'
 import { createAIRouter } from './routes/ai'
 import { createHolidayRouter } from './routes/holiday'
@@ -46,6 +47,7 @@ app.use('/api/tv', createTVRouter())
 app.use('/api/pricing', createPricingRouter())
 app.use('/api/calendar', createCalendarRouter())
 app.use('/api/kanban', createKanbanRouter())
+app.use('/api/tasks', createTasksRouter())
 app.use('/api/logs', createLogsRouter())
 app.use('/api/ai', createAIRouter())
 app.use('/api/holiday', createHolidayRouter())

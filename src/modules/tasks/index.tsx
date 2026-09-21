@@ -26,28 +26,25 @@ interface Task {
 const STORAGE_KEY = 'yujie-tasks'
 const LEGACY_KEY = 'mimo-tasks'
 
-function loadTasks(): Task[] {
+/** 读取 localStorage（一次性迁移源） */
+function readLocal(): Task[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
-    const list = Array.isArray(parsed) ? parsed : []
-    // 旧键数据自动迁移到新键（一次性）
-    if (localStorage.getItem(STORAGE_KEY) === null && localStorage.getItem(LEGACY_KEY) !== null) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
-      localStorage.removeItem(LEGACY_KEY)
-    }
-    return list
+    return Array.isArray(parsed) ? parsed : []
   } catch {
     return []
   }
 }
 
-function saveTasks(list: Task[]) {
+/** 从后端拉取（data/tasks.json 持久化） */
+async function fetchTasks(): Promise<Task[]> {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    const r = await fetch('/api/tasks')
+    return r.ok ? (await r.json()) : []
   } catch {
-    /* 忽略存储失败 */
+    return []
   }
 }
 
@@ -66,7 +63,7 @@ const PRIORITY_DOT: Record<string, string> = {
 type FilterKey = 'all' | 'active' | 'done'
 
 const TasksModule: React.FC<{ panelId?: string }> = () => {
-  const [tasks, setTasks] = useState<Task[]>(() => loadTasks())
+  const [tasks, setTasks] = useState<Task[]>([])
   const [filter, setFilter] = useState<FilterKey>('all')
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState<'low' | 'mid' | 'high'>('mid')
@@ -74,34 +71,72 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
   // 删除二次确认（通用 ConfirmDialog）
   const [delTarget, setDelTarget] = useState<Task | null>(null)
 
+  // 启动：先迁 localStorage 数据到后端（一次性），再读后端
   useEffect(() => {
-    saveTasks(tasks)
-  }, [tasks])
+    let cancelled = false
+    ;(async () => {
+      const local = readLocal()
+      const server = await fetchTasks()
+      if (local.length > 0 && server.length === 0) {
+        try {
+          await fetch('/api/tasks/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(local),
+          })
+          localStorage.removeItem(STORAGE_KEY)
+          localStorage.removeItem(LEGACY_KEY)
+        } catch {
+          /* 迁移失败则保留本地，不阻塞 */
+        }
+      }
+      const fresh = await fetchTasks()
+      if (!cancelled) setTasks(fresh)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
-  const add = () => {
+  const add = async () => {
     const t = title.trim()
     if (!t) {
       message.warning('请输入任务内容')
       return
     }
-    const item: Task = {
-      id: `tk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      title: t,
-      done: false,
-      createdAt: Date.now(),
-      priority,
-      due: due || undefined,
+    try {
+      const r = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: t, priority, due: due || undefined }),
+      })
+      if (!r.ok) throw new Error(String(r.status))
+      const item = (await r.json()) as Task
+      setTasks((list) => [item, ...list])
+      setTitle('')
+      setDue('')
+      setPriority('mid')
+    } catch {
+      message.error('添加失败，请重试')
     }
-    setTasks((list) => [item, ...list])
-    setTitle('')
-    setDue('')
-    setPriority('mid')
   }
 
-  const toggle = (id: string) =>
-    setTasks((list) => list.map((t) => (t.id === id ? { ...t, done: !t.done } : t)))
+  const toggle = (id: string) => {
+    const target = tasks.find((t) => t.id === id)
+    if (!target) return
+    const nextDone = !target.done
+    setTasks((list) => list.map((t) => (t.id === id ? { ...t, done: nextDone } : t)))
+    fetch(`/api/tasks/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ done: nextDone }),
+    }).catch(() => undefined)
+  }
 
-  const remove = (id: string) => setTasks((list) => list.filter((t) => t.id !== id))
+  const remove = (id: string) => {
+    setTasks((list) => list.filter((t) => t.id !== id))
+    fetch(`/api/tasks/${id}`, { method: 'DELETE' }).catch(() => undefined)
+  }
 
   const visible = useMemo(() => {
     const list =

@@ -35,17 +35,12 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
     Promise.all([
       fetchJson('/api/kanban'),
       fetchJson(`/api/calendar/events?start=${today}&end=${today}`),
-    ]).then(([kanban, calEvents]) => {
+      fetchJson('/api/tasks'),
+    ]).then(([kanban, calEvents, taskList]) => {
       if (cancelled) return
 
-      let tasksOpen = 0
-      try {
-        const raw = localStorage.getItem('yujie-tasks') ?? localStorage.getItem('mimo-tasks')
-        const parsed = raw ? JSON.parse(raw) : []
-        if (Array.isArray(parsed)) tasksOpen = parsed.filter((t: { done?: boolean }) => !t.done).length
-      } catch {
-        /* 忽略 */
-      }
+      const tasksArr = Array.isArray(taskList) ? (taskList as Array<{ done?: boolean }>) : []
+      const tasksOpen = tasksArr.filter((t) => !t.done).length
 
       const projects = (kanban as { projects?: unknown[] } | null)?.projects ?? []
       const cards = (kanban as { cards?: unknown[] } | null)?.cards ?? []

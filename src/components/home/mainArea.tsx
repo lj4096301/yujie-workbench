@@ -137,29 +137,33 @@ const KanbanOverview: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOp
   )
 }
 
-/** ③ 右：今日待办（微软待办风格）——未完成计数徽标 + 勾选圆环列表 */
+/** ③ 右：今日待办（微软待办风格）——未完成计数徽标 + 勾选圆环列表，数据走后端持久化 */
 const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
   const [list, setList] = useState<TodoItem[]>([])
 
-  const read = (): TodoItem[] => {
-    try {
-      const raw = localStorage.getItem('yujie-tasks') ?? localStorage.getItem('mimo-tasks')
-      const parsed = raw ? JSON.parse(raw) : []
-      return Array.isArray(parsed) ? parsed : []
-    } catch {
-      return []
-    }
-  }
-
   useEffect(() => {
-    setList(read().filter((t) => !t.done))
+    let cancelled = false
+    fetch('/api/tasks')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => {
+        if (!cancelled) setList((Array.isArray(d) ? d : []).filter((t: TodoItem) => !t.done))
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const toggle = (id: string) => {
-    const all = read()
-    const next = all.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
-    localStorage.setItem('yujie-tasks', JSON.stringify(next))
-    setList(next.filter((t) => !t.done))
+    const target = list.find((t) => t.id === id)
+    if (!target) return
+    const nextDone = !target.done
+    setList(list.filter((t) => t.id !== id))
+    fetch(`/api/tasks/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ done: nextDone }),
+    }).catch(() => undefined)
   }
 
   const undone = list.length
