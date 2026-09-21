@@ -1,7 +1,6 @@
 import React from 'react'
 import { useLayoutStore } from '@/stores/layoutStore'
 import { Button } from '@/components/ui/button'
-import HomeBanner from './banner'
 import HomeKpiRow from './kpiRow'
 import HomeMainArea from './mainArea'
 import HomeMoreGrid from './moreGrid'
@@ -11,10 +10,9 @@ import './home.css'
 /**
  * 宇界工作台首页（全新工作台布局）
  *
- * ① 欢迎横幅（问候 + 时间日期 + 简天气）
- * ② KPI 摘要行（项目 / 进行中 / 待办 / 今日日程）—— 关注的数据最前
- * ③ 主工作区（看板总览 / 今日待办 / 日程 一行三列）—— 视觉重心
- * ④ 天气 + 更多功能 一行（低频图标顺序排列，点击跳转）
+ * ① KPI 摘要行（项目 / 进行中 / 待办 / 今日日程）—— 关注的数据最前
+ * ② 主工作区（看板总览 / 今日待办 / 日程 一行三列）—— 视觉重心
+ * ③ 日期天气 + 更多功能 一行（日期与天气合一卡片，低频图标顺序排列，点击跳转）
  */
 const HomeWorkbench: React.FC<{
   onOpen: (moduleId: string) => void
@@ -40,7 +38,6 @@ const HomeWorkbench: React.FC<{
 
   return (
     <div className="hw">
-      <HomeBanner />
       <HomeKpiRow onOpen={onOpen} />
       <HomeMainArea onOpen={onOpen} />
       <div className="hw-tools">

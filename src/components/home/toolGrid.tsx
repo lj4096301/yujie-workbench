@@ -30,7 +30,7 @@ function fmtToday(): string {
   ).padStart(2, '0')}`
 }
 
-/** 天气卡（tactile-weather wide-small 成熟卡片） */
+/** 天气卡（tactile-weather wide-small 成熟卡片 + 日期合一，小米小组件风） */
 interface WeatherFull extends WeatherData {
   temp?: number
   description?: string
@@ -48,6 +48,12 @@ function aqiState(aqi?: number): { text: string; cls: string } {
 
 const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
   const [w, setW] = useState<WeatherFull | null>(null)
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -75,6 +81,10 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
       : null
 
   const aqi = aqiState(w?.aqi)
+  const week = '日一二三四五六'[now.getDay()]
+  const dateText = `${now.getMonth() + 1}月${now.getDate()}日`
+  const hh = String(now.getHours()).padStart(2, '0')
+  const mm = String(now.getMinutes()).padStart(2, '0')
 
   return (
     <div
@@ -84,7 +94,7 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
       style={{ cursor: 'pointer' }}
     >
       <div className="hw-card-head">
-        <span className="hw-card-title">🌤 天气预报</span>
+        <span className="hw-card-title">📅 今天 · 星期{week}</span>
         {aqi.cls && (
           <span className={'wx-aqi ' + aqi.cls} title={'AQI ' + (w?.aqi ?? '')}>
             <i className="wx-aqi-dot" />
@@ -93,6 +103,10 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
         )}
       </div>
       <div className="hw-card-body wx-body">
+        <div className="wx-date-row">
+          <span className="wx-date-text num-mono">{dateText}</span>
+          <span className="wx-date-clock num-mono" title="当前时间">{hh}:{mm}</span>
+        </div>
         <WeatherCard source={source} size="wide-small" city={w?.city ?? '北京'} />
       </div>
     </div>
