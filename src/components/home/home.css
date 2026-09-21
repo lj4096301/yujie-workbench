@@ -657,28 +657,67 @@
   overflow: hidden;
 }
 
-/* 日期+天气卡：日期行（月日 | 实时时钟） */
-.wx-date-row {
+/* Windows 11 小组件/锁屏天气卡风格 */
+.wx-win-main {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 2px 2px 8px;
-  border-bottom: 1px solid var(--border-light, #f2f3f5);
-  margin-bottom: 8px;
+  gap: 12px;
+  padding: 10px 2px 12px;
 }
 
-.wx-date-text {
-  font-size: 13px;
-  font-weight: 500;
+.wx-win-temp {
+  font-size: 44px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--text-primary, #1d2129);
+  font-family: var(--font-num, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-win-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.wx-win-icon {
   color: var(--text-secondary, #4e5969);
 }
 
-.wx-date-clock {
-  font-size: 15px;
+.wx-win-desc {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #1d2129);
+}
+
+.wx-win-feel {
+  font-size: 11px;
+  color: var(--text-muted, #86909c);
+}
+
+.wx-win-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 2px 0;
+  border-top: 1px solid var(--border-light, #f2f3f5);
+  font-size: 12px;
+  color: var(--text-secondary, #4e5969);
+  flex-wrap: wrap;
+}
+
+.wx-win-meta-item b {
   font-weight: 600;
   color: var(--text-primary, #1d2129);
-  letter-spacing: 0.02em;
+}
+
+.wx-win-meta-time {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #1d2129);
 }
 
 .wx-aqi {
