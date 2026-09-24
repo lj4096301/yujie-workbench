@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { onCardKey } from './keyboard'
 
 interface KpiItem {
   key: string
@@ -96,6 +97,9 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
     // 加载中：骨架数据卡
     return (
       <div className="hw-kpi-strip">
+        <div className="hw-card-head">
+          <span className="hw-card-title">📊 数据概览</span>
+        </div>
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="hw-kpi-cell">
             <div className="hw-kpi-cell-main">
@@ -111,11 +115,17 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
 
   return (
     <div className="hw-kpi-strip">
+      <div className="hw-card-head">
+        <span className="hw-card-title">📊 数据概览</span>
+      </div>
       {kpis.map((k) => (
         <div
           key={k.key}
           className="hw-kpi-cell"
+          role="button"
+          tabIndex={0}
           onClick={() => onOpen(k.moduleId)}
+          onKeyDown={onCardKey(() => onOpen(k.moduleId))}
           title={`进入 ${k.label}${k.sub ? `（${k.sub}）` : ''}`}
         >
           <div className="hw-kpi-cell-main">

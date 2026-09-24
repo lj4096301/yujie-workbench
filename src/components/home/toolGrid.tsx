@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Sun, CloudSun, Cloud, CloudRain, CloudSnow, CloudFog, CloudLightning } from 'lucide-react'
+import { onCardKey } from './keyboard'
 
 interface Hour {
   time: string
@@ -115,7 +116,10 @@ const WeatherTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen 
   return (
     <div
       className="hw-card hw-card-link wx-card"
+      role="button"
+      tabIndex={0}
       onClick={() => onOpen('weather')}
+      onKeyDown={onCardKey(() => onOpen('weather'))}
       title="进入天气预报"
       style={{ cursor: 'pointer' }}
     >
@@ -193,7 +197,10 @@ const CalendarTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen
   return (
     <div
       className="hw-card hw-card-link"
+      role="button"
+      tabIndex={0}
       onClick={() => onOpen('calendar')}
+      onKeyDown={onCardKey(() => onOpen('calendar'))}
       title="进入日程管理"
       style={{ cursor: 'pointer' }}
     >

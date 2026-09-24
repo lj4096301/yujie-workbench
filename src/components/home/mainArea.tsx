@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { CalendarTool } from './toolGrid'
+import { onCardKey, onInnerKey } from './keyboard'
 
 interface KanbanProject {
   id: string
@@ -74,7 +75,10 @@ const KanbanOverview: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOp
   return (
     <div
       className="hw-card hw-card-link"
+      role="button"
+      tabIndex={0}
       onClick={() => onOpen('kanban')}
+      onKeyDown={onCardKey(() => onOpen('kanban'))}
       title="进入项目看板"
       style={{ cursor: 'pointer' }}
     >
@@ -99,7 +103,7 @@ const KanbanOverview: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOp
                 <div className="wo-progress">
                   <div
                     className="wo-progress-fill"
-                    style={{ width: `${pct}%`, background: pct >= 100 ? '#00b42a' : '#ff6700' }}
+                    style={{ width: `${pct}%`, background: pct >= 100 ? 'var(--success, #00b42a)' : 'var(--primary-color, #ff6700)' }}
                   />
                 </div>
               </div>
@@ -173,7 +177,10 @@ const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen })
   return (
     <div
       className="hw-card hw-card-link"
+      role="button"
+      tabIndex={0}
       onClick={() => onOpen('tasks')}
+      onKeyDown={onCardKey(() => onOpen('tasks'))}
       title="进入待办任务"
       style={{ cursor: 'pointer' }}
     >
@@ -195,10 +202,14 @@ const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen })
               <div key={t.id} className="td-item">
                 <span
                   className="td-check"
+                  role="checkbox"
+                  aria-checked={false}
+                  tabIndex={0}
                   onClick={(e) => {
                     e.stopPropagation()
                     toggle(t.id)
                   }}
+                  onKeyDown={onInnerKey(() => toggle(t.id))}
                   title="标记完成"
                 >
                   ✓

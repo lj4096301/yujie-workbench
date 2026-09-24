@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useLayoutStore, EXTRA_MODULE_IDS } from '@/stores/layoutStore'
 import { MODULE_META } from '@/modules/registry'
+import { onCardKey, onInnerKey } from './keyboard'
 
 const metaById = new Map(MODULE_META.map((m) => [m.id, m]))
 
@@ -44,7 +45,10 @@ const HomeMoreGrid: React.FC<{
               <div
                 key={id}
                 className="mg-item"
+                role="button"
+                tabIndex={0}
                 onClick={() => onOpen(id)}
+                onKeyDown={onCardKey(() => onOpen(id))}
                 title={`进入${mod?.title ?? ''}`}
               >
                 <span className="mg-icon">{mod?.icon}</span>
@@ -52,11 +56,13 @@ const HomeMoreGrid: React.FC<{
                 <span
                   className="mg-close"
                   role="button"
+                  tabIndex={0}
                   title="从首页移除"
                   onClick={(e) => {
                     e.stopPropagation()
                     remove(id)
                   }}
+                  onKeyDown={onInnerKey(() => remove(id))}
                 >
                   ×
                 </span>

@@ -229,7 +229,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--text-primary, #1f2329);
   margin-bottom: 4px;
@@ -291,8 +291,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 18px;
-  font-size: 12px;
+  min-height: 20px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--text-secondary, #4e5969);
   min-width: 0;
@@ -373,6 +373,13 @@
   color: #fff;
   flex-shrink: 0;
   transition: border-color 0.15s ease, background-color 0.15s ease;
+  /* 视觉 15px，热区扩到 31px（§2.5 桌面 ≥32px 档） */
+  position: relative;
+}
+.td-check::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
 }
 
 .td-check:hover {
@@ -780,14 +787,11 @@
   /* 今日待办：触控行高 + 勾选框加大 */
   .td-item { padding: 9px 0; }
   .td-check { width: 20px; height: 20px; font-size: 14px; }
-  .td-title { font-size: 14px; }
 
   /* 更多功能：触控热区 ≥36px */
   .mg-item { min-height: 36px; padding: 6px 10px; }
   .mg-icon { width: 22px; height: 22px; font-size: 16px; }
 
-  /* 看板总览项目行字号略大 */
-  .wo-project-row { font-size: 14px; }
 }
 
 /* ---------- 天气卡（小米风格） ---------- */
@@ -933,11 +937,13 @@
 }
 
 /* ---------- KPI 数据卡（单个卡片，4 个数据纵向排列） ---------- */
+/* KPI 数据卡（规范 §2.8）：与 .hw-card 同一卡片形态 —— 边框 + 圆角 12px + 标题栏 */
 .hw-kpi-strip {
   display: flex;
   flex-direction: column;
   background: var(--card-bg, #fff);
-  border-radius: var(--radius-lg, 8px);
+  border: 1px solid var(--border, #e5e6eb);
+  border-radius: var(--radius-lg, 12px);
   box-shadow: var(--shadow-card, 0 1px 2px rgba(0, 0, 0, 0.04));
   overflow: hidden;
 }
@@ -998,6 +1004,15 @@
 .hw-card-link {
   cursor: pointer;
   transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+/* 键盘焦点（规范 §6）：可交互元素必须有 focus-visible，样式全站统一 */
+.hw-card-link:focus-visible,
+.hw-kpi-cell:focus-visible,
+.mg-item:focus-visible,
+.td-check:focus-visible {
+  outline: 2px solid var(--primary-color, #ff6700);
+  outline-offset: 2px;
 }
 
 .hw-card-link:hover {

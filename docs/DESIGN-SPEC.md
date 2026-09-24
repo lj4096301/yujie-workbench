@@ -315,6 +315,16 @@ AQI / 紫外线 / 生活指数这类「程度分级」文案（**文字色，白
 - 全部热区 ≥48vp；组件状态只保留 默认/按下/禁用
 - 拖拽类操作使用**长按拖动**（pointer events），禁止依赖 HTML5 drag（触摸不可用）
 
+### 落地现状（2026-09-25）
+
+| 项 | 状态 |
+|---|---|
+| 键盘可达 | 首页全部可交互卡片（`.hw-card-link` / `.hw-kpi-cell` / `.mg-item` / `.td-check`）统一 `tabIndex={0}` + `role` + Enter/Space，处理器在 `src/components/home/keyboard.ts` |
+| focus-visible | 统一样式：`2px solid var(--primary-color)` + `outline-offset: 2px`（`home.css`），四类选择器共用一条规则 |
+| 嵌套控件 | 卡片内的勾选框 / 移除按钮 Enter/Space 会 `stopPropagation`，不冒泡触发外层卡片跳转 |
+| 热区 | `.td-check` 视觉 15px，`::after` 扩热区到 31px（§2.5 桌面档）；`.mg-item` 窄屏 `min-height: 36px` |
+| 待办 | 右键菜单（§6 桌面）尚未实现，`Ctrl+K` / `/` 已有 |
+
 ---
 
 ## 7. 组件库约定
