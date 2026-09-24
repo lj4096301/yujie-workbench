@@ -35,6 +35,7 @@ interface CalendarEvent {
   color?: string
   description?: string
   source: 'local' | 'feishu'
+  type?: 'event' | 'todo'
 }
 
 interface HolidayItem {
@@ -54,6 +55,27 @@ interface DetailEvent {
 }
 
 const EVENT_COLORS = ['#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
+
+const PRIORITY_LABEL: Record<'low' | 'mid' | 'high', string> = {
+  low: '低',
+  mid: '中',
+  high: '高',
+}
+
+/** 分段按钮样式（日程/待办、优先级通用） */
+function segBtnStyle(active: boolean): React.CSSProperties {
+  return {
+    flex: 1,
+    padding: '6px 0',
+    fontSize: 13,
+    borderRadius: 6,
+    cursor: 'pointer',
+    border: active ? '1px solid #1677ff' : '1px solid #e5e6eb',
+    background: active ? '#e8f3ff' : '#fff',
+    color: active ? '#1677ff' : '#4e5969',
+    fontWeight: active ? 600 : 400,
+  }
+}
 
 const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   // 标题栏操作挂载点（Panel 的 panel-actions）
@@ -76,9 +98,12 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [detailEvent, setDetailEvent] = useState<DetailEvent | null>(null)
   const [detailConfirm, setDetailConfirm] = useState(false)
 
-  // 添加日程表单
+  // 添加表单：类型（日程/待办）+ 对应字段
+  const [evType, setEvType] = useState<'event' | 'todo'>('event')
   const [evTitle, setEvTitle] = useState('')
   const [evRange, setEvRange] = useState<[Dayjs, Dayjs] | null>(null)
+  const [evDue, setEvDue] = useState<Dayjs | null>(null)
+  const [evPriority, setEvPriority] = useState<'low' | 'mid' | 'high'>('mid')
   const [evColor, setEvColor] = useState('#1677ff')
   const [evDesc, setEvDesc] = useState('')
 
@@ -237,21 +262,54 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     [holidayMap]
   )
 
-  const fcEvents = events.map((e) => ({
-    id: e.id,
-    title: e.title,
-    start: e.start,
-    end: e.end,
-    color: e.color || '#1677ff',
-    extendedProps: { description: e.description || '', source: e.source },
-  }))
+  const fcEvents = events
+    .filter((e) => e.type !== 'todo')
+    .map((e) => ({
+      id: e.id,
+      title: e.title,
+      start: e.start,
+      end: e.end,
+      color: e.color || '#1677ff',
+      extendedProps: { description: e.description || '', source: e.source },
+    }))
 
   const submitAdd = () => {
     const title = evTitle.trim()
     if (!title) {
-      message.warning('请输入日程标题')
+      message.warning(evType === 'todo' ? '请输入待办内容' : '请输入日程标题')
       return
     }
+
+    // 待办：归属「日程管理」数据（type:'todo'），写入 calendar-events.json，
+    // 由「待办管理」模块与首页待办卡统一读取展示
+    if (evType === 'todo') {
+      const due = evDue ? evDue.format('YYYY-MM-DD') : undefined
+      const start = due ? `${due}T12:00:00.000Z` : new Date().toISOString()
+      const todo = {
+        id: Date.now().toString(),
+        title,
+        type: 'todo',
+        done: false,
+        priority: evPriority,
+        due,
+        start,
+        end: start,
+        source: 'local',
+      }
+      setModalVisible(false)
+      message.success('待办已添加到「待办管理」')
+      try {
+        void fetch('/api/calendar/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(todo),
+        })
+      } catch {
+        // 网络失败静默
+      }
+      return
+    }
+
     if (!evRange) {
       message.warning('请选择时间')
       return
@@ -282,8 +340,11 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const upcomingFestivals = getUpcomingFestivals(60, 8)
 
   function openAdd() {
+    setEvType('event')
     setEvTitle('')
     setEvRange(null)
+    setEvDue(null)
+    setEvPriority('mid')
     setEvColor('#1677ff')
     setEvDesc('')
     setModalVisible(true)
@@ -451,54 +512,98 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       <Dialog open={modalVisible} onOpenChange={setModalVisible}>
         <DialogContent className="max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>📅 添加日程</DialogTitle>
+            <DialogTitle>{evType === 'todo' ? '✅ 添加待办' : '📅 添加日程'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* 类型：日程 / 待办（共用日程数据） */}
+            <div className="space-y-1.5">
+              <Label>类型</Label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" onClick={() => setEvType('event')} style={segBtnStyle(evType === 'event')}>
+                  📅 日程
+                </button>
+                <button type="button" onClick={() => setEvType('todo')} style={segBtnStyle(evType === 'todo')}>
+                  ✅ 待办
+                </button>
+              </div>
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="ev-title">标题</Label>
               <Input
                 id="ev-title"
                 value={evTitle}
-                placeholder="日程标题"
+                placeholder={evType === 'todo' ? '待办内容' : '日程标题'}
                 onChange={(e) => setEvTitle(e.target.value)}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>时间</Label>
-              <DatePicker.RangePicker
-                showTime
-                format="YYYY-MM-DD HH:mm"
-                style={{ width: '100%' }}
-                value={evRange}
-                onChange={(v) => setEvRange(v as [Dayjs, Dayjs] | null)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>颜色</Label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {EVENT_COLORS.map((c) => (
-                  <div
-                    key={c}
-                    onClick={() => setEvColor(c)}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: '50%',
-                      background: c,
-                      cursor: 'pointer',
-                      border: evColor === c ? '2px solid #333' : '2px solid transparent',
-                    }}
+
+            {evType === 'todo' ? (
+              <>
+                <div className="space-y-1.5">
+                  <Label>日期（可选）</Label>
+                  <DatePicker
+                    style={{ width: '100%' }}
+                    value={evDue}
+                    onChange={(v) => setEvDue(v as Dayjs | null)}
                   />
-                ))}
-              </div>
-            </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>优先级</Label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {(['low', 'mid', 'high'] as const).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setEvPriority(p)}
+                        style={segBtnStyle(evPriority === p)}
+                      >
+                        {PRIORITY_LABEL[p]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <Label>时间</Label>
+                  <DatePicker.RangePicker
+                    showTime
+                    format="YYYY-MM-DD HH:mm"
+                    style={{ width: '100%' }}
+                    value={evRange}
+                    onChange={(v) => setEvRange(v as [Dayjs, Dayjs] | null)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>颜色</Label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {EVENT_COLORS.map((c) => (
+                      <div
+                        key={c}
+                        onClick={() => setEvColor(c)}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          background: c,
+                          cursor: 'pointer',
+                          border: evColor === c ? '2px solid #333' : '2px solid transparent',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
             <div className="space-y-1.5">
               <Label htmlFor="ev-desc">描述</Label>
               <Textarea
                 id="ev-desc"
                 rows={2}
                 value={evDesc}
-                placeholder="日程描述（可选）"
+                placeholder="描述（可选）"
                 onChange={(e) => setEvDesc(e.target.value)}
               />
             </div>
@@ -507,7 +612,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             <Button variant="outline" onClick={() => setModalVisible(false)}>
               取消
             </Button>
-            <Button onClick={submitAdd}>添加日程</Button>
+            <Button onClick={submitAdd}>{evType === 'todo' ? '添加待办' : '添加日程'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

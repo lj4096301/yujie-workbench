@@ -35,6 +35,9 @@ export function createCalendarRouter() {
         console.log('飞书日历同步跳过:', (err as Error).message)
       }
 
+      // 待办（type:'todo'）归属「待办管理」，不出现在日程视图/月历卡
+      events = events.filter((e: any) => e.type !== 'todo')
+
       // 按时间范围过滤
       if (start && end) {
         events = events.filter((e: any) => {
