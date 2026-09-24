@@ -15,6 +15,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import zhCnLocale from '@fullcalendar/core/locales/zh-cn'
 import type { DatesSetArg, DayCellContentArg, DayHeaderContentArg, EventClickArg } from '@fullcalendar/core'
 import { getDayLunarInfo, getUpcomingFestivals } from './lunarUtils'
+import { TodoFormFields, saveTodo } from './TodoDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -227,6 +228,12 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       const d = dayjs(arg.date)
       const info = getDayLunarInfo(arg.date)
       const h = holidayMap.get(d.format('YYYY-MM-DD'))
+      // 去重：法定节假日 API 的 name（如「中秋节」）与农历库算出的节日名相同时，只显示一个，
+      // 避免同一天出现两个「中秋节」
+      const lunarLabel = info.label
+      const holidayName = h?.name
+      const showHolidayName =
+        !!holidayName && !(lunarLabel.includes(holidayName) || holidayName.includes(lunarLabel))
       return (
         <div className="fc-daycell">
           <div className="fc-daycell-top">
@@ -235,10 +242,26 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           </div>
           <div className="fc-daycell-lunar">
             <span className={`fc-lunar${info.highlight ? ' fest' : ''}`}>{info.label}</span>
-            {h && <span className="cal-hname">{h.name}</span>}
+            {showHolidayName && <span className="cal-hname">{h?.name}</span>}
           </div>
         </div>
       )
+    },
+    [holidayMap]
+  )
+
+  /** 给月视图格子打 class：周末 / 调休上班 / 法定假日 / 节日节气，用于底色 */
+  const dayCellClassNames = useCallback(
+    (arg: { date: Date }) => {
+      const d = dayjs(arg.date)
+      const classes: string[] = []
+      const dow = d.day() // 0=周日, 6=周六
+      if (dow === 0 || dow === 6) classes.push('cal-cell-weekend')
+      const h = holidayMap.get(d.format('YYYY-MM-DD'))
+      if (h?.type === 'holiday') classes.push('cal-cell-holiday')
+      else if (h?.type === 'workday') classes.push('cal-cell-workday')
+      if (getDayLunarInfo(arg.date).highlight) classes.push('cal-cell-festival')
+      return classes
     },
     [holidayMap]
   )
@@ -280,33 +303,16 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       return
     }
 
-    // 待办：归属「日程管理」数据（type:'todo'），写入 calendar-events.json，
-    // 由「待办管理」模块与首页待办卡统一读取展示
+    // 待办：复用共享 TodoDialog 的保存逻辑（type:'todo'，写入 calendar-events.json）
     if (evType === 'todo') {
-      const due = evDue ? evDue.format('YYYY-MM-DD') : undefined
-      const start = due ? `${due}T12:00:00.000Z` : new Date().toISOString()
-      const todo = {
-        id: Date.now().toString(),
-        title,
-        type: 'todo',
-        done: false,
-        priority: evPriority,
-        due,
-        start,
-        end: start,
-        source: 'local',
-      }
       setModalVisible(false)
-      message.success('待办已添加到「待办管理」')
-      try {
-        void fetch('/api/calendar/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(todo),
-        })
-      } catch {
-        // 网络失败静默
-      }
+      saveTodo(null, {
+        title,
+        due: evDue ? evDue.format('YYYY-MM-DD') : undefined,
+        priority: evPriority,
+      })
+        .then(() => message.success('待办已添加到「待办管理」'))
+        .catch(() => undefined)
       return
     }
 
@@ -406,6 +412,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
           dateClick={handleDateClick}
           eventClick={handleEventClick}
           dayCellContent={dayCell}
+          dayCellClassNames={dayCellClassNames}
           dayHeaderContent={dayHeader}
           eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
           slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
@@ -538,31 +545,14 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             </div>
 
             {evType === 'todo' ? (
-              <>
-                <div className="space-y-1.5">
-                  <Label>日期（可选）</Label>
-                  <DatePicker
-                    style={{ width: '100%' }}
-                    value={evDue}
-                    onChange={(v) => setEvDue(v as Dayjs | null)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>优先级</Label>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {(['low', 'mid', 'high'] as const).map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setEvPriority(p)}
-                        style={segBtnStyle(evPriority === p)}
-                      >
-                        {PRIORITY_LABEL[p]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
+              <TodoFormFields
+                title={evTitle}
+                onTitle={setEvTitle}
+                due={evDue}
+                onDue={setEvDue}
+                priority={evPriority}
+                onPriority={setEvPriority}
+              />
             ) : (
               <>
                 <div className="space-y-1.5">

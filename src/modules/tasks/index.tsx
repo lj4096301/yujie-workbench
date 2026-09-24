@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { message } from 'antd'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -13,6 +12,7 @@ import {
   SelectItem,
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { TodoDialog, type TodoData } from '../calendar/TodoDialog'
 
 interface Task {
   id: string
@@ -65,11 +65,11 @@ type FilterKey = 'all' | 'active' | 'done'
 const TasksModule: React.FC<{ panelId?: string }> = () => {
   const [tasks, setTasks] = useState<Task[]>([])
   const [filter, setFilter] = useState<FilterKey>('all')
-  const [title, setTitle] = useState('')
-  const [priority, setPriority] = useState<'low' | 'mid' | 'high'>('mid')
-  const [due, setDue] = useState('') // yyyy-mm-dd
   // 删除二次确认（通用 ConfirmDialog）
   const [delTarget, setDelTarget] = useState<Task | null>(null)
+  // 待办弹窗（新建 / 编辑复用同一弹窗，与日历「建立待办」一致）
+  const [todoDialogOpen, setTodoDialogOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<TodoData | null>(null)
 
   // 启动：先迁 localStorage 数据到后端（一次性），再读后端
   useEffect(() => {
@@ -98,29 +98,6 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
     }
   }, [])
 
-  const add = async () => {
-    const t = title.trim()
-    if (!t) {
-      message.warning('请输入任务内容')
-      return
-    }
-    try {
-      const r = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: t, priority, due: due || undefined }),
-      })
-      if (!r.ok) throw new Error(String(r.status))
-      const item = (await r.json()) as Task
-      setTasks((list) => [item, ...list])
-      setTitle('')
-      setDue('')
-      setPriority('mid')
-    } catch {
-      message.error('添加失败，请重试')
-    }
-  }
-
   const toggle = (id: string) => {
     const target = tasks.find((t) => t.id === id)
     if (!target) return
@@ -138,6 +115,20 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
     fetch(`/api/tasks/${id}`, { method: 'DELETE' }).catch(() => undefined)
   }
 
+  /** 待办弹窗保存回调：新建则置顶插入，编辑则就地更新 */
+  const handleTodoSaved = (item: TodoData) => {
+    if (editTarget) {
+      setTasks((list) =>
+        list.map((t) =>
+          t.id === item.id ? { ...t, title: item.title, due: item.due, priority: item.priority } : t
+        )
+      )
+      setEditTarget(null)
+    } else {
+      setTasks((list) => [item as unknown as Task, ...list])
+    }
+  }
+
   const visible = useMemo(() => {
     const list =
       filter === 'all'
@@ -153,42 +144,18 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
-      {/* 新增表单：常驻面板顶部（避免标题栏操作区溢出遮挡） */}
-      <div
-        className="tk-add-bar"
-        style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}
-      >
-        <Input
-          placeholder="添加任务，回车确认"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && add()}
-          className="h-8 min-w-0 max-w-[320px] flex-1"
-        />
-        <Select
-          value={priority}
-          onValueChange={(v) => setPriority(v as 'low' | 'mid' | 'high')}
+      {/* 新建待办：点击打开弹窗（与日历「建立待办」共用同一弹窗） */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+        <Button
+          size="sm"
+          className="shrink-0"
+          onClick={() => {
+            setEditTarget(null)
+            setTodoDialogOpen(true)
+          }}
         >
-          <SelectTrigger className="h-8 w-[68px] shrink-0">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(['low', 'mid', 'high'] as const).map((p) => (
-              <SelectItem key={p} value={p}>
-                {PRIORITY_META[p].label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          type="date"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-          className="h-8 w-[140px] shrink-0"
-        />
-        <Button size="sm" className="shrink-0" onClick={add}>
           <Plus className="h-4 w-4" />
-          添加
+          新建待办
         </Button>
       </div>
 
@@ -265,6 +232,17 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
               <Button
                 variant="ghost"
                 size="sm"
+                className="text-[#4E5969]"
+                onClick={() => {
+                  setEditTarget(t as unknown as TodoData)
+                  setTodoDialogOpen(true)
+                }}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 className="text-[#F53F3F]"
                 onClick={() => setDelTarget(t)}
               >
@@ -284,6 +262,14 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
         danger
         onOk={() => delTarget && remove(delTarget.id)}
         onOpenChange={(o) => !o && setDelTarget(null)}
+      />
+
+      {/* 待办新建 / 编辑弹窗（与日历「建立待办」共用） */}
+      <TodoDialog
+        open={todoDialogOpen}
+        onOpenChange={setTodoDialogOpen}
+        initial={editTarget}
+        onSaved={handleTodoSaved}
       />
     </div>
   )

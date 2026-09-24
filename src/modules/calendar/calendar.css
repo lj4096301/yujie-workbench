@@ -354,3 +354,18 @@
   font-size: 11px;
   color: #999;
 }
+
+/* ===== 月格子底色：周末 / 调休上班 / 节日节气 / 法定假日 ===== */
+/* FullCalendar v6 的格子底色落在 .fc-daygrid-day-bg 层，用后代选择器打色 */
+.fc .fc-daygrid-day.cal-cell-weekend .fc-daygrid-day-bg { background: #fafbfc; }   /* 周六日：浅灰 */
+.fc .fc-daygrid-day.cal-cell-workday .fc-daygrid-day-bg { background: #f0f5ff; }   /* 调休上班：浅蓝 */
+.fc .fc-daygrid-day.cal-cell-festival .fc-daygrid-day-bg { background: #fffbe6; }  /* 节日/节气：浅黄 */
+.fc .fc-daygrid-day.cal-cell-holiday .fc-daygrid-day-bg { background: #fff1f0; }   /* 法定假日：浅红 */
+/* 今天保持橙色，优先级最高（放最后压过其余底色） */
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-bg { background: var(--fc-today-bg-color); }
+
+/* ===== 日期数字居中 ===== */
+.fc .fc-daygrid-day-top { justify-content: center; }
+.fc-daycell { align-items: center; text-align: center; }
+.fc-daycell-top { justify-content: center; width: 100%; }
+.fc-daycell-lunar { justify-content: center; width: 100%; }
