@@ -652,7 +652,7 @@ const KnowledgeModule: React.FC = () => {
               </Button>
             </div>
           ) : loading ? (
-            <div style={{ textAlign: 'center', padding: 20, fontSize: 12, color: '#86909C' }}>
+            <div style={{ textAlign: 'center', padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>
               加载中...
             </div>
           ) : files.length > 0 ? (
@@ -665,7 +665,7 @@ const KnowledgeModule: React.FC = () => {
               draggable={{ icon: false }}
               allowDrop={allowDrop}
               onDrop={handleDrop}
-              style={{ fontSize: 13 }}
+              style={{ fontSize: 14 }}
             />
           ) : (
             <div className="mod-empty" style={{ padding: '24px 8px' }}>
@@ -745,7 +745,7 @@ const KnowledgeModule: React.FC = () => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="kb-toolbar">
-              <span style={{ fontSize: 12, color: '#999' }}>选择一个笔记查看 · Ctrl+P 快速切换</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>选择一个笔记查看 · Ctrl+P 快速切换</span>
               <span style={{ flex: 1 }} />
               {modeTabs}
             </div>
@@ -774,7 +774,7 @@ const KnowledgeModule: React.FC = () => {
               autoFocus
               className="h-8"
             />
-            <div style={{ fontSize: 12, color: '#86909C', marginTop: 8 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
               不写 .md 后缀会自动补上；用 / 分隔可顺便创建子文件夹。
             </div>
           </div>
@@ -804,7 +804,7 @@ const KnowledgeModule: React.FC = () => {
               onFocus={(e) => e.target.select()}
               className="h-8"
             />
-            <div style={{ fontSize: 12, color: '#86909C', marginTop: 8 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
               修改路径中最后一段即可重命名；全库中 [[引用]] 会同步更新，别名和锚点保留。
             </div>
           </div>
@@ -870,7 +870,7 @@ const KnowledgeModule: React.FC = () => {
           delTarget ? (
             <>
               <div style={{ fontWeight: 600, color: '#F53F3F' }}>{delTarget.path}</div>
-              <div style={{ fontSize: 12, color: '#86909C', marginTop: 6 }}>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
                 {delTarget.isFile ? '删除这个笔记？' : '删除这个文件夹？'}将移入知识库的 .trash 目录，可在文件管理器中找回。
               </div>
             </>

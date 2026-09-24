@@ -268,13 +268,13 @@ const GlobalSearch: React.FC = () => {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 12 }}>{meta.icon}</span>
-                    <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       <Highlight text={item.title} query={query.trim()} />
                     </span>
-                    <span style={{ fontSize: 11, color: '#999', background: '#f5f5f5', borderRadius: 4, padding: '1px 6px' }}>{meta.label}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)', background: 'var(--bg-subtle)', borderRadius: 4, padding: '1px 6px' }}>{meta.label}</span>
                   </div>
                   {item.snippet && (
-                    <div style={{ fontSize: 11, color: '#888', marginTop: 3, paddingLeft: 20, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3, paddingLeft: 20, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       <Highlight text={item.snippet} query={query.trim()} />
                     </div>
                   )}
@@ -282,11 +282,11 @@ const GlobalSearch: React.FC = () => {
               )
             })
           ) : query.trim().length >= 2 ? (
-            <div style={{ textAlign: 'center', color: '#999', padding: 20 }}>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 20 }}>
               未找到相关结果
             </div>
           ) : (
-            <div style={{ textAlign: 'center', color: '#999', padding: 20 }}>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 20 }}>
               输入至少 2 个字符开始搜索（笔记 · 小说 · 剧集 · 新闻）
             </div>
           )}
@@ -297,7 +297,7 @@ const GlobalSearch: React.FC = () => {
           display: 'flex',
           justifyContent: 'space-between',
           fontSize: 12,
-          color: '#999',
+          color: 'var(--text-muted)',
         }}>
           <span>↑↓ 导航 · Enter 打开 · Esc 关闭</span>
           <span>Ctrl+K 切换搜索</span>

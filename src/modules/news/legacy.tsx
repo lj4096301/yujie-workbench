@@ -232,7 +232,7 @@ const LegacyNewsPanel: React.FC = () => {  const [news, setNews] = useState<News
                     {/* 未读蓝点（Feedly 式） */}
                     {!isRead && <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--primary-color, #ff6700)', boxShadow: '0 0 0 3px rgba(255,103,0,0.12)', flexShrink: 0 }} />}
                     <span className="news-source">{item.source}</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted, #86909c)', background: 'var(--bg-subtle, #f7f8fa)', padding: '0 6px', borderRadius: 4 }}>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted, #86909c)', background: 'var(--bg-subtle, #f7f8fa)', padding: '0 6px', borderRadius: 4 }}>
                       {CATEGORIES.find((c) => c.value === item.category)?.label || item.category}
                     </span>
                   </div>

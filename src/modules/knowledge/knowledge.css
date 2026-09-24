@@ -71,7 +71,7 @@
 .kb-md th, .kb-md td {
   border: 1px solid #e5e5e5;
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .kb-md th { background: #fafafa; font-weight: 600; }
@@ -111,7 +111,7 @@
   border-radius: 8px;
   padding: 8px 12px;
   background: #fafbfc;
-  font-size: 13px;
+  font-size: 14px;
 }
 .kb-outline summary { cursor: pointer; color: #666; font-weight: 600; }
 .kb-outline ul { list-style: none; padding-left: 4px; margin: 8px 0 2px; }
@@ -147,7 +147,7 @@
 
 /* ---- 状态栏（字数统计） ---- */
 .kb-statusbar {
-  font-size: 11px;
+  font-size: 12px;
   color: #999;
   white-space: nowrap;
 }
@@ -166,7 +166,7 @@
   vertical-align: middle;
 }
 .kb-snippet {
-  font-size: 11px;
+  font-size: 12px;
   color: #999;
   line-height: 1.5;
   margin: 1px 0 3px 22px;
@@ -214,13 +214,13 @@
   min-width: 0;
 }
 .kb-linkpanel-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: #888;
   margin-bottom: 4px;
 }
 .kb-linkpanel-empty {
-  font-size: 11px;
+  font-size: 12px;
   color: #bbb;
 }
 .kb-linkpanel-item {
@@ -249,7 +249,7 @@
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   min-width: 0;
 }
 .kb-quick-item.active { background: rgba(255, 103, 0, 0.08); }
@@ -262,7 +262,7 @@
   min-width: 0;
 }
 .kb-quick-path {
-  font-size: 11px;
+  font-size: 12px;
   color: #aaa;
   overflow: hidden;
   text-overflow: ellipsis;

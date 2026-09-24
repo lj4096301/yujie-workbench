@@ -315,7 +315,7 @@ const GraphView: React.FC<P> = ({ width, height, onOpen }) => {
       >
         <Maximize2 className="h-3.5 w-3.5" />
       </Button>
-      <div style={{ fontSize: 11, color: '#86909c', padding: '4px 8px' }}>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: '4px 8px' }}>
         {data.nodes.length} 个笔记 · {data.edges.length} 条链接 · 滚轮缩放 / 拖背景平移 / 拖节点重排 / 点节点打开
       </div>
     </div>

@@ -33,7 +33,7 @@
 }
 
 .hw-card-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary, #1f2329);
   display: inline-flex;
@@ -70,7 +70,7 @@
 }
 
 .hw-banner-date {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary, #4e5969);
   line-height: 1.5;
 }
@@ -103,7 +103,7 @@
 }
 
 .hw-banner-clock-sec {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-muted, #86909c);
   margin-left: 2px;
 }
@@ -173,7 +173,7 @@
   width: 30px;
   height: 30px;
   border-radius: var(--radius-md, 8px);
-  font-size: 15px;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
@@ -183,7 +183,7 @@
 }
 
 .hw-kpi-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
   line-height: 1.4;
 }
@@ -198,7 +198,7 @@
 }
 
 .hw-kpi-sub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -228,7 +228,7 @@
 }
 
 .wo-project-count {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
   font-family: var(--font-num, ui-monospace, monospace);
   font-variant-numeric: tabular-nums;
@@ -259,12 +259,12 @@
   background: var(--bg-subtle, #f7f8fa);
   border-radius: var(--radius-md, 8px);
   padding: 3px 0;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary, #4e5969);
 }
 
 .wo-stat b {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-primary, #1f2329);
   font-family: var(--font-num, ui-monospace, monospace);
   font-variant-numeric: tabular-nums;
@@ -357,7 +357,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 12px;
   color: #fff;
   flex-shrink: 0;
   transition: border-color 0.15s ease, background-color 0.15s ease;
@@ -422,7 +422,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border-light, #f2f3f5);
@@ -506,12 +506,12 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
 }
 
 .tg-hour-icon {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
 }
 
@@ -536,7 +536,7 @@
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
 }
 
@@ -577,7 +577,7 @@
 }
 
 .tg-list-time {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
   font-family: var(--font-num, ui-monospace, monospace);
   font-variant-numeric: tabular-nums;
@@ -623,7 +623,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -647,7 +647,7 @@
   width: 15px;
   height: 15px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
   opacity: 0;
   cursor: pointer;
@@ -679,14 +679,14 @@
 }
 
 .hw-empty-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary, #1f2329);
   margin-bottom: 6px;
 }
 
 .hw-empty-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-muted, #86909c);
   margin-bottom: 16px;
 }
@@ -698,7 +698,7 @@
   color: #fff;
   border: none;
   border-radius: var(--radius-md, 8px);
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
@@ -762,20 +762,20 @@
 
   /* 迷你月历：触控格子加大（≥34px 热区） */
   .cal-mini { padding: 8px 10px 10px; }
-  .cal-mini-day { height: 34px; font-size: 13px; }
+  .cal-mini-day { height: 34px; font-size: 14px; }
   .cal-mini-week { font-size: 12px; padding-bottom: 6px; }
 
   /* 今日待办：触控行高 + 勾选框加大 */
   .td-item { padding: 9px 0; }
-  .td-check { width: 20px; height: 20px; font-size: 13px; }
-  .td-title { font-size: 13px; }
+  .td-check { width: 20px; height: 20px; font-size: 14px; }
+  .td-title { font-size: 14px; }
 
   /* 更多功能：触控热区 ≥36px */
   .mg-item { min-height: 36px; padding: 6px 10px; }
   .mg-icon { width: 22px; height: 22px; font-size: 16px; }
 
   /* 看板总览项目行字号略大 */
-  .wo-project-row { font-size: 13px; }
+  .wo-project-row { font-size: 14px; }
 }
 
 /* ---------- 天气卡（小米风格） ---------- */
@@ -814,7 +814,7 @@
 }
 
 .wx-win-desc {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-primary, #1d2129);
 }
@@ -842,7 +842,7 @@
 
 .wx-win-meta-time {
   margin-left: auto;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary, #1d2129);
 }
@@ -851,7 +851,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -908,7 +908,7 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted, #86909c);
 }
 

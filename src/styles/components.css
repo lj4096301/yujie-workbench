@@ -43,7 +43,7 @@
 }
 
 .panel-icon {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
 }
 
@@ -200,7 +200,7 @@
 }
 
 .sidebar-logo h1 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: 0.5px;
@@ -255,7 +255,7 @@
   gap: 10px;
   height: 38px;
   padding: 0 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--sidebar-text);
   white-space: nowrap;
   cursor: pointer;
@@ -296,14 +296,14 @@
 }
 
 .menu-icon {
-  font-size: 15px;
+  font-size: 14px;
   width: 20px;
   text-align: center;
   flex-shrink: 0;
 }
 
 .menu-item span:last-child {
-  font-size: 13px;
+  font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -444,7 +444,7 @@
   gap: 6px;
   height: 32px;
   padding: 0 14px;
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
   background: #fff;
   border: 1px solid #e5e6eb;
@@ -521,7 +521,7 @@
 }
 
 .home-empty-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-muted);
 }
 
@@ -531,7 +531,7 @@
   border: none;
   border-radius: 6px;
   color: #fff;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -568,7 +568,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
 }
 
@@ -586,7 +586,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
   flex-shrink: 0;
 }
@@ -691,7 +691,7 @@
 }
 
 .module-manager-head {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: #1d2129;
   padding: 6px 10px 10px;
@@ -714,7 +714,7 @@
   padding: 7px 10px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
   user-select: none;
   transition: background 0.15s ease;
@@ -795,7 +795,7 @@
 }
 
 .tabbar-label {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.2;
   white-space: nowrap;
 }
@@ -840,7 +840,7 @@
 }
 
 .tabbar-module-name {
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -874,7 +874,7 @@
 
 .tabbar-pop-item {
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
   border-radius: 8px;
   cursor: pointer;

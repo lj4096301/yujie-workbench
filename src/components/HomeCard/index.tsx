@@ -141,7 +141,7 @@ const HomeCard: React.FC<HomeCardProps> = ({ moduleId, title, icon, onOpen, onCl
             tag: '个项目',
             sub: `共 ${cards.length} 张卡片`,
             stats: [
-              { label: '待推进', value: todo, color: '#86909c' },
+              { label: '待推进', value: todo, color: 'var(--text-muted)' },
               { label: '进行中', value: doing, color: '#ff6700' },
               { label: '已完成', value: doneN, color: '#00b42a' },
             ],

@@ -63,9 +63,9 @@ const LoginModule: React.FC = () => {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>🔐</div>
+          <div style={{ fontSize: 24, marginBottom: 8 }}>🔐</div>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: 'var(--text-primary, #1d2129)' }}>宇界工作台</h2>
-          <p style={{ color: 'var(--text-muted, #86909c)', fontSize: 13, marginTop: 8 }}>请输入账号登录</p>
+          <p style={{ color: 'var(--text-muted, #86909c)', fontSize: 14, marginTop: 8 }}>请输入账号登录</p>
         </div>
 
         {error && (
@@ -78,7 +78,7 @@ const LoginModule: React.FC = () => {
               marginBottom: 16,
               padding: '8px 12px',
               borderRadius: 6,
-              fontSize: 13,
+              fontSize: 14,
               background: 'rgba(245, 63, 63, 0.06)',
               border: '1px solid rgba(245, 63, 63, 0.25)',
               color: 'var(--danger, #f53f3f)',

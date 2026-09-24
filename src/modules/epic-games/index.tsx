@@ -191,7 +191,7 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     <span style={{ color: 'var(--success, #00b42a)' }}>
                       免费
                       {game.originalPrice > 0 && (
-                        <span style={{ textDecoration: 'line-through', color: 'var(--text-disabled, #c9cdd4)', fontSize: 11, marginLeft: 6 }}>
+                        <span style={{ textDecoration: 'line-through', color: 'var(--text-disabled, #c9cdd4)', fontSize: 12, marginLeft: 6 }}>
                           ${game.originalPrice.toFixed(2)}
                         </span>
                       )}
@@ -215,7 +215,7 @@ const FreeGamesModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                   )}
                 </div>
                 {game.description && (
-                  <div style={{ fontSize: 11, color: 'var(--text-secondary, #4e5969)', marginTop: 4, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary, #4e5969)', marginTop: 4, lineHeight: 1.4 }}>
                     {game.description.length > 80 ? game.description.slice(0, 80) + '...' : game.description}
                   </div>
                 )}

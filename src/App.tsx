@@ -254,11 +254,11 @@ const App: React.FC = () => {
           footer={null}
           style={{ width: 420 }}
         >
-          <div style={{ fontSize: 13, lineHeight: 2, color: '#555' }}>
+          <div style={{ fontSize: 14, lineHeight: 2, color: 'var(--text-secondary)' }}>
             <div>宇界工作台 · 个人工作台</div>
             <div>模块：{MODULE_ORDER.length} 个（知识库 / 小说 / 日程 / 天气 / 免费游戏 / 新闻 / 追剧 / API 价格 / 书签 / 待办 / 剪贴板）</div>
             <div>当前界面缩放：{Math.round(zoom * 100)}%</div>
-            <div style={{ color: '#999', fontSize: 12, marginTop: 6 }}>
+            <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 6 }}>
               快捷键：Ctrl+K 搜索 · Ctrl+0 首页 · Ctrl+1~9 切模块 · Ctrl+=/- 缩放
             </div>
           </div>

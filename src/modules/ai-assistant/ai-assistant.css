@@ -36,7 +36,7 @@
 .ai-cfg-loading {
   padding: 24px 0;
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
   color: #86909c;
 }
 
@@ -163,14 +163,14 @@
 }
 
 .ai-empty-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .ai-empty-desc {
-  font-size: 13px;
+  font-size: 14px;
   margin-bottom: 16px;
 }
 
@@ -184,7 +184,7 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
   background: #fff;
   cursor: pointer;

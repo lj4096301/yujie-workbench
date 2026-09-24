@@ -443,7 +443,7 @@ const NovelModule: React.FC = () => {
       left={
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>章节</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>章节</span>
             <Button variant="ghost" size="sm" onClick={addChapter} title="新建章节">
               <Plus className="h-4 w-4" />
             </Button>
@@ -459,12 +459,12 @@ const NovelModule: React.FC = () => {
                 marginBottom: 4,
                 background: selectedChapterId === ch.id ? '#fff3e8' : 'transparent',
                 borderLeft: selectedChapterId === ch.id ? '3px solid #ff6700' : '3px solid transparent',
-                fontSize: 13,
+                fontSize: 14,
                 position: 'relative',
               }}
             >
               <div style={{ fontWeight: 500, paddingRight: 40 }}>{ch.title}</div>
-              <div style={{ fontSize: 11, color: '#86909C', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <i
                   style={{
                     display: 'inline-block',
@@ -589,7 +589,7 @@ const NovelModule: React.FC = () => {
       left={
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>人物</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>人物</span>
             <Button variant="ghost" size="sm" onClick={openAddCharacter} title="添加人物">
               <Plus className="h-4 w-4" />
             </Button>
@@ -605,7 +605,7 @@ const NovelModule: React.FC = () => {
                 marginBottom: 4,
                 background: selectedCharacterId === char.id ? '#fff3e8' : 'transparent',
                 borderLeft: selectedCharacterId === char.id ? '3px solid #ff6700' : '3px solid transparent',
-                fontSize: 13,
+                fontSize: 14,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
@@ -644,7 +644,7 @@ const NovelModule: React.FC = () => {
                   borderRadius: 8,
                   border: '1px solid #f0f0f0',
                   background: '#fff',
-                  fontSize: 13,
+                  fontSize: 14,
                   lineHeight: 1.8,
                 }}
               >
@@ -653,10 +653,10 @@ const NovelModule: React.FC = () => {
                 {selectedCharacter.background && <p style={{ margin: 0 }}><strong>背景：</strong>{selectedCharacter.background}</p>}
                 {selectedCharacter.notes && <p style={{ margin: 0 }}><strong>备注：</strong>{selectedCharacter.notes}</p>}
                 {!selectedCharacter.age && !selectedCharacter.personality && !selectedCharacter.background && !selectedCharacter.notes && (
-                  <span style={{ color: '#86909C', fontSize: 12 }}>还没有资料，点「编辑资料」补充</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>还没有资料，点「编辑资料」补充</span>
                 )}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>人物关系</div>
+              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>人物关系</div>
               {(selectedCharacter.relationships || []).length > 0 && (
                 <div style={{ marginBottom: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {selectedCharacter.relationships.map((r, i) => (
@@ -715,7 +715,7 @@ const NovelModule: React.FC = () => {
       left={
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>世界观设定</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>世界观设定</span>
             <Button
               variant="ghost"
               size="sm"
@@ -739,14 +739,14 @@ const NovelModule: React.FC = () => {
                 marginBottom: 4,
                 background: selectedWorldId === w.id ? '#fff3e8' : 'transparent',
                 borderLeft: selectedWorldId === w.id ? '3px solid #ff6700' : '3px solid transparent',
-                fontSize: 13,
+                fontSize: 14,
               }}
             >
               🌍 {w.title}
             </div>
           ))}
           {data.worldDocs.length === 0 && (
-            <div style={{ fontSize: 12, color: '#86909C', padding: '8px 10px' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: '8px 10px' }}>
               地点、势力、功法、年表…都可以放这里
             </div>
           )}
@@ -786,7 +786,7 @@ const NovelModule: React.FC = () => {
                   }))
                 }
                 placeholder="自由填写设定内容…"
-                style={{ fontSize: 13, lineHeight: 1.8, minHeight: 320 }}
+                style={{ fontSize: 14, lineHeight: 1.8, minHeight: 320 }}
               />
             </div>
           ) : (
@@ -800,7 +800,7 @@ const NovelModule: React.FC = () => {
   const renderNotes = () => (
     <div style={{ maxWidth: 760 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <span style={{ fontSize: 13, fontWeight: 600 }}>灵感速记</span>
+        <span style={{ fontSize: 14, fontWeight: 600 }}>灵感速记</span>
         <Button size="sm" onClick={() => setNoteModalVisible(true)}>
           <Plus className="h-4 w-4" />
           新速记
@@ -819,12 +819,12 @@ const NovelModule: React.FC = () => {
               position: 'relative',
             }}
           >
-            <p style={{ margin: 0, fontSize: 13, paddingRight: 24, lineHeight: 1.6 }}>{note.content}</p>
+            <p style={{ margin: 0, fontSize: 14, paddingRight: 24, lineHeight: 1.6 }}>{note.content}</p>
             <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
               {note.tags.map((tag) => (
                 <Badge key={tag} variant="outline" className="text-[#ff6700]">{tag}</Badge>
               ))}
-              <span style={{ fontSize: 11, color: '#86909C', marginLeft: 'auto' }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 'auto' }}>
                 {new Date(note.createdAt).toLocaleString()}
               </span>
               <Button
@@ -944,7 +944,7 @@ const NovelModule: React.FC = () => {
           </DialogHeader>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '4px 0' }}>
             <div>
-              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>姓名 *</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>姓名 *</div>
               <Input
                 placeholder="人物姓名"
                 value={charForm.name}
@@ -953,7 +953,7 @@ const NovelModule: React.FC = () => {
               />
             </div>
             <div>
-              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>年龄</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>年龄</div>
               <Input
                 placeholder="年龄"
                 value={charForm.age}
@@ -962,7 +962,7 @@ const NovelModule: React.FC = () => {
               />
             </div>
             <div>
-              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>性格</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>性格</div>
               <Textarea
                 placeholder="性格特点"
                 value={charForm.personality}
@@ -971,7 +971,7 @@ const NovelModule: React.FC = () => {
               />
             </div>
             <div>
-              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>背景</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>背景</div>
               <Textarea
                 placeholder="人物背景故事"
                 value={charForm.background}
@@ -980,7 +980,7 @@ const NovelModule: React.FC = () => {
               />
             </div>
             <div>
-              <div style={{ fontSize: 12, color: '#86909C', marginBottom: 4 }}>备注</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>备注</div>
               <Textarea
                 placeholder="其他备注"
                 value={charForm.notes}

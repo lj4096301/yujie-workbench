@@ -74,7 +74,7 @@
 }
 
 .flow-panel-label {
-  font-size: 13px;
+  font-size: 14px;
   color: #1d2129;
 }
 
@@ -149,7 +149,7 @@
   max-width: 220px;
   padding: 8px 14px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   text-align: center;
   border: 1.5px solid;
   background: #fff;
@@ -172,7 +172,7 @@
   border-radius: 50%;
   background: #f53f3f;
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 17px;
   text-align: center;
   cursor: pointer;
@@ -204,7 +204,7 @@
   border: 1px solid var(--primary-color);
   border-radius: 4px;
   padding: 2px 6px;
-  font-size: 13px;
+  font-size: 14px;
   text-align: center;
   outline: none;
   background: #fff;

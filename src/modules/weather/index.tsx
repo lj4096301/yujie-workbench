@@ -571,15 +571,15 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                       background: '#fff',
                       border: '1px solid ' + (i === 0 ? '#ffc8a8' : '#f2f3f5'),
                       borderRadius: 8,
-                      fontSize: 11,
+                      fontSize: 12,
                     }}
                     title={`${h.time.slice(11, 16)} ${h.description}`}
                   >
-                    <div style={{ color: '#86909C', marginBottom: 3 }}>{i === 0 ? '现在' : h.time.slice(11, 13) + '时'}</div>
-                    <div style={{ fontSize: 15 }}>{getWeatherIcon(h.icon)}</div>
+                    <div style={{ color: 'var(--text-muted)', marginBottom: 3 }}>{i === 0 ? '现在' : h.time.slice(11, 13) + '时'}</div>
+                    <div style={{ fontSize: 16 }}>{getWeatherIcon(h.icon)}</div>
                     <div style={{ fontWeight: 600, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{h.temp}°</div>
                     {h.precipProbability != null && h.precipProbability > 0 && (
-                      <div style={{ color: '#165DFF', fontSize: 10 }}>💧{h.precipProbability}%</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>💧{h.precipProbability}%</div>
                     )}
                   </div>
                 ))}
@@ -633,13 +633,13 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     <span style={{ fontSize: 12, color: '#1D2129' }}>{idx.icon} {idx.name}</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: idx.color }}>{idx.level}</span>
                   </div>
-                  <div style={{ fontSize: 11, color: '#86909C', marginTop: 3, lineHeight: 1.4 }}>{idx.desc}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3, lineHeight: 1.4 }}>{idx.desc}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ marginTop: 8, fontSize: 11, color: '#aaa' }}>
+          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-muted)' }}>
             数据源：{weather.source || 'Open-Meteo'}
             {weather.updatedAt && ` · 更新于 ${new Date(weather.updatedAt).toLocaleTimeString('zh-CN')}`}
             {' · 缓存 10 分钟，可点 🔄 刷新'}
@@ -649,7 +649,7 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
 
       {/* 有城市但数据还没到（切换瞬间） */}
       {activeCity && !weather && !loading && !error && (
-        <div style={{ fontSize: 12, color: '#999', padding: 12 }}>正在获取 {activeCity.name} 的天气…</div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: 12 }}>正在获取 {activeCity.name} 的天气…</div>
       )}
     </div>
   )

@@ -57,7 +57,7 @@ const NODE_COLOR: Record<FlowNodeKind, string> = {
   decision: '#ff7d00',
   sub: '#8c5dcc',
   end: '#f53f3f',
-  note: '#86909c',
+  note: 'var(--text-muted)',
 }
 
 /** 自定义节点：双击编辑文字，形状按类型区分 */
@@ -410,7 +410,7 @@ function FlowEditor({ panelId }: { panelId?: string }) {
               position="bottom-right"
               pannable
               zoomable
-              nodeColor={(n) => NODE_COLOR[(n.data as FlowNodeData).nodeType] ?? '#86909c'}
+              nodeColor={(n) => NODE_COLOR[(n.data as FlowNodeData).nodeType] ?? 'var(--text-muted)'}
               nodeStrokeWidth={2}
             />
           </ReactFlow>

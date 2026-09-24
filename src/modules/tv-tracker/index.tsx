@@ -325,7 +325,7 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     </span>
                   </div>
                   {show.platform && (
-                    <div style={{ fontSize: 11, color: 'var(--text-muted, #86909c)', marginBottom: 4 }}>{show.platform}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted, #86909c)', marginBottom: 4 }}>{show.platform}</div>
                   )}
                   <div className="show-progress">
                     进度：{show.watchedEpisodes} / {show.totalEpisodes || '?'} 集
@@ -350,10 +350,10 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     />
                   </div>
                   {show.notes && (
-                    <div style={{ fontSize: 11, color: 'var(--text-secondary, #4e5969)', marginTop: 6 }}>{show.notes}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary, #4e5969)', marginTop: 6 }}>{show.notes}</div>
                   )}
                   {show.nextAirDate && (
-                    <div style={{ fontSize: 11, color: 'var(--primary-color, #ff6700)', marginTop: 4 }}>
+                    <div style={{ fontSize: 12, color: 'var(--primary-color, #ff6700)', marginTop: 4 }}>
                       下次更新：{new Date(show.nextAirDate).toLocaleDateString('zh-CN')}
                       {+new Date(show.nextAirDate) <= Date.now() + 7 * 86400000 && ' 🔔'}
                     </div>
@@ -371,7 +371,7 @@ const TVTrackerModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       {history.length > 0 && (
         <div style={{ marginTop: 16 }}>
           <div style={{ fontSize: 12, color: 'var(--text-muted, #86909c)', marginBottom: 6, fontWeight: 600 }}>🕐 最近观看</div>
-          <div style={{ fontSize: 11, color: 'var(--text-secondary, #4e5969)', background: 'var(--bg-subtle, #f7f8fa)', borderRadius: 8, padding: '8px 12px' }}>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary, #4e5969)', background: 'var(--bg-subtle, #f7f8fa)', borderRadius: 8, padding: '8px 12px' }}>
             {history.slice(0, 8).map((h, i) => (
               <div key={i} style={{ padding: '2px 0' }}>
                 {new Date(h.at).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}

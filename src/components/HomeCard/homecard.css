@@ -40,7 +40,7 @@
 }
 
 .home-card-icon {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
 }
 
@@ -215,7 +215,7 @@
 }
 
 .hc-weather-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -240,7 +240,7 @@
 }
 
 .hc-weather-metric-value {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #1d2129;
   line-height: 1.2;
@@ -280,7 +280,7 @@
 }
 
 .hc-weather-hour-temp {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: #4e5969;
 }
@@ -314,7 +314,7 @@
 }
 
 .hc-weather-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
 }
 
@@ -332,7 +332,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
   line-height: 1.5;
   min-width: 0;
@@ -351,7 +351,7 @@
 }
 
 .hc-empty {
-  font-size: 13px;
+  font-size: 14px;
   color: #86909c;
   text-align: center;
   padding: 16px 0;
@@ -380,7 +380,7 @@
 }
 
 .hc-entry-text {
-  font-size: 13px;
+  font-size: 14px;
   color: #4e5969;
 }
 
@@ -421,7 +421,7 @@
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 14px;
   color: #86909c;
   opacity: 0;
   cursor: pointer;

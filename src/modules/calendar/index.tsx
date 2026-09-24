@@ -386,7 +386,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     <div ref={bodyRef} style={{ display: 'flex', padding: 0, gap: 12, alignItems: 'flex-start' }}>
       {headerActions}
       {loading && (
-        <div style={{ position: 'absolute', top: 40, right: 12, zIndex: 10, fontSize: 12, color: '#86909c' }}>
+        <div style={{ position: 'absolute', top: 40, right: 12, zIndex: 10, fontSize: 12, color: 'var(--text-muted)' }}>
           加载中…
         </div>
       )}

@@ -167,7 +167,7 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
             <TabsTrigger value="done">已完成</TabsTrigger>
           </TabsList>
         </Tabs>
-        <span className="mod-muted" style={{ marginLeft: 'auto', fontSize: 12, color: '#86909C' }}>
+        <span className="mod-muted" style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-muted)' }}>
           剩余 {activeCount}
         </span>
       </div>
@@ -200,7 +200,7 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
                   className="mod-row-title"
                   style={{
                     textDecoration: t.done ? 'line-through' : 'none',
-                    color: t.done ? '#86909C' : '#1D2129',
+                    color: t.done ? 'var(--text-muted)' : '#1D2129',
                     fontSize: 14,
                     fontWeight: 500,
                   }}
@@ -209,7 +209,7 @@ const TasksModule: React.FC<{ panelId?: string }> = () => {
                 </div>
                 <div
                   className="mod-row-sub"
-                  style={{ marginTop: 3, display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#86909C' }}
+                  style={{ marginTop: 3, display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--text-muted)' }}
                 >
                   {t.due && <span>📅 {t.due}</span>}
                   {t.priority && (

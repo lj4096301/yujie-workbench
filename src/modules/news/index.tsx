@@ -109,7 +109,7 @@ const NewsModule: React.FC = () => {
 
       {/* 当前源说明 */}
       {source.key !== 'legacy' && source.key !== 'rss' && (
-        <div style={{ fontSize: 12, color: '#86909C', marginBottom: 8 }}>{source.desc}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{source.desc}</div>
       )}
 
       {/* 内容区 */}
@@ -134,8 +134,8 @@ const NewsModule: React.FC = () => {
                 justifyContent: 'center',
                 background: '#fff',
                 zIndex: 2,
-                fontSize: 13,
-                color: '#86909C',
+                fontSize: 14,
+                color: 'var(--text-muted)',
               }}
             >
               正在加载 {source.label}...

@@ -71,7 +71,7 @@ function bookmarksToTreeData(bookmarks: ImportedBookmark[]): DataNode[] {
   return Array.from(groupMap.entries()).map(([group, items]) => {
     // 虚拟父节点（不选中，仅作折叠）
     const title = (
-      <span style={{ fontSize: 12, color: '#888' }}>
+      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
         {group} · {items.length} 条
       </span>
     )
@@ -82,10 +82,10 @@ function bookmarksToTreeData(bookmarks: ImportedBookmark[]): DataNode[] {
       children: items.map((b) => ({
         key: b.id,
         title: (
-          <span style={{ fontSize: 13 }}>
+          <span style={{ fontSize: 14 }}>
             <span style={{ marginRight: 6 }}>{b.icon}</span>
             <span style={{ color: '#333' }}>{b.title}</span>
-            <span style={{ marginLeft: 8, fontSize: 11, color: '#aaa' }}>{b.url}</span>
+            <span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-muted)' }}>{b.url}</span>
           </span>
         ),
       })),
@@ -274,7 +274,7 @@ const BookmarksModule: React.FC = () => {
       ) : (
         groups.map(([group, items]) => (
           <div key={group} style={{ marginBottom: 12 }}>
-            <div className="mod-muted" style={{ margin: '4px 2px', color: '#86909C' }}>
+            <div className="mod-muted" style={{ margin: '4px 2px', color: 'var(--text-muted)' }}>
               {group} · {items.length}
             </div>
             {items.map((b) => (
@@ -383,7 +383,7 @@ const BookmarksModule: React.FC = () => {
           </DialogHeader>
           <div style={{ maxHeight: 420, overflowY: 'auto' }}>
             {importLoading && (
-              <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#86909C' }}>
+              <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 14, color: 'var(--text-muted)' }}>
                 正在读取浏览器书签...
               </div>
             )}
@@ -410,7 +410,7 @@ const BookmarksModule: React.FC = () => {
 
             {!importLoading && imported.length > 0 && (
               <>
-                <div style={{ marginBottom: 8, fontSize: 12, color: '#86909C' }}>
+                <div style={{ marginBottom: 8, fontSize: 12, color: 'var(--text-muted)' }}>
                   <CheckCircle2 style={{ width: 13, height: 13, color: '#00b42a', marginRight: 4, verticalAlign: -2 }} />
                   检测到 {imported.length} 条书签，按浏览器分组显示。勾选要导入的条目。
                 </div>

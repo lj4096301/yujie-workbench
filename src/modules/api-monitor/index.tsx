@@ -338,7 +338,7 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               className="h-8 w-[116px]"
             />
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted, #86909c)' }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted, #86909c)' }}>
             命中部分按「缓存命中价」计，未命中按输入价——命中率越高，实际成本越低
           </div>
         </div>
@@ -391,7 +391,7 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                       <span style={{ fontWeight: 600 }}>
                         {record.provider}
                         {record.custom && (
-                          <span style={{ marginLeft: 4, fontSize: 11, color: 'var(--warning, #ff7d00)' }}>自定义</span>
+                          <span style={{ marginLeft: 4, fontSize: 12, color: 'var(--warning, #ff7d00)' }}>自定义</span>
                         )}
                       </span>
                     </TableCell>
@@ -400,17 +400,17 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span>{record.model}</span>
                           {isBest && (
-                            <span style={{ fontSize: 11, color: 'var(--primary-color, #ff6700)' }}>最优</span>
+                            <span style={{ fontSize: 12, color: 'var(--primary-color, #ff6700)' }}>最优</span>
                           )}
                         </div>
                         {record.note && (
-                          <div style={{ fontSize: 11, color: 'var(--text-muted, #86909c)', lineHeight: 1.5 }}>{record.note}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-muted, #86909c)', lineHeight: 1.5 }}>{record.note}</div>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       {priceCell(record.inputPrice, record.currency, (
-                        <span style={{ fontSize: 10, color: 'var(--text-disabled, #c9cdd4)' }}> /{record.unit}</span>
+                        <span style={{ fontSize: 12, color: 'var(--text-disabled, #c9cdd4)' }}> /{record.unit}</span>
                       ))}
                     </TableCell>
                     <TableCell>
@@ -421,13 +421,13 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                       ) : (
                         <span style={{ color: 'var(--success, #00b42a)', fontWeight: 600 }}>
                           {record.currency} {record.cachePrice}
-                          <span style={{ fontSize: 10, color: 'var(--text-disabled, #c9cdd4)', fontWeight: 400 }}> /{record.unit}</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-disabled, #c9cdd4)', fontWeight: 400 }}> /{record.unit}</span>
                         </span>
                       )}
                     </TableCell>
                     <TableCell>
                       {priceCell(record.outputPrice, record.currency, (
-                        <span style={{ fontSize: 10, color: 'var(--text-disabled, #c9cdd4)' }}> /{record.unit}</span>
+                        <span style={{ fontSize: 12, color: 'var(--text-disabled, #c9cdd4)' }}> /{record.unit}</span>
                       ))}
                     </TableCell>
                     <TableCell>
@@ -444,7 +444,7 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                     </TableCell>
                     <TableCell>
                       {record.source ? (
-                        <div style={{ fontSize: 11, color: 'var(--text-secondary, #4e5969)' }}>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary, #4e5969)' }}>
                           <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150 }} title={record.source}>
                             {record.source}
                           </div>
@@ -476,7 +476,7 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         <div className="mod-empty">暂无价格数据</div>
       )}
 
-      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-disabled, #c9cdd4)', lineHeight: 1.7 }}>
+      <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-disabled, #c9cdd4)', lineHeight: 1.7 }}>
         内置价格为公开渠道核实的参考价（见「来源」列），厂商调价频繁，请以官网为准；
         点「校正」可用你的实际价格覆盖内置条目；过期 / 不再关注的 API 直接点「删除」，删除后重启应用也不会恢复。
       </div>
@@ -575,7 +575,7 @@ const APIMonitorModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
               <Label className="mb-1 block text-xs font-medium text-[#4E5969]">备注（可选）</Label>
               <Input value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} placeholder="例如：高峰时段价格 / 上下文长度 / 渠道折扣" />
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted, #86909c)' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted, #86909c)' }}>
               保存后该条目会以「自定义」身份参与排序与最优比价；同名平台 + 模型会覆盖内置参考价。
             </div>
           </div>
