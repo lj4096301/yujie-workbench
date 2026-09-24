@@ -55,7 +55,7 @@ interface DetailEvent {
   source?: string
 }
 
-const EVENT_COLORS = ['#1677ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
+const EVENT_COLORS = ['#ff6700', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
 
 const PRIORITY_LABEL: Record<'low' | 'mid' | 'high', string> = {
   low: '低',
@@ -71,9 +71,9 @@ function segBtnStyle(active: boolean): React.CSSProperties {
     fontSize: 13,
     borderRadius: 6,
     cursor: 'pointer',
-    border: active ? '1px solid #1677ff' : '1px solid #e5e6eb',
+    border: active ? '1px solid #ff6700' : '1px solid #e5e6eb',
     background: active ? '#e8f3ff' : '#fff',
-    color: active ? '#1677ff' : '#4e5969',
+    color: active ? '#ff6700' : '#4e5969',
     fontWeight: active ? 600 : 400,
   }
 }
@@ -105,7 +105,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
   const [evRange, setEvRange] = useState<[Dayjs, Dayjs] | null>(null)
   const [evDue, setEvDue] = useState<Dayjs | null>(null)
   const [evPriority, setEvPriority] = useState<'low' | 'mid' | 'high'>('mid')
-  const [evColor, setEvColor] = useState('#1677ff')
+  const [evColor, setEvColor] = useState('#ff6700')
   const [evDesc, setEvDesc] = useState('')
 
   // 国家法定休息日（仅用于月视图标记与预告，不提供可选入口）
@@ -198,7 +198,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       title: e.title,
       start: e.start?.toISOString?.() || e.startStr,
       end: e.end?.toISOString?.() || e.endStr || e.startStr,
-      color: e.backgroundColor || e.borderColor || '#1677ff',
+      color: e.backgroundColor || e.borderColor || '#ff6700',
       description: (e.extendedProps?.description as string | undefined) || '',
       source: e.extendedProps?.source as string | undefined,
     })
@@ -292,7 +292,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       title: e.title,
       start: e.start,
       end: e.end,
-      color: e.color || '#1677ff',
+      color: e.color || '#ff6700',
       extendedProps: { description: e.description || '', source: e.source },
     }))
 
@@ -351,7 +351,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
     setEvRange(null)
     setEvDue(null)
     setEvPriority('mid')
-    setEvColor('#1677ff')
+    setEvColor('#ff6700')
     setEvDesc('')
     setModalVisible(true)
   }
@@ -463,7 +463,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
                       width: 10,
                       height: 10,
                       borderRadius: '50%',
-                      background: detailEvent?.color || '#1677ff',
+                      background: detailEvent?.color || '#ff6700',
                     }}
                   />
                   {detailEvent?.title || '日程详情'}

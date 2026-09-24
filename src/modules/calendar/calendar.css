@@ -1,110 +1,5 @@
-/* ============================================================
-   日历 · 月视图
-   ============================================================ */
-.cal-month-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  border-top: 1px solid #f0f0f0;
-  border-left: 1px solid #f0f0f0;
-}
-
-.cal-month-weekday {
-  padding: 4px 2px;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: #666;
-  background: #fafafa;
-  border-right: 1px solid #f0f0f0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.cal-month-weekday.weekend {
-  color: #f5222d;
-}
-
-.cal-month-cell {
-  min-height: 52px;
-  padding: 3px 4px;
-  border-right: 1px solid #f0f0f0;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-  transition: background 0.15s;
-  overflow: hidden;
-}
-
-.cal-month-cell:hover {
-  background: #f0f7ff;
-}
-
-.cal-month-cell.dim {
-  background: #fafafa;
-}
-
-.cal-month-cell.dim .cal-solar {
-  color: #ccc;
-}
-
-.cal-month-cell.today {
-  background: #e6f4ff;
-}
-
-.cal-cell-date {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  margin-bottom: 2px;
-  min-width: 0;
-}
-
-.cal-solar {
-  font-size: 12px;
-  font-weight: 600;
-  color: #333;
-  flex-shrink: 0;
-}
-
-.cal-solar.today-num {
-  background: #1677ff;
-  color: #fff;
-  border-radius: 8px;
-  padding: 0 5px;
-}
-
-.cal-lunar {
-  font-size: 10px;
-  color: #999;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cal-lunar.fest {
-  color: #f5222d;
-}
-
-.cal-cell-events {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.cal-cell-event {
-  font-size: 10px;
-  line-height: 1.4;
-  padding: 0 3px;
-  background: #f0f5ff;
-  border-left: 2px solid #1677ff;
-  border-radius: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cal-cell-more {
-  font-size: 10px;
-  color: #999;
-}
+/* 注：旧的自绘月视图（.cal-month-* / .cal-cell-event 等）已随 FullCalendar 改造废弃，
+   全项目无引用且含违规值（10/11px 字号、旧蓝 #1677ff），已按设计规范清理。 */
 
 /* ============================================================
    日历 · 节日 / 节气预告
@@ -112,7 +7,7 @@
 .cal-sidebar {
   width: 220px;
   flex-shrink: 0;
-  border-left: 1px solid #f2f3f5;
+  border-left: 1px solid var(--border-light);
   padding-left: 12px;
   padding-top: 8px;
   align-self: stretch;
@@ -122,9 +17,9 @@
 }
 
 .cal-festival-title {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
-  color: #555;
+  color: var(--text-secondary);
   margin-bottom: 6px;
 }
 
@@ -141,10 +36,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   padding: 5px 10px;
-  background: #fffbe6;
-  border-radius: 6px;
+  background: rgba(255, 125, 0, 0.08);
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  border-radius: var(--radius-sm);
   flex: 0 0 auto;
   min-width: 168px;
   height: 26px;
@@ -153,16 +49,16 @@
 
 .cal-festival-name {
   font-weight: 600;
-  color: #d46b08;
+  color: var(--warning);
   min-width: 48px;
 }
 
 .cal-festival-name.jieqi {
-  color: #1677ff;
+  color: var(--primary-color);
 }
 
 .cal-festival-date {
-  color: #888;
+  color: var(--text-muted);
   flex: 1;
   min-width: 0;
   white-space: nowrap;
@@ -171,26 +67,25 @@
 }
 
 .cal-festival-away {
-  color: #999;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .cal-festival-away.soon {
-  color: #f5222d;
+  color: var(--error);
   font-weight: 600;
 }
 
 /* ===== 国家法定休息日 ===== */
+/* 规范 2.1：状态禁止色块 chip → 休/班改为 12px 纯文字（休=error 红 / 班=次级灰） */
 .cal-hmark {
   margin-left: 4px;
-  font-size: 10px;
-  line-height: 1;
-  padding: 1px 3px;
-  border-radius: 3px;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
   flex-shrink: 0;
 }
-.cal-hmark.holiday { color: #f53f3f; background: #fff1f0; }
-.cal-hmark.workday { color: #4e5969; background: #f2f3f5; }
+.cal-hmark.holiday { color: var(--error); }
+.cal-hmark.workday { color: var(--text-secondary); }
 .cal-cell-lunar {
   display: flex;
   align-items: center;
@@ -198,8 +93,8 @@
   min-width: 0;
 }
 .cal-hname {
-  font-size: 10px;
-  color: #f53f3f;
+  font-size: var(--fs-xs);
+  color: var(--error);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -218,25 +113,27 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  border: 1px solid #f2f3f5;
-  border-radius: 8px;
-  font-size: 13px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
 }
+/* 状态圆点：规范 5px + 光环 */
 .holiday-dot {
-  width: 5px;
-  height: 5px;
+  width: var(--dot-size);
+  height: var(--dot-size);
   border-radius: 50%;
   flex-shrink: 0;
 }
-.holiday-dot.holiday { background: #f53f3f; box-shadow: 0 0 0 3px rgba(245, 63, 63, 0.12); }
-.holiday-dot.workday { background: #86909c; box-shadow: 0 0 0 3px rgba(134, 144, 156, 0.12); }
-.holiday-name { flex: 1; color: #1d2129; }
-.holiday-name.work { color: #4e5969; }
-.holiday-range { color: #86909c; font-size: 12px; white-space: nowrap; }
-.holiday-tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
-.holiday-tag.holiday { background: #fff1f0; color: #f53f3f; }
-.holiday-tag.workday { background: #f2f3f5; color: #4e5969; }
-.holiday-loading { padding: 24px 0; text-align: center; color: #86909c; font-size: 13px; }
+.holiday-dot.holiday { background: var(--dot-danger); box-shadow: 0 0 0 3px rgba(245, 63, 63, 0.12); }
+.holiday-dot.workday { background: var(--text-muted); box-shadow: 0 0 0 3px rgba(134, 144, 156, 0.12); }
+.holiday-name { flex: 1; color: var(--text-primary); }
+.holiday-name.work { color: var(--text-secondary); }
+.holiday-range { color: var(--text-muted); font-size: var(--fs-xs); white-space: nowrap; }
+/* 规范：禁止色块 chip → 休/班改为纯文字 */
+.holiday-tag { font-size: var(--fs-xs); white-space: nowrap; }
+.holiday-tag.holiday { color: var(--error); }
+.holiday-tag.workday { color: var(--text-secondary); }
+.holiday-loading { padding: 24px 0; text-align: center; color: var(--text-muted); font-size: var(--fs-sm); }
 /* ===== FullCalendar 样式收敛（Mi Console Token） ===== */
 .cal-fc-wrap {
   flex: 1;
@@ -246,32 +143,33 @@
 }
 
 .fc {
-  --fc-border-color: #f2f3f5;
-  --fc-page-bg-color: #ffffff;
-  --fc-neutral-bg-color: #fafbfc;
-  --fc-today-bg-color: #fff7f0;
-  --fc-highlight-color: rgba(255, 103, 0, 0.08);
-  --fc-event-bg-color: #1677ff;
-  --fc-event-border-color: #1677ff;
-  --fc-button-bg-color: #ffffff;
-  --fc-button-border-color: #e5e6eb;
-  --fc-button-hover-bg-color: #f7f8fa;
-  --fc-button-hover-border-color: #ff6700;
-  --fc-button-hover-text-color: #ff6700;
-  --fc-button-active-bg-color: #ff6700;
-  --fc-button-active-border-color: #ff6700;
+  /* 全部派生自 design-tokens.css（Mi Console v3 唯一来源），禁止硬编码 */
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--bg-card);
+  --fc-neutral-bg-color: var(--bg-subtle);
+  --fc-today-bg-color: var(--primary-subtle);
+  --fc-highlight-color: var(--primary-subtle);
+  --fc-event-bg-color: var(--primary-color);
+  --fc-event-border-color: var(--primary-color);
+  --fc-button-bg-color: var(--bg-card);
+  --fc-button-border-color: var(--border);
+  --fc-button-hover-bg-color: var(--bg-subtle);
+  --fc-button-hover-border-color: var(--primary-color);
+  --fc-button-hover-text-color: var(--primary-color);
+  --fc-button-active-bg-color: var(--primary-color);
+  --fc-button-active-border-color: var(--primary-color);
   --fc-button-active-text-color: #ffffff;
-  --fc-button-text-color: #4e5969;
-  --fc-now-indicator-color: #ff6700;
-  --fc-list-event-hover-bg-color: #f7f8fa;
-  font-size: 12px;
-  background: #ffffff;
-  border-radius: 12px;
+  --fc-button-text-color: var(--text-secondary);
+  --fc-now-indicator-color: var(--primary-color);
+  --fc-list-event-hover-bg-color: var(--bg-subtle);
+  font-size: var(--fs-xs);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
 }
 .fc .fc-toolbar-title {
-  font-size: 16px;
+  font-size: var(--fs-md);
   font-weight: 600;
-  color: #1d2129;
+  color: var(--text-primary);
 }
 .fc .fc-button {
   border-radius: 6px;
@@ -284,61 +182,43 @@
 .fc .fc-button:focus { box-shadow: none; }
 .fc .fc-button-primary:not(:disabled).fc-button-active,
 .fc .fc-button-primary:not(:disabled):active {
-  background: #ff6700;
-  border-color: #ff6700;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
   color: #ffffff;
 }
-.fc .fc-col-header-cell { background: #fafbfc; }
+.fc .fc-col-header-cell { background: var(--bg-subtle); }
 .fc .fc-col-header-cell-cushion {
-  color: #1d2129;
-  font-size: 12px;
+  color: var(--text-primary);
+  font-size: var(--fs-xs);
   font-weight: 600;
   padding: 8px 4px;
 }
 .fc .fc-daygrid-day-number {
-  color: #4e5969;
-  font-size: 12px;
+  color: var(--text-secondary);
+  font-size: var(--fs-xs);
   padding: 4px 6px;
 }
-.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number { color: #ff6700; font-weight: 600; }
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number { color: var(--primary-color); font-weight: 600; }
 .fc .fc-daygrid-event {
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-xs);
   padding: 1px 6px;
   margin: 1px 3px;
   cursor: pointer;
   border-left-width: 3px;
 }
-.fc .fc-timegrid-event { border-radius: 6px; font-size: 12px; }
+.fc .fc-timegrid-event { border-radius: var(--radius-sm); font-size: var(--fs-xs); }
 .fc .fc-list-event { cursor: pointer; }
-.fc .fc-list-event:hover td { background: #f7f8fa; }
-.fc .fc-list-day-cushion { background: #fafbfc; }
+.fc .fc-list-event:hover td { background: var(--bg-subtle); }
+.fc .fc-list-day-cushion { background: var(--bg-subtle); }
 
-/* 月格子自定义内容 */
-.fc-daycell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.fc-daycell-top {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.fc-daycell-num { font-size: 13px; color: #1d2129; }
-.fc-daycell-lunar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-}
-.fc-lunar { font-size: 10px; color: #86909c; line-height: 1.3; }
-.fc-lunar.fest { color: #f53f3f; }
+/* 月格子自定义内容（.fc-daycell 系列布局与日期数字样式统一在文件末尾「日期数字」区定义） */
+.fc-lunar { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
+.fc-lunar.fest { color: var(--error); }
 
 /* 周/日列头 */
 .fc-dayheader { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 2px 0; }
-.fc-dayheader-text { font-size: 12px; font-weight: 600; color: #1d2129; }
+.fc-dayheader-text { font-size: var(--fs-xs); font-weight: 600; color: var(--text-primary); }
 .fc-dayheader-sub {
   display: flex;
   align-items: center;
@@ -351,21 +231,62 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
-  color: #999;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
 }
 
 /* ===== 月格子底色：周末 / 调休上班 / 节日节气 / 法定假日 ===== */
-/* FullCalendar v6 的格子底色落在 .fc-daygrid-day-bg 层，用后代选择器打色 */
-.fc .fc-daygrid-day.cal-cell-weekend .fc-daygrid-day-bg { background: #fafbfc; }   /* 周六日：浅灰 */
-.fc .fc-daygrid-day.cal-cell-workday .fc-daygrid-day-bg { background: #f0f5ff; }   /* 调休上班：浅蓝 */
-.fc .fc-daygrid-day.cal-cell-festival .fc-daygrid-day-bg { background: #fffbe6; }  /* 节日/节气：浅黄 */
-.fc .fc-daygrid-day.cal-cell-holiday .fc-daygrid-day-bg { background: #fff1f0; }   /* 法定假日：浅红 */
-/* 今天保持橙色，优先级最高（放最后压过其余底色） */
-.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-bg { background: var(--fc-today-bg-color); }
+/* dayCellClassNames 的 class 挂在 td.fc-daygrid-day 上，底色必须打在 td 本身（及内层 frame）；
+   .fc-daygrid-day-bg 只是「背景事件」层、默认不铺满格子，打在那里不会显示。
+   配色一律由 design-tokens.css 派生：先给 rgba 回退，再用 color-mix 走 Token（规范：禁止硬编码）。 */
+.fc .fc-daygrid-day.cal-cell-weekend,
+.fc .fc-daygrid-day.cal-cell-weekend .fc-daygrid-day-frame {
+  background: var(--bg-subtle);   /* 周六日：次级容器浅灰 */
+}
+.fc .fc-daygrid-day.cal-cell-workday,
+.fc .fc-daygrid-day.cal-cell-workday .fc-daygrid-day-frame {
+  background: rgba(0, 0, 0, 0.03);                                        /* 调休上班：中性微底（回退） */
+  background: color-mix(in srgb, var(--text-secondary) 8%, transparent);  /* Token 派生 */
+}
+.fc .fc-daygrid-day.cal-cell-festival,
+.fc .fc-daygrid-day.cal-cell-festival .fc-daygrid-day-frame {
+  background: rgba(255, 125, 0, 0.08);                              /* 节日/节气：warning 极浅（回退） */
+  background: color-mix(in srgb, var(--warning) 8%, transparent);   /* Token 派生 */
+}
+.fc .fc-daygrid-day.cal-cell-holiday,
+.fc .fc-daygrid-day.cal-cell-holiday .fc-daygrid-day-frame {
+  background: rgba(245, 63, 63, 0.06);                            /* 法定假日：error 极浅（回退） */
+  background: color-mix(in srgb, var(--error) 6%, transparent);   /* Token 派生 */
+}
+/* 今天：主色极浅（--primary-subtle），优先级最高（压过其余底色） */
+.fc .fc-daygrid-day.fc-day-today,
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
+  background: var(--primary-subtle) !important;
+}
 
-/* ===== 日期数字居中 ===== */
-.fc .fc-daygrid-day-top { justify-content: center; }
-.fc-daycell { align-items: center; text-align: center; }
-.fc-daycell-top { justify-content: center; width: 100%; }
-.fc-daycell-lunar { justify-content: center; width: 100%; }
+/* ===== 日期数字：成熟惯例（左上角对齐），事件紧贴下方 ===== */
+/* 排版：Google / Outlook / 飞书日历通例 —— 数字在格子左上，农历小字在其下方，事件紧贴下方。
+   注意：FC 默认 .fc-daygrid-day-top 是 flex + row-reverse（主轴起点在右侧），
+   想让内容靠左必须先把 flex-direction 改回 row，否则 justify-content 方向是反的。
+   字号只取规范档位（DESIGN-SPEC 2.2）：数字 14px、农历 12px；数字强制等宽。 */
+.fc .fc-daygrid-day-top {
+  flex-direction: row;          /* 覆盖 FC 的 row-reverse */
+  justify-content: flex-start;  /* 左上对齐 */
+  align-items: flex-start;
+  padding: 3px 4px 0;           /* 还原 FC 原生 day-number 的内边距，避免贴边 */
+}
+.fc-daycell { display: flex; flex-direction: column; gap: 1px; width: 100%; align-items: flex-start; text-align: left; }
+.fc-daycell-top { display: flex; align-items: baseline; gap: 4px; justify-content: flex-start; width: 100%; }
+.fc-daycell-lunar { display: flex; align-items: center; gap: 4px; justify-content: flex-start; width: 100%; min-width: 0; }
+
+/* 日期数字：14px / 600 / 强制等宽（规范：所有数字与 ID 必须 tabular-nums） */
+.fc-daycell-num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+/* 今天：规范 2.2「强调用主色 + 字重，不靠加大字号」→ 主色橙 + 700 */
+.fc .fc-day-today .fc-daycell-num { color: var(--primary-color); font-weight: 700; }
