@@ -55,7 +55,8 @@ interface DetailEvent {
   source?: string
 }
 
-const EVENT_COLORS = ['#ff6700', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2']
+/** 事件色板：低饱和六色（设计规范 §2.1a），白字对比度统一 4.6 */
+const EVENT_COLORS = ['#a96436', '#4e8229', '#2a836d', '#367aab', '#8c5dcc', '#c5477b']
 
 const PRIORITY_LABEL: Record<'low' | 'mid' | 'high', string> = {
   low: '低',
@@ -292,7 +293,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
       title: e.title,
       start: e.start,
       end: e.end,
-      color: e.color || '#ff6700',
+      color: e.color || EVENT_COLORS[0],
       extendedProps: { description: e.description || '', source: e.source },
     }))
 

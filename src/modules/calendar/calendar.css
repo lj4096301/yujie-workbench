@@ -235,7 +235,14 @@
   color: var(--text-muted);
 }
 
-/* ===== 月格子底色：周末 / 调休上班 / 节日节气 / 法定假日 ===== */
+/* ===== 月格子底色：休息 / 上班 必须一眼分开 =====
+   两档都走中性灰（规范：禁止高饱和彩色背景），靠明度差区分——
+     休息（周末）  = --bg-subtle 最浅灰；
+     上班（调休）  = text-secondary 15% 明显深一档，压在周末格里也能立刻看出「这天要上班」。
+   另有语义色：法定假日 = error 6%，节日节气 = warning 8%（均为极浅，不抢主色）。
+   dayCellClassNames 的 class 挂在 td.fc-daygrid-day 上，底色必须打在 td 本身（及内层 frame）；
+   .fc-daygrid-day-bg 只是「背景事件」层、默认不铺满格子，打在那里不会显示。
+   配色一律由 design-tokens.css 派生：先给 rgba 回退，再用 color-mix 走 Token（规范：禁止硬编码）。 */
 /* dayCellClassNames 的 class 挂在 td.fc-daygrid-day 上，底色必须打在 td 本身（及内层 frame）；
    .fc-daygrid-day-bg 只是「背景事件」层、默认不铺满格子，打在那里不会显示。
    配色一律由 design-tokens.css 派生：先给 rgba 回退，再用 color-mix 走 Token（规范：禁止硬编码）。 */
@@ -245,8 +252,8 @@
 }
 .fc .fc-daygrid-day.cal-cell-workday,
 .fc .fc-daygrid-day.cal-cell-workday .fc-daygrid-day-frame {
-  background: rgba(0, 0, 0, 0.03);                                        /* 调休上班：中性微底（回退） */
-  background: color-mix(in srgb, var(--text-secondary) 8%, transparent);  /* Token 派生 */
+  background: rgba(0, 0, 0, 0.10);                                        /* 调休上班：中性灰，明显深于周末（回退） */
+  background: color-mix(in srgb, var(--text-secondary) 15%, transparent); /* Token 派生：与「休息」底色拉开一档 */
 }
 .fc .fc-daygrid-day.cal-cell-festival,
 .fc .fc-daygrid-day.cal-cell-festival .fc-daygrid-day-frame {
@@ -268,7 +275,7 @@
 /* 排版：Google / Outlook / 飞书日历通例 —— 数字在格子左上，农历小字在其下方，事件紧贴下方。
    注意：FC 默认 .fc-daygrid-day-top 是 flex + row-reverse（主轴起点在右侧），
    想让内容靠左必须先把 flex-direction 改回 row，否则 justify-content 方向是反的。
-   字号只取规范档位（DESIGN-SPEC 2.2）：数字 14px、农历 12px；数字强制等宽。 */
+   字号只取规范档位（DESIGN-SPEC 2.2）：数字 16px、农历 12px；数字强制等宽。 */
 .fc .fc-daygrid-day-top {
   flex-direction: row;          /* 覆盖 FC 的 row-reverse */
   justify-content: flex-start;  /* 左上对齐 */
@@ -276,14 +283,15 @@
   padding: 3px 4px 0;           /* 还原 FC 原生 day-number 的内边距，避免贴边 */
 }
 .fc-daycell { display: flex; flex-direction: column; gap: 1px; width: 100%; align-items: flex-start; text-align: left; }
-.fc-daycell-top { display: flex; align-items: baseline; gap: 4px; justify-content: flex-start; width: 100%; }
+/* 休 / 班 移到格子右上角：数字靠左、标记靠右（成熟日历通例），无标记时数字仍居左 */
+.fc-daycell-top { display: flex; align-items: baseline; gap: 4px; justify-content: space-between; width: 100%; }
 .fc-daycell-lunar { display: flex; align-items: center; gap: 4px; justify-content: flex-start; width: 100%; min-width: 0; }
 
-/* 日期数字：14px / 600 / 强制等宽（规范：所有数字与 ID 必须 tabular-nums） */
+/* 日期数字：16px / 600 / 强制等宽（规范：所有数字与 ID 必须 tabular-nums） */
 .fc-daycell-num {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
