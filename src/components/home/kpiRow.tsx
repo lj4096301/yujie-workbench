@@ -81,7 +81,7 @@ const HomeKpiRow: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }
           value: calArr.length,
           sub: today,
           icon: '📅',
-          color: '#165dff',
+          color: '#ff6700',
           moduleId: 'calendar',
         },
       ])

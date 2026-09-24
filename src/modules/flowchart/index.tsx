@@ -55,7 +55,7 @@ const NODE_COLOR: Record<FlowNodeKind, string> = {
   start: '#00b42a',
   process: '#ff6700',
   decision: '#ff7d00',
-  sub: '#722ed1',
+  sub: '#8c5dcc',
   end: '#f53f3f',
   note: '#86909c',
 }

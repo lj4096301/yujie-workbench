@@ -111,22 +111,28 @@ const getWeatherIcon = (icon: string) => {
   return iconMap[icon] || '🌤️'
 }
 
+/** 等级色阶（设计规范 §2.1b）：绿 → 红六级，AQI / 紫外线 / 生活指数共用；
+ *  S=52%，逐色相反解明度，白底对比度 4.6 → 6.5 随严重度加重 */
+const LEVEL_COLORS = ['#2a8557', '#48842a', '#7d7627', '#976430', '#a74c35', '#a93535']
+/** 说明性指数（穿衣等非等级信息）走次级文字色，不用色阶 */
+const INFO_COLOR = '#4e5969'
+
 const getAqiLevel = (aqi: number) => {
-  if (aqi <= 50) return { text: '优', color: '#52c41a' }
-  if (aqi <= 100) return { text: '良', color: '#1677ff' }
-  if (aqi <= 150) return { text: '轻度污染', color: '#faad14' }
-  if (aqi <= 200) return { text: '中度污染', color: '#ff7a45' }
-  if (aqi <= 300) return { text: '重度污染', color: '#f5222d' }
-  return { text: '严重污染', color: '#a8071a' }
+  if (aqi <= 50) return { text: '优', color: LEVEL_COLORS[0] }
+  if (aqi <= 100) return { text: '良', color: LEVEL_COLORS[1] }
+  if (aqi <= 150) return { text: '轻度污染', color: LEVEL_COLORS[2] }
+  if (aqi <= 200) return { text: '中度污染', color: LEVEL_COLORS[3] }
+  if (aqi <= 300) return { text: '重度污染', color: LEVEL_COLORS[4] }
+  return { text: '严重污染', color: LEVEL_COLORS[5] }
 }
 
 /** 紫外线等级（WHO 标准） */
 const getUvLevel = (uv: number) => {
-  if (uv < 3) return { text: '弱', color: '#52c41a', advice: '紫外线弱，无需防护' }
-  if (uv < 6) return { text: '中等', color: '#faad14', advice: '紫外线中等，建议涂防晒霜' }
-  if (uv < 8) return { text: '强', color: '#ff7a45', advice: '紫外线强，戴帽子太阳镜' }
-  if (uv < 11) return { text: '很强', color: '#f5222d', advice: '紫外线很强，避免正午外出' }
-  return { text: '极强', color: '#a8071a', advice: '紫外线极强，尽量不外出' }
+  if (uv < 3) return { text: '弱', color: LEVEL_COLORS[0], advice: '紫外线弱，无需防护' }
+  if (uv < 6) return { text: '中等', color: LEVEL_COLORS[1], advice: '紫外线中等，建议涂防晒霜' }
+  if (uv < 8) return { text: '强', color: LEVEL_COLORS[2], advice: '紫外线强，戴帽子太阳镜' }
+  if (uv < 11) return { text: '很强', color: LEVEL_COLORS[3], advice: '紫外线很强，避免正午外出' }
+  return { text: '极强', color: LEVEL_COLORS[5], advice: '紫外线极强，尽量不外出' }
 }
 
 /** 生活指数（对标和风/彩云，由天气要素本地派生） */
@@ -142,14 +148,14 @@ function getLifeIndices(weather: WeatherData): Array<{ icon: string; name: strin
       icon: '👕',
       name: '穿衣',
       level: t >= 28 ? '短袖' : t >= 22 ? '短袖/薄外套' : t >= 15 ? '外套' : t >= 5 ? '大衣/羽绒服' : '厚羽绒服',
-      color: '#1677ff',
+      color: INFO_COLOR,
       desc: t >= 28 ? '天气炎热，穿透气短袖' : t >= 15 ? '早晚温差大，备件外套' : '气温低，注意保暖',
     },
     {
       icon: '☂️',
       name: '雨伞',
       level: hasRain || hasSnow || maxPrecip >= 40 ? '带伞' : maxPrecip >= 20 ? '建议携带' : '不用带',
-      color: hasRain || maxPrecip >= 40 ? '#f5222d' : '#52c41a',
+      color: hasRain || maxPrecip >= 40 ? LEVEL_COLORS[4] : LEVEL_COLORS[0],
       desc: maxPrecip > 0 ? `今日降水概率 ${maxPrecip}%` : '今天基本不会下雨',
     },
     {
@@ -163,21 +169,21 @@ function getLifeIndices(weather: WeatherData): Array<{ icon: string; name: strin
       icon: '🏃',
       name: '运动',
       level: t > 32 || t < -5 || hasRain ? '较不宜' : t >= 10 && t <= 28 ? '适宜' : '一般',
-      color: t >= 10 && t <= 28 && !hasRain ? '#52c41a' : '#faad14',
+      color: t >= 10 && t <= 28 && !hasRain ? LEVEL_COLORS[0] : LEVEL_COLORS[2],
       desc: t > 32 ? '高温天运动易中暑' : t < -5 ? '严寒天气户外运动伤身' : hasRain ? '雨天路滑，建议室内运动' : '气温舒适，适合户外活动',
     },
     {
       icon: '🚗',
       name: '洗车',
       level: maxPrecip >= 40 || hasRain ? '不宜' : maxPrecip >= 20 ? '一般' : '适宜',
-      color: maxPrecip >= 40 || hasRain ? '#f5222d' : '#52c41a',
+      color: maxPrecip >= 40 || hasRain ? LEVEL_COLORS[4] : LEVEL_COLORS[0],
       desc: maxPrecip >= 40 ? '未来有雨，洗了白洗' : '近期无雨，可以洗车',
     },
     {
       icon: '🤧',
       name: '感冒',
       level: t >= 15 && t <= 25 && weather.humidity <= 70 ? '低发' : t < 5 || weather.humidity > 85 ? '易发' : '较易发',
-      color: t >= 15 && t <= 25 ? '#52c41a' : '#f5222d',
+      color: t >= 15 && t <= 25 ? LEVEL_COLORS[0] : LEVEL_COLORS[4],
       desc: t < 5 ? '气温骤冷，注意添衣保暖' : weather.humidity > 85 ? '湿冷天气，谨防着凉' : '温差适中，注意通风',
     },
   ]
@@ -460,10 +466,10 @@ const WeatherModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
             marginBottom: 10,
             padding: '8px 12px',
             borderRadius: 8,
-            border: '1px solid #ffcdd2',
-            background: '#fff7f7',
+            border: '1px solid rgba(245, 63, 63, 0.35)',
+            background: 'rgba(245, 63, 63, 0.05)',
             fontSize: 12,
-            color: '#f53f3f',
+            color: 'var(--error)',
           }}
         >
           <span style={{ flex: 1, minWidth: 0 }}>⚠️ {error}</span>

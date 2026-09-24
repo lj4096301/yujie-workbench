@@ -21,9 +21,9 @@
 }
 
 .kb-col.drag-over {
-  border-color: #3370ff;
+  border-color: var(--primary-color);
   border-style: dashed;
-  background: #e8f3ff;
+  background: var(--primary-subtle);
 }
 
 .kb-col-head {
@@ -118,7 +118,7 @@
 }
 
 .kb-del:hover {
-  color: #f53f3f;
+  color: var(--error);
 }
 
 .kb-empty {
@@ -132,8 +132,8 @@
 }
 
 .kb-empty:hover {
-  color: #3370ff;
-  border-color: #3370ff;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 
@@ -178,23 +178,23 @@
 }
 
 .kb-zone-done {
-  border-color: #94bfff;
-  background: #f0f6ff;
+  border-color: color-mix(in srgb, var(--success) 40%, transparent);
+  background: color-mix(in srgb, var(--success) 6%, transparent);
 }
 
 .kb-zone-done.drag-over {
-  background: #e8f3ff;
-  border-color: #ff6700;
+  background: var(--primary-subtle);
+  border-color: var(--primary-color);
 }
 
 .kb-zone-del {
-  border-color: #ffcdd2;
-  background: #fff7f7;
+  border-color: color-mix(in srgb, var(--error) 35%, transparent);
+  background: color-mix(in srgb, var(--error) 5%, transparent);
 }
 
 .kb-zone-del.drag-over {
-  background: #ffece8;
-  border-color: #f53f3f;
+  background: color-mix(in srgb, var(--error) 10%, transparent);
+  border-color: var(--error);
 }
 
 .kb-zone-done .kb-zone-head,

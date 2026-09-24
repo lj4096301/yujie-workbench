@@ -213,7 +213,7 @@ body {
 }
 
 .rss-item-title:hover {
-  color: #1677ff;
+  color: var(--primary-color);
 }
 
 .rss-item-meta {
@@ -450,7 +450,7 @@ body.is-dragging iframe {
   flex-shrink: 0;
   border-radius: 6px;
   object-fit: cover;
-  color: #1677ff;
+  color: var(--primary-color);
 }
 
 .show-info {

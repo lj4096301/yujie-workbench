@@ -82,6 +82,27 @@ FullCalendar 事件条与「用户自选分类色」共用同一组色板（`EVE
 - 禁止回退 antd 高饱和色（`#52c41a` / `#faad14` / `#f5222d` / `#722ed1` / `#13c2c2`）——饱和度 68–95%，与「白底主线、禁止高饱和彩色背景」冲突。
 - 事件条文字恒为白色，**任何新色必须先验白字对比度 ≥ 4.5 才可入库**。
 - 这组色**仅用于用户自选的事件 / 分类标识**，不得充当界面功能色；功能色一律走 §2.1 的语义 Token。
+### 2.1b 等级色阶（六级，绿 → 红）
+
+AQI / 紫外线 / 生活指数这类「程度分级」文案（**文字色，白底**）用同一组色阶，定义在
+`src/modules/weather/index.tsx` 的 `LEVEL_COLORS`。生成规则与 §2.1a 同源（固定 `S = 52%`，逐色相反解明度），
+但**对比度目标随严重度递增**：4.6 → 4.6 → 4.7 → 5.0 → 5.6 → 6.5，越严重越深。
+
+| 级 | 色值 | 色相 | 白底对比度 | 用于 |
+|---|---|---|---|---|
+| 1 | `#2A8557` | 150° | 4.57 | 优 / 弱 / 适宜 / 低发 |
+| 2 | `#48842A` | 100° | 4.56 | 良 / 中等 |
+| 3 | `#7D7627` | 55° | 4.67 | 轻度污染 / 强 / 一般 |
+| 4 | `#976430` | 30° | 5.02 | 中度污染 / 很强 |
+| 5 | `#A74C35` | 12° | 5.63 | 重度污染 / 极强 / 不宜 |
+| 6 | `#A93535` | 0° | 6.47 | 严重污染 |
+
+**规则**：
+
+- 分级文案**禁止再用 antd 色**（`#52c41a` / `#faad14` / `#ff7a45` / `#f5222d` / `#a8071a`），也**禁止旧蓝 `#1677ff`**——"良"这一档原来就是旧蓝，现由第 2 级黄绿承接。
+- 说明性、非分级的指数（穿衣等）用 `INFO_COLOR` = `--text-secondary` `#4E5969`，**不得占用色阶**。
+- 这些是**文字色**，必须验「白底对比度」；§2.1a 是**填充色**，验的是「白字对比度」，两者目标不同，不要混用。
+
 ### 2.2 字体
 
 | Token | 值 |
@@ -312,6 +333,10 @@ FullCalendar 事件条与「用户自选分类色」共用同一组色板（`EVE
 | `src/modules/kanban/kanban.css` | `.kb-dot` 5px+光环 |
 | `src/components/TabBar/index.tsx` | 手机底部 Tab（首页/模块/搜索/通知/我的） |
 | `src/modules/calendar/index.tsx` | `EVENT_COLORS` 低饱和六色事件色板（§2.1a） |
+| `src/modules/weather/index.tsx` | `LEVEL_COLORS` 六级等级色阶（§2.1b）+ `INFO_COLOR` |
+| `src/components/HomeKpis/index.tsx` | 模块卡标识色（主色 / warning / success / §2.1a 藕紫） |
+| `src/modules/flowchart/index.tsx` + `flowchart.css` | 节点类型色 `NODE_COLOR`（§2.1a 藕紫用于子流程） |
+| `src/modules/kanban/kanban.css`、`ai-assistant.css`、`kpiRow.tsx` | arco 蓝族（`#165DFF`/`#3370FF`/`#94BFFF`/`#E8F3FF`/`#F0F6FF`）与红族（`#FFCDD2`/`#FFF7F7`/`#FFECE8`）已清零，改走 §2.1 Token + `color-mix` 派生 |
 
 ---
 

@@ -28,7 +28,7 @@ const HomeKpis: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) 
     { key: 'project', label: '项目', value: '--', icon: '🎯', color: '#ff6700', moduleId: 'kanban' },
     { key: 'doing', label: '进行中', value: '--', icon: '⚡', color: '#ff7d00', moduleId: 'tasks' },
     { key: 'today', label: '今日日程', value: '--', icon: '📅', color: '#00b42a', moduleId: 'calendar' },
-    { key: 'knowledge', label: '知识条目', value: '--', icon: '📚', color: '#722ed1', moduleId: 'knowledge' },
+    { key: 'knowledge', label: '知识条目', value: '--', icon: '📚', color: '#8c5dcc', moduleId: 'knowledge' },
   ])
 
   useEffect(() => {
@@ -106,7 +106,7 @@ const HomeKpis: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) 
           value: kCount,
           sub: `${roots.length} 个分类`,
           icon: '📚',
-          color: '#722ed1',
+          color: '#8c5dcc',
           moduleId: 'knowledge',
         },
       ])

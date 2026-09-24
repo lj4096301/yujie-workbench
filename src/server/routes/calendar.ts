@@ -157,7 +157,7 @@ async function fetchFeishuEvents(start?: string, end?: string): Promise<any[]> {
       title: item.summary || '无标题',
       start: new Date(item.start_time?.timestamp * 1000).toISOString(),
       end: new Date(item.end_time?.timestamp * 1000).toISOString(),
-      color: '#1677ff',
+      color: '#367aab', // 飞书来源：低饱和雾蓝（设计规范 §2.1a）
       description: item.description || '',
       source: 'feishu',
       feishuEventId: item.event_id,

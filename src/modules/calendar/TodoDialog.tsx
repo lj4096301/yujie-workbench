@@ -34,12 +34,12 @@ function segBtnStyle(active: boolean): React.CSSProperties {
   return {
     flex: 1,
     padding: '6px 0',
-    fontSize: 13,
+    fontSize: 14,
     borderRadius: 6,
     cursor: 'pointer',
-    border: active ? '1px solid #1677ff' : '1px solid #e5e6eb',
-    background: active ? '#e8f3ff' : '#fff',
-    color: active ? '#1677ff' : '#4e5969',
+    border: active ? '1px solid var(--primary-color)' : '1px solid var(--border)',
+    background: active ? 'var(--primary-subtle)' : '#fff',
+    color: active ? 'var(--primary-color)' : 'var(--text-secondary)',
     fontWeight: active ? 600 : 400,
   }
 }

@@ -14,7 +14,7 @@ function showFatalError(title: string, detail: string) {
   box.id = 'mimo-fatal-error'
   box.style.cssText =
     'position:fixed;inset:auto 16px 16px 16px;z-index:999999;background:#fff2f0;border:1px solid #ffccc7;' +
-    'border-radius:8px;padding:12px 16px;color:#a8071a;font-size:12px;white-space:pre-wrap;' +
+    'border-radius:8px;padding:12px 16px;color:#f53f3f;font-size:12px;white-space:pre-wrap;' +
     'max-height:40vh;overflow:auto;box-shadow:0 6px 16px rgba(0,0,0,0.12);font-family:monospace'
   box.textContent = `${title}\n\n${detail}`
   document.body.appendChild(box)

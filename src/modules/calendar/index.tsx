@@ -69,12 +69,12 @@ function segBtnStyle(active: boolean): React.CSSProperties {
   return {
     flex: 1,
     padding: '6px 0',
-    fontSize: 13,
+    fontSize: 14,
     borderRadius: 6,
     cursor: 'pointer',
-    border: active ? '1px solid #ff6700' : '1px solid #e5e6eb',
-    background: active ? '#e8f3ff' : '#fff',
-    color: active ? '#ff6700' : '#4e5969',
+    border: active ? '1px solid var(--primary-color)' : '1px solid var(--border)',
+    background: active ? 'var(--primary-subtle)' : '#fff',
+    color: active ? 'var(--primary-color)' : 'var(--text-secondary)',
     fontWeight: active ? 600 : 400,
   }
 }
@@ -445,7 +445,7 @@ const CalendarModule: React.FC<{ panelId?: string }> = ({ panelId }) => {
         {/* 飞书同步状态 */}
         <div className="cal-feishu-status">
           <span>📅 飞书日历：未连接</span>
-          <Button variant="link" size="sm" style={{ fontSize: 11, padding: 0 }}>
+          <Button variant="link" size="sm" style={{ fontSize: 12, padding: 0 }}>
             去连接
           </Button>
         </div>
