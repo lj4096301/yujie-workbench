@@ -247,11 +247,10 @@ AQI / 紫外线 / 生活指数这类「程度分级」文案（**文字色，白
 | 下边框 | `1px solid var(--border)` |
 | 左 | 模块 emoji 图标 14px + 标题 **14px / 600 / `--text-primary`** |
 | 右 | 操作区（进入 / 移除），12px `--text-muted`，hover 主色 + `--primary-subtle` 底 |
-| 例外 | 宫格入口卡（`.home-card-entry`）无标题栏，整卡可点 |
 
-**内容区**（`.arco-card-body`）：`padding: 12px 16px`。
+**内容区**（`.hw-card-body`）：`padding: 12px 16px`。
 
-**功能分区**（`.hc-section`）：
+**功能分区**（`.hc-section`，见 §12 待落地）：
 
 | 项 | 值 |
 |---|---|
@@ -265,7 +264,8 @@ AQI / 紫外线 / 生活指数这类「程度分级」文案（**文字色，白
 - 卡片标题统一 **14px / 600**（原 16px / 500 不合 §2.2）；卡片阴影统一 `var(--shadow-card)` = `0 1px 2px`，禁止 `0 2px 8px` 这类厚重阴影。
 - hover 只允许抬升到 `var(--shadow-card-hover)` = `0 2px 6px rgba(0,0,0,0.06)`；禁止 `0 4px 16px` / `0 8px 24px` 浮层级阴影用到卡片上。
 - 卡片圆角 **12px**（`--radius-lg`，见 §2.3），不是控件圆角 8px；标题栏带底色时必须 `overflow: hidden`，否则底色会溢出圆角。
-- 首页上半区通用白卡（`.hw-card`）与下半区模块卡（`.home-card`）是两套组件，**共用同一套分区规则**，改一处必须同步另一处。
+- 首页卡片**只有一套组件** `.hw-card`（`src/components/home/home.css`）：上半区三卡与下半区数据/天气/宫格卡同构。
+- 原下半区模块卡 `.home-card`（`src/components/HomeCard/`）经全仓扫描确认**零引用**，已于 2026-09-25 删除；新增卡片一律走 `.hw-card`。
 
 ---
 
@@ -395,15 +395,13 @@ AQI / 紫外线 / 生活指数这类「程度分级」文案（**文字色，白
 | `src/themes/index.ts` | default 主题 = 小米橙（antd ConfigProvider） |
 | `src/styles/components.css` | Sidebar/TopBar/TabBar/Arco 选中态覆盖 |
 | `src/styles/index.css` | 断点体系、`1440px 居中`、`<600px` 手机布局 |
-| `src/components/home/home.css` | 首页三端网格 + 等宽数字 + 状态圆点 |
+| `src/components/home/home.css` | 首页三端网格 + 等宽数字 + 状态圆点 + 卡片分区（§2.8）：标题栏 40px + `--bg-subtle`，内容区 `12px 16px` |
 | `src/modules/kanban/kanban.css` | `.kb-dot` 5px+光环 |
 | `src/components/TabBar/index.tsx` | 手机底部 Tab（首页/模块/搜索/通知/我的） |
 | `src/modules/calendar/index.tsx` | `EVENT_COLORS` 低饱和六色事件色板（§2.1a） |
 | `src/modules/weather/index.tsx` | `LEVEL_COLORS` 六级等级色阶（§2.1b）+ `INFO_COLOR` |
-| `src/components/HomeKpis/index.tsx` | 模块卡标识色（主色 / warning / success / §2.1a 藕紫） |
 | `src/modules/flowchart/index.tsx` + `flowchart.css` | 节点类型色 `NODE_COLOR`（§2.1a 藕紫用于子流程） |
 | `src/modules/kanban/kanban.css`、`ai-assistant.css`、`kpiRow.tsx` | arco 蓝族（`#165DFF`/`#3370FF`/`#94BFFF`/`#E8F3FF`/`#F0F6FF`）与红族（`#FFCDD2`/`#FFF7F7`/`#FFECE8`）已清零，改走 §2.1 Token + `color-mix` 派生 |
-| `src/components/HomeCard/homecard.css` + `index.tsx` | 卡片分区（§2.8）：标题栏 40px + `--bg-subtle`，内容区 `12px 16px`，按功能分为 概览 / 状态分布 / 最近条目 / 今日天气；硬编码色值已清零 |
 
 ---
 
@@ -416,3 +414,4 @@ AQI / 紫外线 / 生活指数这类「程度分级」文案（**文字色，白
 - [ ] 首页各模块**固定尺寸卡片**设计（参考成熟工作台，非窗口缩小化）
 - [x] 组件库试集成：shadcn/ui Card（首页 KPI 卡），候选池见 `UI-LIBRARIES.md`
 - [ ] 组件库扩展：Button/Badge/统计卡等按需复制 shadcn 组件（Token 对齐）
+- [ ] `.hw-card` 体系落地 `.hc-section` 功能分区（§2.8）：看板总览拆出 概览 / 状态分布 / 最近条目 三个带小标题的分区
