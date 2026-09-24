@@ -222,7 +222,7 @@
 
 /* 看板总览 */
 .wo-project {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .wo-project-row {
@@ -230,8 +230,9 @@
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
+  line-height: 1.5;
   color: var(--text-primary, #1f2329);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .wo-project-count {
@@ -256,8 +257,8 @@
 
 .wo-stats {
   display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .wo-stat {
@@ -265,8 +266,9 @@
   text-align: center;
   background: var(--bg-subtle, #f7f8fa);
   border-radius: var(--radius-md, 8px);
-  padding: 3px 0;
+  padding: 4px 0;
   font-size: 12px;
+  line-height: 1.5;
   color: var(--text-secondary, #4e5969);
 }
 
@@ -279,17 +281,19 @@
 
 .wo-recent {
   border-top: 1px solid var(--border-light, #f2f3f5);
-  padding-top: 6px;
+  padding-top: 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .wo-recent-item {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 18px;
   font-size: 12px;
+  line-height: 1.5;
   color: var(--text-secondary, #4e5969);
   min-width: 0;
 }
@@ -307,33 +311,34 @@
   height: var(--dot-size, 5px);
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 0 0 4px var(--dot-ring, rgba(0, 0, 0, 0.12));
+  box-shadow: 0 0 0 3px var(--dot-ring, rgba(0, 0, 0, 0.12));
 }
 
 .wo-status-todo {
   background: var(--info, #ff6700);
-  box-shadow: 0 0 0 4px rgba(255, 103, 0, 0.12);
+  box-shadow: 0 0 0 3px rgba(255, 103, 0, 0.12);
 }
 
 .wo-status-doing {
   background: var(--warning, #ff7d00);
-  box-shadow: 0 0 0 4px rgba(255, 125, 0, 0.12);
+  box-shadow: 0 0 0 3px rgba(255, 125, 0, 0.12);
 }
 
 .wo-status-done {
   background: var(--success, #00b42a);
-  box-shadow: 0 0 0 4px rgba(0, 180, 42, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 180, 42, 0.12);
 }
 
 .wo-status-pri {
   background: var(--error, #f53f3f);
-  box-shadow: 0 0 0 4px rgba(245, 63, 63, 0.12);
+  box-shadow: 0 0 0 3px rgba(245, 63, 63, 0.12);
 }
 
 .wo-empty {
   padding: 16px 0;
   text-align: center;
   font-size: 12px;
+  line-height: 1.5;
   color: var(--text-muted, #86909c);
 }
 
@@ -871,11 +876,11 @@
 }
 
 .wx-aqi-ok { color: var(--success, #00b42a); }
-.wx-aqi-ok .wx-aqi-dot { background: var(--success, #00b42a); box-shadow: 0 0 0 4px rgba(0, 180, 42, 0.12); }
+.wx-aqi-ok .wx-aqi-dot { background: var(--success, #00b42a); box-shadow: 0 0 0 3px rgba(0, 180, 42, 0.12); }
 .wx-aqi-mid { color: var(--warning, #ff7d00); }
-.wx-aqi-mid .wx-aqi-dot { background: var(--warning, #ff7d00); box-shadow: 0 0 0 4px rgba(255, 125, 0, 0.12); }
+.wx-aqi-mid .wx-aqi-dot { background: var(--warning, #ff7d00); box-shadow: 0 0 0 3px rgba(255, 125, 0, 0.12); }
 .wx-aqi-bad { color: var(--error, #f53f3f); }
-.wx-aqi-bad .wx-aqi-dot { background: var(--error, #f53f3f); box-shadow: 0 0 0 4px rgba(245, 63, 63, 0.12); }
+.wx-aqi-bad .wx-aqi-dot { background: var(--error, #f53f3f); box-shadow: 0 0 0 3px rgba(245, 63, 63, 0.12); }
 
 .wx-body {
   padding-top: 2px;
