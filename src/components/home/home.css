@@ -96,7 +96,7 @@
 }
 
 .hw-banner-clock-hm {
-  font-size: 30px;
+  font-size: var(--fs-display-sm);
   font-weight: 600;
   color: var(--text-primary, #1f2329);
   letter-spacing: 1px;
@@ -127,7 +127,7 @@
 }
 
 .hw-banner-wicon {
-  font-size: 22px;
+  font-size: var(--fs-xxl);
   line-height: 1;
 }
 
@@ -674,7 +674,7 @@
 }
 
 .hw-empty-icon {
-  font-size: 40px;
+  font-size: var(--fs-display-md);
   margin-bottom: 12px;
 }
 
@@ -754,7 +754,7 @@
   .hw-kpi-cell-value { font-size: 20px; }
 
   /* 天气卡：全宽紧凑（温度 44px、图标 26px） */
-  .wx-win-temp { font-size: 44px; }
+  .wx-win-temp { font-size: var(--fs-display-md); }
   .wx-win-icon svg { width: 26px !important; height: 26px !important; }
   .wx-win-main { padding: 10px 2px 12px; }
   .wx-win-meta { gap: 12px; padding: 8px 2px 0; }
@@ -793,7 +793,7 @@
 }
 
 .wx-win-temp {
-  font-size: 52px;
+  font-size: var(--fs-display-lg);
   font-weight: 300;
   line-height: 1;
   color: var(--text-primary, #1d2129);
@@ -882,7 +882,7 @@
 }
 
 .wx-temp {
-  font-size: 34px;
+  font-size: var(--fs-display-md);
   font-weight: 600;
   line-height: 1.1;
   color: var(--text-primary, #1f2329);
@@ -891,7 +891,7 @@
 }
 
 .wx-icon {
-  font-size: 26px;
+  font-size: var(--fs-display-sm);
   line-height: 1;
 }
 
@@ -964,7 +964,7 @@
 }
 
 .hw-kpi-cell-value {
-  font-size: 22px;
+  font-size: var(--fs-xxl);
   font-weight: 600;
   color: var(--text-primary, #1f2329);
   font-family: var(--font-num, ui-monospace, monospace);
@@ -997,7 +997,7 @@
 /* ---------- 手机端首页卡片最终覆盖（置于末尾确保优先级） ---------- */
 @media (max-width: 599px) {
   /* 天气卡：温度 44px、图标 26px、间距收紧（高特异性覆盖主定义） */
-  .hw-card .wx-win-temp { font-size: 44px; }
+  .hw-card .wx-win-temp { font-size: var(--fs-display-md); }
   .wx-win-icon { width: 26px !important; height: 26px !important; }
   .hw-card .wx-win-main { padding: 10px 2px 12px; }
   .hw-card .wx-win-meta { gap: 12px; padding: 8px 2px 0; }

@@ -134,7 +134,7 @@
 }
 
 .flow-empty-icon {
-  font-size: 40px;
+  font-size: var(--fs-display-md);
   opacity: 0.6;
 }
 

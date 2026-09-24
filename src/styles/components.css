@@ -510,7 +510,7 @@
 }
 
 .home-empty-icon {
-  font-size: 44px;
+  font-size: var(--fs-display-lg);
   opacity: 0.4;
 }
 
@@ -592,7 +592,7 @@
 }
 
 .home-header-wicon {
-  font-size: 22px;
+  font-size: var(--fs-xxl);
   line-height: 1;
 }
 
@@ -835,7 +835,7 @@
 }
 
 .tabbar-module-icon {
-  font-size: 22px;
+  font-size: var(--fs-xxl);
   line-height: 1;
 }
 

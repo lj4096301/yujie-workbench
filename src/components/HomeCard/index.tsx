@@ -59,20 +59,26 @@ const StatRow: React.FC<{ s: Summary }> = ({ s }) => (
 /** 看板：Arco Statistic + 三态统计 + Arco Progress */
 const KanbanBody: React.FC<{ s: Summary }> = ({ s }) => (
   <div className="hc-body">
-    <StatRow s={s} />
-    <div className="hc-kanban-stats">
-      {(s.stats ?? []).map((st) => (
-        <div className="hc-kanban-stat" key={st.label}>
-          <span className="hc-kanban-stat-value" style={{ color: st.color }}>
-            {st.value}
-          </span>
-          <span className="hc-kanban-stat-label">{st.label}</span>
-        </div>
-      ))}
+    <div className="hc-section">
+      <div className="hc-section-title">概览</div>
+      <StatRow s={s} />
     </div>
-    <div className="hc-progress">
-      <Progress percent={s.progress ?? 0} size="small" status="success" />
-      <span className="hc-progress-text">{s.progress ?? 0}%</span>
+    <div className="hc-section">
+      <div className="hc-section-title">状态分布</div>
+      <div className="hc-kanban-stats">
+        {(s.stats ?? []).map((st) => (
+          <div className="hc-kanban-stat" key={st.label}>
+            <span className="hc-kanban-stat-value" style={{ color: st.color }}>
+              {st.value}
+            </span>
+            <span className="hc-kanban-stat-label">{st.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="hc-progress">
+        <Progress percent={s.progress ?? 0} size="small" status="success" />
+        <span className="hc-progress-text">{s.progress ?? 0}%</span>
+      </div>
     </div>
   </div>
 )
@@ -91,7 +97,11 @@ const WeatherBody: React.FC<{ s: Summary }> = ({ s }) => {
   }
   return (
     <div className="hc-body hc-weather">
-      <WeatherCard source={source} size="wide-small" city={w.city ?? s.tag ?? '北京'} />
+      {/* 单个复合部件：内部已含当前 + 预报，仍给小标题说明这块内容是什么 */}
+      <div className="hc-section">
+        <div className="hc-section-title">今日天气</div>
+        <WeatherCard source={source} size="wide-small" city={w.city ?? s.tag ?? '北京'} />
+      </div>
     </div>
   )
 }
@@ -99,19 +109,25 @@ const WeatherBody: React.FC<{ s: Summary }> = ({ s }) => {
 /** 通用列表卡：待办 / 日程 / 书签 / 知识库（Statistic + 列表） */
 const ListBody: React.FC<{ s: Summary }> = ({ s }) => (
   <div className="hc-body">
-    <StatRow s={s} />
-    {s.list && s.list.length > 0 ? (
-      <ul className="hc-list">
-        {s.list.map((it, i) => (
-          <li key={i}>
-            {it.time && <span className="hc-list-time">{it.time}</span>}
-            <span className="hc-list-text">{it.text}</span>
-          </li>
-        ))}
-      </ul>
-    ) : (
-      <div className="hc-empty">暂无内容</div>
-    )}
+    <div className="hc-section">
+      <div className="hc-section-title">概览</div>
+      <StatRow s={s} />
+    </div>
+    <div className="hc-section">
+      <div className="hc-section-title">最近条目</div>
+      {s.list && s.list.length > 0 ? (
+        <ul className="hc-list">
+          {s.list.map((it, i) => (
+            <li key={i}>
+              {it.time && <span className="hc-list-time">{it.time}</span>}
+              <span className="hc-list-text">{it.text}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="hc-empty">暂无内容</div>
+      )}
+    </div>
   </div>
 )
 

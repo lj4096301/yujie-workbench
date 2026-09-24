@@ -369,7 +369,7 @@ body.is-dragging iframe {
 }
 
 .weather-temp {
-  font-size: 44px;
+  font-size: var(--fs-display-lg);
   font-weight: 300;
   line-height: 1;
   font-variant-numeric: tabular-nums;
