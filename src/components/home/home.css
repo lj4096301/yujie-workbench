@@ -1,6 +1,6 @@
 /* ============================================================
    首页工作台样式 · Mi Console v3 Token
-   布局：欢迎横幅 → KPI 摘要行 → 主工作区 → 工具卡 + 更多宫格
+   布局：主工作区（看板/待办/日程）→ 数据卡 + 天气卡 + 更多宫格
    结构断点：840px（两栏）/ 600px（单栏）；密度：1280/1024/768
    ============================================================ */
 
@@ -53,166 +53,7 @@
   padding: 12px 16px;
 }
 
-/* ---------- ① 欢迎横幅（大时钟 + 简天气） ---------- */
-.hw-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 14px 20px;
-}
-
-.hw-banner-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.hw-banner-greet {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary, #1f2329);
-  line-height: 1.4;
-}
-
-.hw-banner-date {
-  font-size: 14px;
-  color: var(--text-secondary, #4e5969);
-  line-height: 1.5;
-}
-
-/* banner hover 动效（与可点卡片统一） */
-.hw-banner {
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
-}
-
-.hw-banner:hover {
-  box-shadow: var(--shadow-card-hover, 0 2px 6px rgba(0, 0, 0, 0.06));
-  transform: translateY(-1px);
-}
-
-/* 大时钟：HH:mm 主 + 秒辅助 */
-.hw-banner-clock {
-  display: flex;
-  align-items: baseline;
-  font-family: var(--font-num, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.hw-banner-clock-hm {
-  font-size: var(--fs-display-sm);
-  font-weight: 600;
-  color: var(--text-primary, #1f2329);
-  letter-spacing: 1px;
-}
-
-.hw-banner-clock-sec {
-  font-size: 14px;
-  color: var(--text-muted, #86909c);
-  margin-left: 2px;
-}
-
-.hw-banner-right {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
-/* 简天气：图标 + 温度 + 描述（详细指标在天气卡，不重复） */
-.hw-banner-weather {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: var(--bg-subtle, #f7f8fa);
-  border: 1px solid var(--border-light, #f2f3f5);
-  border-radius: var(--radius-md, 8px);
-}
-
-.hw-banner-wicon {
-  font-size: var(--fs-xxl);
-  line-height: 1;
-}
-
-.hw-banner-temp {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary, #1f2329);
-  font-family: var(--font-num, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-}
-
-.hw-banner-wdesc {
-  font-size: 12px;
-  color: var(--text-secondary, #4e5969);
-  line-height: 1.5;
-}
-
-/* ---------- ② KPI 摘要行 ---------- */
-.hw-kpis {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.hw-kpi {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
-}
-
-.hw-kpi:hover {
-  box-shadow: var(--shadow-card-hover, 0 2px 6px rgba(0, 0, 0, 0.06));
-  transform: translateY(-1px);
-}
-
-.hw-kpi-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-md, 8px);
-  font-size: 14px;
-  flex-shrink: 0;
-}
-
-.hw-kpi-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.hw-kpi-label {
-  font-size: 12px;
-  color: var(--text-muted, #86909c);
-  line-height: 1.4;
-}
-
-.hw-kpi-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary, #1f2329);
-  line-height: 1.3;
-  font-family: var(--font-num, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-}
-
-.hw-kpi-sub {
-  font-size: 12px;
-  color: var(--text-muted, #86909c);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ---------- ③ 主工作区：看板 / 待办 / 日程 一行三等宽 ---------- */
+/* ---------- ① 主工作区：看板 / 待办 / 日程 一行三等宽 ---------- */
 .hw-main {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -386,11 +227,6 @@
   border-color: var(--primary-color, #ff6700);
 }
 
-.td-check-on {
-  background: var(--primary-color, #ff6700);
-  border-color: var(--primary-color, #ff6700);
-}
-
 .td-title {
   flex: 1;
   font-size: 12px;
@@ -407,7 +243,7 @@
   color: var(--text-muted, #86909c);
 }
 
-/* ---------- ④ 数据统计卡 + 日期天气卡 + 更多功能 ----------
+/* ---------- ② 数据统计卡 + 日期天气卡 + 更多功能 ----------
    KPI 数据卡与天气卡尺寸对齐 Windows 小组件卡（340px 宽）；
    更多功能卡自适应剩余宽度 */
 .hw-tools {
@@ -490,7 +326,7 @@
 .cal-today-events {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 /* 今日待办：未完成计数徽标 */
@@ -511,66 +347,6 @@
 
 .td-empty-emoji {
   font-size: 20px;
-}
-
-.tg-weather-hourly {
-  display: flex;
-  border-top: 1px solid var(--border-light, #f2f3f5);
-  padding-top: 6px;
-}
-
-.tg-hour {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  font-size: 12px;
-  color: var(--text-muted, #86909c);
-}
-
-.tg-hour-icon {
-  font-size: 14px;
-  line-height: 1;
-}
-
-.tg-hour-temp {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary, #1f2329);
-  font-family: var(--font-num, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-}
-
-.tg-weather-metrics {
-  display: flex;
-  border-top: 1px solid var(--border-light, #f2f3f5);
-  padding-top: 6px;
-  margin-top: 6px;
-}
-
-.tg-metric {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  font-size: 12px;
-  color: var(--text-muted, #86909c);
-}
-
-.tg-metric b {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary, #1f2329);
-  font-family: var(--font-num, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-}
-
-.tg-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .tg-list-item {
@@ -603,14 +379,7 @@
   flex-shrink: 0;
 }
 
-.tg-empty {
-  padding: 12px 0;
-  text-align: center;
-  font-size: 12px;
-  color: var(--text-muted, #86909c);
-}
-
-/* ---------- ⑤ 更多功能卡：低频图标等宽格子 + 文本对齐 ---------- */
+/* ---------- ③ 更多功能卡：低频图标等宽格子 + 文本对齐 ---------- */
 .mg-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
@@ -730,14 +499,12 @@
 
 /* 密度 1280px：卡片间距收紧 */
 @media (max-width: 1280px) {
-  .hw-kpis { gap: 10px; }
   .hw-main { gap: 10px; }
   .hw-tools { gap: 10px; }
 }
 
 /* 密度 1024px：间距微调 */
 @media (max-width: 1024px) {
-  .hw-kpis { gap: 8px; }
   .hw-main { gap: 8px; }
   .hw-tools { gap: 8px; }
 }
@@ -746,12 +513,10 @@
 @media (max-width: 768px) {
   .hw-card-head { padding: 0 12px; }
   .hw-card-body { padding: 12px; }
-  .hw-banner { padding: 10px 12px; }
 }
 
 /* 结构 600–839px：平板两栏（侧栏 + 内容两栏） */
 @media (max-width: 839px) and (min-width: 600px) {
-  .hw-kpis { gap: 10px; grid-template-columns: repeat(2, 1fr); }
   .hw-main { grid-template-columns: 1fr; }
   .hw-tools { grid-template-columns: 1fr 1fr; }
   .mg-grid { grid-template-columns: repeat(3, 1fr); }
@@ -760,14 +525,9 @@
 
 /* 结构 <600px：手机单栏 + 卡片触控/密度优化 */
 @media (max-width: 599px) {
-  .hw-kpis { gap: 8px; grid-template-columns: 1fr 1fr; }
   .hw-main { gap: 12px; grid-template-columns: 1fr; }
   .hw-tools { gap: 12px; grid-template-columns: 1fr; }
   .mg-grid { grid-template-columns: repeat(2, 1fr); }
-  .hw-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .hw-banner-right { flex-wrap: wrap; gap: 8px; }
-  .hw-banner-temp { font-size: 18px; }
-
   /* KPI 数据卡：纵向行，收紧 */
   .hw-kpi-cell { padding: 10px 14px; }
   .hw-kpi-cell-value { font-size: 20px; }
@@ -791,7 +551,6 @@
   /* 更多功能：触控热区 ≥36px */
   .mg-item { min-height: 36px; padding: 6px 10px; }
   .mg-icon { width: 22px; height: 22px; font-size: 16px; }
-
 }
 
 /* ---------- 天气卡（小米风格） ---------- */
@@ -890,52 +649,6 @@
   padding-top: 2px;
 }
 
-.wx-hero {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 2px 0 8px;
-}
-
-.wx-temp {
-  font-size: var(--fs-display-md);
-  font-weight: 600;
-  line-height: 1.1;
-  color: var(--text-primary, #1f2329);
-  font-family: var(--font-num, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-}
-
-.wx-icon {
-  font-size: var(--fs-display-sm);
-  line-height: 1;
-}
-
-.wx-metrics {
-  display: flex;
-  gap: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-light, #f2f3f5);
-  margin-bottom: 6px;
-}
-
-.wx-metric {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  font-size: 12px;
-  color: var(--text-muted, #86909c);
-}
-
-.wx-metric b {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary, #1f2329);
-  font-family: var(--font-num, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ---------- KPI 数据卡（单个卡片，4 个数据纵向排列） ---------- */
 /* KPI 数据卡（规范 §2.8）：与 .hw-card 同一卡片形态 —— 边框 + 圆角 12px + 标题栏 */
 .hw-kpi-strip {
@@ -1019,7 +732,6 @@
   box-shadow: var(--shadow-card-hover, 0 2px 6px rgba(0, 0, 0, 0.06));
   transform: translateY(-1px);
 }
-
 
 /* ---------- 手机端首页卡片最终覆盖（置于末尾确保优先级） ---------- */
 @media (max-width: 599px) {

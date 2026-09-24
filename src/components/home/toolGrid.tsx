@@ -231,16 +231,12 @@ const CalendarTool: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen
           </div>
         </div>
         <div className="cal-today-events">
-          {todayEvents.length === 0 ? (
-            <div className="tg-empty">今日暂无安排</div>
-          ) : (
-            todayEvents.map((e, i) => (
-              <div key={e.id ?? i} className="tg-list-item">
-                <span className="tg-list-title">🔸 {e.title ?? ''}</span>
-                {e.start && <span className="tg-list-time">{e.start.slice(11, 16)}</span>}
-              </div>
-            ))
-          )}
+          {todayEvents.map((e, i) => (
+            <div key={e.id ?? i} className="tg-list-item">
+              <span className="tg-list-title">🔸 {e.title ?? ''}</span>
+              {e.start && <span className="tg-list-time">{e.start.slice(11, 16)}</span>}
+            </div>
+          ))}
         </div>
       </div>
     </div>
