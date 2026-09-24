@@ -36,6 +36,26 @@ function statusBadge(status?: string): string {
   return 'wo-status wo-status-' + (status === 'done' ? 'done' : status === 'doing' ? 'doing' : 'todo')
 }
 
+interface CalEvent {
+  id?: string
+  title?: string
+  start?: string
+  end?: string
+  color?: string
+  source?: string
+}
+
+function fmtTodayStr(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** 日程事件时间标签（保留存储的 ISO 墙钟，避免时区漂移） */
+function fmtEventWhen(s?: string): string {
+  if (!s) return ''
+  return (s.slice(0, 16) || '').replace('T', ' ')
+}
+
 /** ③ 左：看板总览——项目进度条 + 三态计数 + 最近卡片 */
 const KanbanOverview: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
   const [data, setData] = useState<KanbanData | null>(null)
@@ -137,28 +157,53 @@ const KanbanOverview: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOp
   )
 }
 
-/** ③ 右：今日待办（微软待办风格）——未完成计数徽标 + 勾选圆环列表，数据走后端持久化 */
+/** ③ 右：今日待办（微软待办风格）——未完成计数徽标 + 勾选列表，数据走后端持久化
+ *  合并展示：未完成任务（tasks.json）+ 即将到来的日程（calendar-events.json），
+ *  让「在日程上建立的待办」也能在首页待办卡看到 */
 const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen }) => {
-  const [list, setList] = useState<TodoItem[]>([])
+  const [tasks, setTasks] = useState<TodoItem[]>([])
+  const [events, setEvents] = useState<CalEvent[]>([])
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/tasks')
+    const today = fmtTodayStr()
+    const end = (() => {
+      const d = new Date()
+      d.setDate(d.getDate() + 60)
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    })()
+    const startTs = new Date(`${today}T00:00:00`).getTime()
+
+    const pTasks = fetch('/api/tasks')
       .then((r) => (r.ok ? r.json() : []))
-      .then((d) => {
-        if (!cancelled) setList((Array.isArray(d) ? d : []).filter((t: TodoItem) => !t.done))
-      })
-      .catch(() => undefined)
+      .then((d) => (Array.isArray(d) ? d : []).filter((t: TodoItem) => !t.done))
+      .catch(() => [] as TodoItem[])
+
+    const pEvents = fetch(`/api/calendar/events?start=${today}&end=${end}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) =>
+        (Array.isArray(d) ? d : []).filter(
+          (e: CalEvent) => new Date(e.start ?? '').getTime() >= startTs
+        )
+      )
+      .catch(() => [] as CalEvent[])
+
+    Promise.all([pTasks, pEvents]).then(([t, e]) => {
+      if (!cancelled) {
+        setTasks(t)
+        setEvents(e)
+      }
+    })
     return () => {
       cancelled = true
     }
   }, [])
 
   const toggle = (id: string) => {
-    const target = list.find((t) => t.id === id)
+    const target = tasks.find((t) => t.id === id)
     if (!target) return
     const nextDone = !target.done
-    setList(list.filter((t) => t.id !== id))
+    setTasks(tasks.filter((t) => t.id !== id))
     fetch(`/api/tasks/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -166,7 +211,11 @@ const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen })
     }).catch(() => undefined)
   }
 
-  const undone = list.length
+  const upcoming = [...events]
+    .sort((a, b) => new Date(a.start ?? '').getTime() - new Date(b.start ?? '').getTime())
+    .slice(0, 4)
+
+  const total = tasks.length + upcoming.length
 
   return (
     <div
@@ -176,20 +225,20 @@ const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen })
       style={{ cursor: 'pointer' }}
     >
       <div className="hw-card-head">
-        <span className="hw-card-title">✅ 今日待办</span>
-        {undone > 0 && (
-          <span className="td-badge num-mono" title={`${undone} 条未完成`}>{undone}</span>
+        <span className="hw-card-title">✅ 待办 · 日程</span>
+        {total > 0 && (
+          <span className="td-badge num-mono" title={`${total} 条未完成 / 待办`}>{total}</span>
         )}
       </div>
       <div className="hw-card-body">
-        {list.length === 0 ? (
+        {total === 0 ? (
           <div className="td-empty">
             <span className="td-empty-emoji">🎉</span>
             <span>待办已清空，休息一下</span>
           </div>
         ) : (
           <div className="td-list">
-            {list.slice(0, 6).map((t) => (
+            {tasks.slice(0, 6).map((t) => (
               <div key={t.id} className="td-item">
                 <span
                   className="td-check"
@@ -204,7 +253,27 @@ const TodayTodo: React.FC<{ onOpen: (moduleId: string) => void }> = ({ onOpen })
                 <span className="td-title">{t.title ?? ''}</span>
               </div>
             ))}
-            {list.length > 6 && <div className="td-empty">还有 {list.length - 6} 条待办</div>}
+            {upcoming.length > 0 && (
+              <>
+                <div className="td-sep">📅 来自日程</div>
+                {upcoming.map((e) => (
+                  <div
+                    key={e.id}
+                    className="td-item td-event"
+                    onClick={(ev) => {
+                      ev.stopPropagation()
+                      onOpen('calendar')
+                    }}
+                    title="进入日程查看"
+                  >
+                    <span className="td-cal-dot" style={{ background: e.color || '#1677ff' }} />
+                    <span className="td-title">{e.title ?? ''}</span>
+                    <span className="td-date num-mono">{fmtEventWhen(e.start)}</span>
+                  </div>
+                ))}
+              </>
+            )}
+            {tasks.length > 6 && <div className="td-empty">还有 {tasks.length - 6} 条待办</div>}
           </div>
         )}
       </div>

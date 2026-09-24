@@ -381,6 +381,35 @@
   white-space: nowrap;
 }
 
+/* 日程事件在待办卡中的展示（合并视图） */
+.td-sep {
+  margin: 6px 0 2px;
+  font-size: 11px;
+  color: var(--text-muted, #86909c);
+  font-weight: 500;
+}
+
+.td-event {
+  cursor: pointer;
+}
+
+.td-event:hover {
+  background: var(--hover-bg, #f7f8fa);
+}
+
+.td-cal-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.td-date {
+  font-size: 11px;
+  color: var(--text-muted, #86909c);
+  flex-shrink: 0;
+}
+
 .td-empty {
   padding: 14px 0;
   text-align: center;
